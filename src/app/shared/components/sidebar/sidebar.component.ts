@@ -118,8 +118,13 @@ export class SidebarComponent implements OnInit {
 
   ngOnInit(): void {
     // Set active menu item based on current route
+
     this.router.events
-      .pipe(filter((event) => event instanceof NavigationEnd))
+      .pipe(
+        filter(
+          (event): event is NavigationEnd => event instanceof NavigationEnd
+        )
+      )
       .subscribe((event: NavigationEnd) => {
         this.setActiveMenuItem(event.url);
       });

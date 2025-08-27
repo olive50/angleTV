@@ -1,0 +1,133 @@
+<div class="room-form-container">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">
+        {{ isEditMode ? "Edit Room" : "Add New Room" }}
+      </h1>
+      <p class="page-subtitle">
+        {{
+          isEditMode ? "Update room information" : "Add a new room to the hotel"
+        }}
+      </p>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <form [formGroup]="roomForm" (ngSubmit)="onSubmit()" class="room-form">
+      <div class="form-section">
+        <h3>Room Details</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="roomNumber">Room Number *</label>
+            <input
+              type="text"
+              id="roomNumber"
+              formControlName="roomNumber"
+              class="form-control"
+              placeholder="e.g., 101"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="roomType">Room Type *</label>
+            <select
+              id="roomType"
+              formControlName="roomType"
+              class="form-control"
+            >
+              <option *ngFor="let type of roomTypes" [value]="type.value">
+                {{ type.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="floorNumber">Floor Number *</label>
+            <input
+              type="number"
+              id="floorNumber"
+              formControlName="floorNumber"
+              class="form-control"
+              min="1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="building">Building *</label>
+            <input
+              type="text"
+              id="building"
+              formControlName="building"
+              class="form-control"
+              placeholder="e.g., Main Building"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="maxOccupancy">Max Occupancy *</label>
+            <input
+              type="number"
+              id="maxOccupancy"
+              formControlName="maxOccupancy"
+              class="form-control"
+              min="1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="pricePerNight">Price Per Night *</label>
+            <input
+              type="number"
+              id="pricePerNight"
+              formControlName="pricePerNight"
+              class="form-control"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            formControlName="description"
+            class="form-control"
+            rows="3"
+            placeholder="Room description..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onCancel()"
+          [disabled]="submitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="roomForm.invalid || submitting"
+        >
+          {{
+            submitting
+              ? "Saving..."
+              : isEditMode
+              ? "Update Room"
+              : "Create Room"
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

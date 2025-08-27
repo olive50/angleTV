@@ -1,0 +1,128 @@
+<div class="general-settings">
+  <div class="settings-header">
+    <h2 class="settings-title">General Settings</h2>
+    <p class="settings-subtitle">
+      Configure basic hotel and system information
+    </p>
+  </div>
+
+  <form [formGroup]="generalForm" (ngSubmit)="onSubmit()" class="settings-form">
+    <div class="form-section">
+      <h3>Hotel Information</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="hotelName">Hotel Name *</label>
+          <input
+            type="text"
+            id="hotelName"
+            formControlName="hotelName"
+            class="form-control"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="hotelEmail">Hotel Email *</label>
+          <input
+            type="email"
+            id="hotelEmail"
+            formControlName="hotelEmail"
+            class="form-control"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="hotelAddress">Hotel Address *</label>
+        <textarea
+          id="hotelAddress"
+          formControlName="hotelAddress"
+          class="form-control"
+          rows="2"
+        ></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="hotelPhone">Hotel Phone *</label>
+        <input
+          type="tel"
+          id="hotelPhone"
+          formControlName="hotelPhone"
+          class="form-control"
+        />
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>Regional Settings</h3>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="timezone">Timezone *</label>
+          <select id="timezone" formControlName="timezone" class="form-control">
+            <option value="Africa/Algiers">Africa/Algiers (GMT+1)</option>
+            <option value="Europe/Paris">Europe/Paris (GMT+1)</option>
+            <option value="Europe/London">Europe/London (GMT+0)</option>
+            <option value="America/New_York">America/New_York (GMT-5)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="currency">Currency *</label>
+          <select id="currency" formControlName="currency" class="form-control">
+            <option value="DZD">Algerian Dinar (DZD)</option>
+            <option value="EUR">Euro (EUR)</option>
+            <option value="USD">US Dollar (USD)</option>
+            <option value="GBP">British Pound (GBP)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="language">Default Language *</label>
+          <select id="language" formControlName="language" class="form-control">
+            <option value="en">English</option>
+            <option value="ar">العربية (Arabic)</option>
+            <option value="fr">Français (French)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="dateFormat">Date Format *</label>
+          <select
+            id="dateFormat"
+            formControlName="dateFormat"
+            class="form-control"
+          >
+            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="timeFormat">Time Format *</label>
+        <select
+          id="timeFormat"
+          formControlName="timeFormat"
+          class="form-control"
+        >
+          <option value="24h">24 Hours (14:30)</option>
+          <option value="12h">12 Hours (2:30 PM)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="generalForm.invalid || submitting"
+      >
+        {{ submitting ? "Saving..." : "Save Settings" }}
+      </button>
+    </div>
+  </form>
+</div>

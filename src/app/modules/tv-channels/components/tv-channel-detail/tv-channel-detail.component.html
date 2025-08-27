@@ -1,0 +1,75 @@
+<div class="channel-detail-container" *ngIf="!loading && channel">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">{{ channel.name }}</h1>
+      <p class="page-subtitle">Channel {{ channel.channelNumber }} Details</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Back to List
+      </button>
+      <button class="btn btn-primary" (click)="editChannel()">
+        <i class="fas fa-edit"></i>
+        Edit Channel
+      </button>
+      <button class="btn btn-danger" (click)="deleteChannel()">
+        <i class="fas fa-trash"></i>
+        Delete
+      </button>
+    </div>
+  </div>
+
+  <div class="channel-detail-content">
+    <div class="channel-info-card">
+      <div class="channel-logo" *ngIf="channel.logoUrl">
+        <img [src]="channel.logoUrl" [alt]="channel.name" />
+      </div>
+
+      <div class="channel-details">
+        <div class="detail-row">
+          <label>Channel Number:</label>
+          <span>{{ channel.channelNumber }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Name:</label>
+          <span>{{ channel.name }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="channel.description">
+          <label>Description:</label>
+          <span>{{ channel.description }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>IP Address:</label>
+          <span>{{ channel.ip }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Port:</label>
+          <span>{{ channel.port }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="channel.category">
+          <label>Category:</label>
+          <span class="status-badge status-info">{{
+            channel.category.name
+          }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="channel.language">
+          <label>Language:</label>
+          <span class="status-badge status-secondary"
+            >{{ channel.language.name }} ({{ channel.language.code }})</span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="loading" class="empty-state">
+  <app-loading></app-loading>
+</div>

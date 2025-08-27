@@ -4,8 +4,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 import { RoomsListComponent } from './components/rooms-list/rooms-list.component';
-import { RoomFormComponent } from './components/room-form/room-form.component';
+
 import { RoomDetailComponent } from './components/room-detail/room-detail.component';
+import { RoomFormComponent } from './room-form/room-form.component';
 
 const routes: Routes = [
   { path: '', component: RoomsListComponent },

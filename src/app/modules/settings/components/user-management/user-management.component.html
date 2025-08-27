@@ -1,0 +1,140 @@
+<div class="user-management">
+  <div class="settings-header">
+    <h2 class="settings-title">User Management</h2>
+    <p class="settings-subtitle">Manage system users and their permissions</p>
+  </div>
+
+  <div class="user-management-controls">
+    <div class="search-filters">
+      <div class="search-input-container">
+        <i class="fas fa-search search-icon"></i>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="onSearch()"
+          placeholder="Search users..."
+          class="search-input"
+        />
+      </div>
+
+      <select
+        [(ngModel)]="roleFilter"
+        (change)="onFilterChange()"
+        class="filter-select"
+      >
+        <option value="">All Roles</option>
+        <option *ngFor="let role of roles" [value]="role.value">
+          {{ role.label }}
+        </option>
+      </select>
+
+      <select
+        [(ngModel)]="statusFilter"
+        (change)="onFilterChange()"
+        class="filter-select"
+      >
+        <option value="">All Status</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+
+      <button class="btn btn-secondary" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Clear
+      </button>
+    </div>
+
+    <button class="btn btn-primary" (click)="addUser()">
+      <i class="fas fa-plus"></i>
+      Add User
+    </button>
+  </div>
+
+  <div class="users-table-container">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Last Login</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers">
+          <td>
+            <div class="user-info">
+              <div class="user-name">
+                {{ user.firstName }} {{ user.lastName }}
+              </div>
+              <div class="user-details">
+                <span class="username">{{ user.username }}</span>
+                <span class="email">{{ user.email }}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="role-badge">{{ getRoleLabel(user.role) }}</span>
+          </td>
+          <td>
+            <span
+              class="status-badge"
+              [ngClass]="user.isActive ? 'status-success' : 'status-secondary'"
+            >
+              {{ user.isActive ? "Active" : "Inactive" }}
+            </span>
+          </td>
+          <td>
+            <span [class]="user.isActive ? 'text-success' : 'text-secondary'">
+              {{ getLastLoginText(user.lastLogin) }}
+            </span>
+          </td>
+          <td>
+            <div class="action-buttons">
+              <button
+                class="btn btn-sm btn-primary action-btn"
+                (click)="editUser(user.id)"
+                title="Edit User"
+              >
+                <i class="fas fa-edit"></i>
+              </button>
+              <button
+                class="btn btn-sm action-btn"
+                [ngClass]="user.isActive ? 'btn-warning' : 'btn-success'"
+                (click)="toggleUserStatus(user.id)"
+                [title]="user.isActive ? 'Deactivate User' : 'Activate User'"
+              >
+                <i
+                  class="fas"
+                  [ngClass]="user.isActive ? 'fa-pause' : 'fa-play'"
+                ></i>
+              </button>
+              <button
+                class="btn btn-sm btn-danger action-btn"
+                (click)="deleteUser(user.id)"
+                title="Delete User"
+              >
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div *ngIf="filteredUsers.length === 0" class="empty-state">
+      <div class="empty-state-content">
+        <i class="fas fa-users empty-state-icon"></i>
+        <h3 class="empty-state-title">No users found</h3>
+        <p class="empty-state-description">
+          No users match your current search criteria.
+        </p>
+        <button class="btn btn-primary" (click)="addUser()">
+          <i class="fas fa-plus"></i>
+          Add User
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

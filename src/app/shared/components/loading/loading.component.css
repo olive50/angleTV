@@ -1,0 +1,18 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.loading-spinner {
+  font-size: 24px;
+  color: var(--primary-color);
+  margin-bottom: 16px;
+}
+
+.loading-text {
+  color: var(--gray-600);
+  font-size: 14px;
+}

@@ -1,0 +1,14 @@
+<div class="activities-list">
+  <div *ngFor="let activity of activities" class="activity-item">
+    <div class="activity-icon" [ngClass]="activity.type">
+      <i [class]="activity.icon"></i>
+    </div>
+    <div class="activity-content">
+      <div class="activity-action">{{ activity.action }}</div>
+      <div class="activity-details">{{ activity.details }}</div>
+      <div class="activity-timestamp">
+        {{ activity.timestamp | date : "MMM dd, HH:mm" }}
+      </div>
+    </div>
+  </div>
+</div>

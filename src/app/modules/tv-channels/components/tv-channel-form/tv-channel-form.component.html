@@ -1,0 +1,147 @@
+<div class="channel-form-container">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">
+        {{ isEditMode ? "Edit Channel" : "Add New Channel" }}
+      </h1>
+      <p class="page-subtitle">
+        {{
+          isEditMode ? "Update channel information" : "Enter channel details"
+        }}
+      </p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" (click)="onCancel()">
+        <i class="fas fa-arrow-left"></i>
+        Back to List
+      </button>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <form [formGroup]="channelForm" (ngSubmit)="onSubmit()">
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="channelNumber">Channel Number *</label>
+            <input
+              type="number"
+              id="channelNumber"
+              formControlName="channelNumber"
+              class="form-control"
+              placeholder="101"
+            />
+          </div>
+          <div class="form-group">
+            <label for="name">Channel Name *</label>
+            <input
+              type="text"
+              id="name"
+              formControlName="name"
+              class="form-control"
+              placeholder="CNN International"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            formControlName="description"
+            class="form-control"
+            rows="3"
+            placeholder="Channel description..."
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ip">IP Address *</label>
+            <input
+              type="text"
+              id="ip"
+              formControlName="ip"
+              class="form-control"
+              placeholder="192.168.1.100"
+            />
+          </div>
+          <div class="form-group">
+            <label for="port">Port *</label>
+            <input
+              type="number"
+              id="port"
+              formControlName="port"
+              class="form-control"
+              placeholder="8001"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="logoUrl">Logo URL</label>
+          <input
+            type="url"
+            id="logoUrl"
+            formControlName="logoUrl"
+            class="form-control"
+            placeholder="https://example.com/logo.png"
+          />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="categoryId">Category *</label>
+            <select
+              id="categoryId"
+              formControlName="categoryId"
+              class="form-control"
+            >
+              <option value="">Select Category</option>
+              <option *ngFor="let category of categories" [value]="category.id">
+                {{ category.name }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="languageId">Language *</label>
+            <select
+              id="languageId"
+              formControlName="languageId"
+              class="form-control"
+            >
+              <option value="">Select Language</option>
+              <option *ngFor="let language of languages" [value]="language.id">
+                {{ language.name }} ({{ language.code }})
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onCancel()"
+          [disabled]="submitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="channelForm.invalid || submitting"
+        >
+          {{
+            submitting
+              ? "Saving..."
+              : isEditMode
+              ? "Update Channel"
+              : "Create Channel"
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

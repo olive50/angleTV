@@ -1,0 +1,128 @@
+<div class="languages-page">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">Language Management</h1>
+      <p class="page-subtitle">
+        Manage system languages and TV channel languages
+      </p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-primary btn-lg" (click)="addLanguage()">
+        <i class="fas fa-plus"></i>
+        Add Language
+      </button>
+    </div>
+  </div>
+
+  <div class="filters-section">
+    <div class="filters-row">
+      <div class="search-group">
+        <div class="search-input-container">
+          <i class="fas fa-search search-icon"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            placeholder="Search languages..."
+            class="search-input"
+          />
+        </div>
+      </div>
+      <div class="filter-group">
+        <select
+          [(ngModel)]="activeFilter"
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option value="">All Languages</option>
+          <option value="true">Active Only</option>
+          <option value="false">Inactive Only</option>
+        </select>
+        <button class="btn btn-secondary" (click)="clearFilters()">
+          <i class="fas fa-times"></i>
+          Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">Languages ({{ filteredLanguages.length }})</h3>
+    </div>
+
+    <div class="table-content">
+      <table class="table" *ngIf="filteredLanguages.length > 0">
+        <thead>
+          <tr>
+            <th>Language</th>
+            <th>Code</th>
+            <th>Channels</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let language of filteredLanguages" class="table-row">
+            <td>
+              <div class="language-info">
+                <span class="language-flag">{{ language.flag }}</span>
+                <span class="language-name">{{ language.name }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="language-code">{{ language.code }}</span>
+            </td>
+            <td>
+              <span class="channel-count"
+                >{{ language.channelCount }} channels</span
+              >
+            </td>
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="
+                  language.isActive ? 'status-success' : 'status-secondary'
+                "
+              >
+                {{ language.isActive ? "Active" : "Inactive" }}
+              </span>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="btn btn-sm btn-primary action-btn"
+                  (click)="editLanguage(language.id)"
+                  title="Edit"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-danger action-btn"
+                  (click)="deleteLanguage(language.id)"
+                  title="Delete"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="filteredLanguages.length === 0" class="empty-state">
+        <div class="empty-state-content">
+          <i class="fas fa-language empty-state-icon"></i>
+          <h3 class="empty-state-title">No languages found</h3>
+          <p class="empty-state-description">
+            No languages match your current search criteria.
+          </p>
+          <button class="btn btn-primary" (click)="addLanguage()">
+            <i class="fas fa-plus"></i>
+            Add Language
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

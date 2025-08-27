@@ -1,0 +1,95 @@
+<div class="room-detail-container" *ngIf="!loading && room">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">Room {{ room.roomNumber }}</h1>
+      <p class="page-subtitle">
+        {{ getRoomTypeLabel(room.roomType) }} Room Details
+      </p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Back to List
+      </button>
+      <button class="btn btn-primary" (click)="editRoom()">
+        <i class="fas fa-edit"></i>
+        Edit Room
+      </button>
+    </div>
+  </div>
+
+  <div class="room-detail-content">
+    <div class="room-info-card">
+      <div class="room-details">
+        <div class="detail-row">
+          <label>Room Number:</label>
+          <span>{{ room.roomNumber }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Room Type:</label>
+          <span>{{ getRoomTypeLabel(room.roomType) }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Floor:</label>
+          <span>{{ room.floorNumber }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Building:</label>
+          <span>{{ room.building }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Max Occupancy:</label>
+          <span>{{ room.maxOccupancy }} guests</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Price Per Night:</label>
+          <span>${{ room.pricePerNight }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Status:</label>
+          <span
+            class="status-badge"
+            [ngClass]="'status-' + getStatusClass(room.status)"
+          >
+            {{ room.status.replace("_", " ") }}
+          </span>
+        </div>
+
+        <div class="detail-row" *ngIf="room.description">
+          <label>Description:</label>
+          <span>{{ room.description }}</span>
+        </div>
+
+        <div
+          class="detail-row"
+          *ngIf="room.amenities && room.amenities.length > 0"
+        >
+          <label>Amenities:</label>
+          <div class="amenities-list">
+            <span *ngFor="let amenity of room.amenities" class="amenity-tag">{{
+              amenity
+            }}</span>
+          </div>
+        </div>
+
+        <div class="detail-row" *ngIf="room.currentGuest">
+          <label>Current Guest:</label>
+          <span
+            >{{ room.currentGuest.name }} (until
+            {{ room.currentGuest.checkOut | date : "shortDate" }})</span
+          >
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="loading" class="empty-state">
+  <app-loading></app-loading>
+</div>

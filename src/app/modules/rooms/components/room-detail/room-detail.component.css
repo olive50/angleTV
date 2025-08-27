@@ -1,0 +1,48 @@
+.room-detail-container {
+  max-width: 800px;
+}
+
+.room-info-card {
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--gray-200);
+}
+
+.room-details {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.detail-row label {
+  font-weight: 600;
+  color: var(--gray-900);
+  min-width: 150px;
+}
+
+.detail-row span {
+  color: var(--gray-700);
+}
+
+.amenities-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.amenity-tag {
+  background-color: var(--gray-100);
+  color: var(--gray-700);
+  padding: 4px 8px;
+  border-radius: var(--border-radius-sm);
+  font-size: 12px;
+  font-weight: 500;
+}

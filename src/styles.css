@@ -1342,3 +1342,153 @@ body {
     --gray-300: #d0d0d0;
   }
 }
+
+// Add missing CSS classes to global styles.css
+/* Additional styles for guests and other components */
+.guest-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guest-name {
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.guest-id {
+  font-size: 12px;
+  color: var(--gray-600);
+  font-family: monospace;
+}
+
+.guest-nationality {
+  font-size: 12px;
+  color: var(--gray-500);
+}
+
+.contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.contact-info .email {
+  font-size: 13px;
+  color: var(--gray-700);
+}
+
+.contact-info .phone {
+  font-size: 12px;
+  color: var(--gray-600);
+}
+
+.vip-indicator {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--warning-color);
+  margin-top: 4px;
+}
+
+.room-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.room-number {
+  font-weight: 600;
+  color: var(--primary-color);
+}
+
+.checkin-info,
+.checkout-info {
+  font-size: 11px;
+  color: var(--gray-500);
+}
+
+.no-room {
+  font-size: 12px;
+  color: var(--gray-400);
+  font-style: italic;
+}
+
+/* Terminal specific styles */
+.terminal-id {
+  font-family: monospace;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.terminal-mac {
+  font-size: 11px;
+  color: var(--gray-600);
+  font-family: monospace;
+}
+
+.device-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.device-type {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+}
+
+.device-model {
+  font-size: 12px;
+  color: var(--gray-600);
+}
+
+.network-info {
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.ip-address {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.room-number {
+  font-size: 12px;
+  color: var(--gray-600);
+}
+
+.last-seen {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.last-seen-date {
+  font-size: 11px;
+  color: var(--gray-500);
+}
+
+.text-success {
+  color: var(--success-color) !important;
+}
+
+.text-warning {
+  color: var(--warning-color) !important;
+}
+
+.text-danger {
+  color: var(--danger-color) !important;
+}
+
+.text-secondary {
+  color: var(--secondary-color) !important;
+}

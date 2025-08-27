@@ -1,0 +1,112 @@
+<div class="terminal-detail-container" *ngIf="!loading && terminal">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">{{ terminal.terminalId }}</h1>
+      <p class="page-subtitle">
+        {{ getDeviceTypeLabel(terminal.deviceType) }} Details
+      </p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Back to List
+      </button>
+      <button
+        class="btn btn-info"
+        (click)="pingTerminal()"
+        [disabled]="terminal.status === 'OFFLINE'"
+      >
+        <i class="fas fa-satellite-dish"></i>
+        Ping
+      </button>
+      <button
+        class="btn btn-warning"
+        (click)="rebootTerminal()"
+        [disabled]="terminal.status === 'OFFLINE'"
+      >
+        <i class="fas fa-redo"></i>
+        Reboot
+      </button>
+      <button class="btn btn-primary" (click)="editTerminal()">
+        <i class="fas fa-edit"></i>
+        Edit
+      </button>
+    </div>
+  </div>
+
+  <div class="terminal-detail-content">
+    <div class="terminal-info-card">
+      <div class="terminal-details">
+        <div class="detail-row">
+          <label>Terminal ID:</label>
+          <span>{{ terminal.terminalId }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Device Type:</label>
+          <span>{{ getDeviceTypeLabel(terminal.deviceType) }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Brand & Model:</label>
+          <span>{{ terminal.brand }} {{ terminal.model }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>MAC Address:</label>
+          <span style="font-family: monospace">{{ terminal.macAddress }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>IP Address:</label>
+          <span style="font-family: monospace">{{ terminal.ipAddress }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Status:</label>
+          <span
+            class="status-badge"
+            [ngClass]="'status-' + getStatusClass(terminal.status)"
+          >
+            {{ terminal.status }}
+          </span>
+        </div>
+
+        <div class="detail-row">
+          <label>Location:</label>
+          <span>{{ terminal.location }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="terminal.room">
+          <label>Room:</label>
+          <span>{{ terminal.room.roomNumber }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Last Seen:</label>
+          <span
+            >{{ getLastSeenText(terminal.lastSeen) }} ({{
+              terminal.lastSeen | date : "medium"
+            }})</span
+          >
+        </div>
+
+        <div class="detail-row" *ngIf="terminal.serialNumber">
+          <label>Serial Number:</label>
+          <span style="font-family: monospace">{{
+            terminal.serialNumber
+          }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="terminal.firmwareVersion">
+          <label>Firmware Version:</label>
+          <span>{{ terminal.firmwareVersion }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="loading" class="empty-state">
+  <app-loading></app-loading>
+</div>

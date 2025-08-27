@@ -1,0 +1,94 @@
+<div class="checkin-container">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">Guest Check-in</h1>
+      <p class="page-subtitle">Process guest check-in and room assignment</p>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <form
+      [formGroup]="checkinForm"
+      (ngSubmit)="onSubmit()"
+      class="checkin-form"
+    >
+      <div class="form-section">
+        <h3>Check-in Details</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="guestId">Guest ID *</label>
+            <input
+              type="text"
+              id="guestId"
+              formControlName="guestId"
+              class="form-control"
+              placeholder="G12345678"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="roomId">Room *</label>
+            <select id="roomId" formControlName="roomId" class="form-control">
+              <option value="">Select Room</option>
+              <option *ngFor="let room of availableRooms" [value]="room.id">
+                Room {{ room.roomNumber }} - {{ room.type }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="checkInDate">Check-in Date *</label>
+            <input
+              type="date"
+              id="checkInDate"
+              formControlName="checkInDate"
+              class="form-control"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="checkOutDate">Check-out Date *</label>
+            <input
+              type="date"
+              id="checkOutDate"
+              formControlName="checkOutDate"
+              class="form-control"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="specialRequests">Special Requests</label>
+          <textarea
+            id="specialRequests"
+            formControlName="specialRequests"
+            class="form-control"
+            rows="3"
+            placeholder="Any special requests or notes..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onCancel()"
+          [disabled]="submitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="checkinForm.invalid || submitting"
+        >
+          {{ submitting ? "Processing..." : "Complete Check-in" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

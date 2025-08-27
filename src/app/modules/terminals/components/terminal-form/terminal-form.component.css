@@ -1,0 +1,11 @@
+.terminal-form-container {
+  max-width: 800px;
+}
+
+.form-container {
+  background: var(--white);
+  border-radius: var(--border-radius-lg);
+  padding: 32px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--gray-200);
+}

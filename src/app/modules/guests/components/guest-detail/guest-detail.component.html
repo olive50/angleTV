@@ -1,0 +1,93 @@
+// src/app/modules/guests/components/guest-detail/
+<div class="guest-detail-container" *ngIf="!loading && guest">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">{{ guest.firstName }} {{ guest.lastName }}</h1>
+      <p class="page-subtitle">Guest ID: {{ guest.guestId }}</p>
+    </div>
+    <div class="page-actions">
+      <button class="btn btn-secondary" (click)="goBack()">
+        <i class="fas fa-arrow-left"></i>
+        Back to List
+      </button>
+      <button class="btn btn-primary" (click)="editGuest()">
+        <i class="fas fa-edit"></i>
+        Edit Guest
+      </button>
+    </div>
+  </div>
+
+  <div class="guest-detail-content">
+    <div class="guest-info-card">
+      <div class="guest-details">
+        <div class="detail-row">
+          <label>Full Name:</label>
+          <span>{{ guest.firstName }} {{ guest.lastName }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Email:</label>
+          <span>{{ guest.email }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Phone:</label>
+          <span>{{ guest.phone }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>Nationality:</label>
+          <span>{{ guest.nationality }}</span>
+        </div>
+
+        <div class="detail-row">
+          <label>VIP Status:</label>
+          <span
+            class="status-badge"
+            [ngClass]="guest.vipStatus ? 'status-success' : 'status-secondary'"
+          >
+            {{ guest.vipStatus ? "VIP" : "Regular" }}
+          </span>
+        </div>
+
+        <div class="detail-row">
+          <label>Loyalty Level:</label>
+          <span
+            class="status-badge loyalty-{{ guest.loyaltyLevel.toLowerCase() }}"
+          >
+            {{ guest.loyaltyLevel }}
+          </span>
+        </div>
+
+        <div class="detail-row">
+          <label>Reservation Status:</label>
+          <span
+            class="status-badge"
+            [ngClass]="'status-' + getStatusClass(guest.reservationStatus)"
+          >
+            {{ guest.reservationStatus.replace("_", " ") }}
+          </span>
+        </div>
+
+        <div class="detail-row" *ngIf="guest.currentRoom">
+          <label>Current Room:</label>
+          <span>{{ guest.currentRoom.roomNumber }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="guest.checkInDate">
+          <label>Check-in Date:</label>
+          <span>{{ guest.checkInDate | date : "medium" }}</span>
+        </div>
+
+        <div class="detail-row" *ngIf="guest.checkOutDate">
+          <label>Check-out Date:</label>
+          <span>{{ guest.checkOutDate | date : "medium" }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div *ngIf="loading" class="empty-state">
+  <app-loading></app-loading>
+</div>

@@ -1,0 +1,103 @@
+<div class="language-form-container">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">
+        {{ isEditMode ? "Edit Language" : "Add New Language" }}
+      </h1>
+      <p class="page-subtitle">
+        {{
+          isEditMode
+            ? "Update language information"
+            : "Add a new language to the system"
+        }}
+      </p>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <form
+      [formGroup]="languageForm"
+      (ngSubmit)="onSubmit()"
+      class="language-form"
+    >
+      <div class="form-section">
+        <div class="form-group">
+          <label for="name">Language Name *</label>
+          <input
+            type="text"
+            id="name"
+            formControlName="name"
+            class="form-control"
+            [class.error]="
+              languageForm.get('name')?.invalid &&
+              languageForm.get('name')?.touched
+            "
+            placeholder="e.g., English"
+          />
+          <div
+            *ngIf="
+              languageForm.get('name')?.invalid &&
+              languageForm.get('name')?.touched
+            "
+            class="error-message"
+          >
+            <small>Language name is required (minimum 2 characters)</small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="code">Language Code *</label>
+          <input
+            type="text"
+            id="code"
+            formControlName="code"
+            class="form-control"
+            [class.error]="
+              languageForm.get('code')?.invalid &&
+              languageForm.get('code')?.touched
+            "
+            placeholder="e.g., EN"
+            maxlength="2"
+            style="text-transform: uppercase"
+          />
+          <div
+            *ngIf="
+              languageForm.get('code')?.invalid &&
+              languageForm.get('code')?.touched
+            "
+            class="error-message"
+          >
+            <small
+              >Language code must be 2 uppercase letters (e.g., EN, AR,
+              FR)</small
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onCancel()"
+          [disabled]="submitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="languageForm.invalid || submitting"
+        >
+          {{
+            submitting
+              ? "Saving..."
+              : isEditMode
+              ? "Update Language"
+              : "Create Language"
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

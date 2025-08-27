@@ -1,0 +1,25 @@
+.languages-page {
+  /* Additional styles if needed */
+}
+
+.language-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.language-flag {
+  font-size: 20px;
+}
+
+.language-name {
+  font-weight: 600;
+}
+
+.language-code {
+  font-family: monospace;
+  background: var(--gray-100);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+}

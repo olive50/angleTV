@@ -1,0 +1,122 @@
+<div class="guest-form-container">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">
+        {{ isEditMode ? "Edit Guest" : "Add New Guest" }}
+      </h1>
+      <p class="page-subtitle">
+        {{ isEditMode ? "Update guest information" : "Enter guest details" }}
+      </p>
+    </div>
+  </div>
+
+  <div class="form-container">
+    <form [formGroup]="guestForm" (ngSubmit)="onSubmit()">
+      <div class="form-section">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="firstName">First Name *</label>
+            <input
+              type="text"
+              id="firstName"
+              formControlName="firstName"
+              class="form-control"
+              placeholder="Ahmed"
+            />
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last Name *</label>
+            <input
+              type="text"
+              id="lastName"
+              formControlName="lastName"
+              class="form-control"
+              placeholder="Ben Ali"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input
+              type="email"
+              id="email"
+              formControlName="email"
+              class="form-control"
+              placeholder="ahmed@example.com"
+            />
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone *</label>
+            <input
+              type="tel"
+              id="phone"
+              formControlName="phone"
+              class="form-control"
+              placeholder="+213555123456"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="nationality">Nationality *</label>
+            <input
+              type="text"
+              id="nationality"
+              formControlName="nationality"
+              class="form-control"
+              placeholder="Algeria"
+            />
+          </div>
+          <div class="form-group">
+            <label for="loyaltyLevel">Loyalty Level *</label>
+            <select
+              id="loyaltyLevel"
+              formControlName="loyaltyLevel"
+              class="form-control"
+            >
+              <option value="BRONZE">Bronze</option>
+              <option value="SILVER">Silver</option>
+              <option value="GOLD">Gold</option>
+              <option value="PLATINUM">Platinum</option>
+              <option value="DIAMOND">Diamond</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>
+            <input type="checkbox" formControlName="vipStatus" />
+            VIP Status
+          </label>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="onCancel()"
+          [disabled]="submitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="guestForm.invalid || submitting"
+        >
+          {{
+            submitting
+              ? "Saving..."
+              : isEditMode
+              ? "Update Guest"
+              : "Create Guest"
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

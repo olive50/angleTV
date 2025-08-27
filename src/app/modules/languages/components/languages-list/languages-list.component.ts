@@ -1,22 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
-export interface Language {
-  id: number;
-  name: string;
-  code: string;
-  isActive: boolean;
-  channelCount: number;
-  flag: string;
-}
-
 @Component({
   selector: 'app-languages-list',
   templateUrl: './languages-list.component.html',
   styleUrls: ['./languages-list.component.css'],
 })
 export class LanguagesListComponent implements OnInit {
-  languages: Language[] = [
+  languages: any[] = [
     {
       id: 1,
       name: 'Arabic',
@@ -41,27 +32,25 @@ export class LanguagesListComponent implements OnInit {
       channelCount: 28,
       flag: '🇫🇷',
     },
-    {
-      id: 4,
-      name: 'Spanish',
-      code: 'ES',
-      isActive: false,
-      channelCount: 15,
-      flag: '🇪🇸',
-    },
-    {
-      id: 5,
-      name: 'German',
-      code: 'DE',
-      isActive: true,
-      channelCount: 12,
-      flag: '🇩🇪',
-    },
   ];
 
   filteredLanguages = [...this.languages];
   searchTerm = '';
   activeFilter = '';
+
+  loyaltyLevels = [
+    { value: 'BRONZE', label: 'Bronze', class: 'bronze' },
+    { value: 'SILVER', label: 'Silver', class: 'silver' },
+    { value: 'GOLD', label: 'Gold', class: 'gold' },
+    { value: 'PLATINUM', label: 'Platinum', class: 'platinum' },
+    { value: 'DIAMOND', label: 'Diamond', class: 'diamond' },
+  ];
+
+  statuses = [
+    { value: 'CONFIRMED', label: 'Confirmed', class: 'warning' },
+    { value: 'CHECKED_IN', label: 'Checked In', class: 'success' },
+    { value: 'CHECKED_OUT', label: 'Checked Out', class: 'secondary' },
+  ];
 
   constructor(private router: Router) {}
 
@@ -97,16 +86,8 @@ export class LanguagesListComponent implements OnInit {
     this.router.navigate(['/languages', id, 'edit']);
   }
 
-  toggleLanguageStatus(id: number): void {
-    const language = this.languages.find((l) => l.id === id);
-    if (language) {
-      language.isActive = !language.isActive;
-      this.applyFilters();
-    }
-  }
-
   deleteLanguage(id: number): void {
-    if (confirm('Are you sure you want to delete this language?')) {
+    if (confirm('Are you sure?')) {
       this.languages = this.languages.filter((l) => l.id !== id);
       this.applyFilters();
     }
