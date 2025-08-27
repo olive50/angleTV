@@ -1,0 +1,179 @@
+<div class="channel-list-container">
+  <div class="header">
+    <h2>TV Channels Management</h2>
+    <button class="add-btn" routerLink="/channels/add">
+      <i class="icon-plus"></i> Add Channel
+    </button>
+  </div>
+
+  <!-- Filters and Search -->
+  <div class="filters-section">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (input)="onSearchChange()"
+        placeholder="Search channels..."
+        class="search-input"
+      />
+    </div>
+
+    <div class="filter-controls">
+      <select
+        [(ngModel)]="selectedCategoryId"
+        (change)="onFilterChange()"
+        class="filter-select"
+      >
+        <option [ngValue]="null">All Categories</option>
+        <option *ngFor="let category of categories" [ngValue]="category.id">
+          {{ category.name }}
+        </option>
+      </select>
+
+      <select
+        [(ngModel)]="selectedLanguageId"
+        (change)="onFilterChange()"
+        class="filter-select"
+      >
+        <option [ngValue]="null">All Languages</option>
+        <option *ngFor="let language of languages" [ngValue]="language.id">
+          {{ language.name }}
+        </option>
+      </select>
+
+      <button class="clear-filters-btn" (click)="clearFilters()">
+        Clear Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading">Loading channels...</div>
+
+  <!-- Channels Table -->
+  <div *ngIf="!loading" class="channels-table-container">
+    <table class="channels-table">
+      <thead>
+        <tr>
+          <th (click)="onSortChange('channelNumber')" class="sortable">
+            Channel #
+            <span
+              class="sort-indicator"
+              [class.active]="sortBy === 'channelNumber'"
+              [class.desc]="
+                sortBy === 'channelNumber' && sortDirection === 'desc'
+              "
+              >▼</span
+            >
+          </th>
+          <th>Logo</th>
+          <th (click)="onSortChange('name')" class="sortable">
+            Name
+            <span
+              class="sort-indicator"
+              [class.active]="sortBy === 'name'"
+              [class.desc]="sortBy === 'name' && sortDirection === 'desc'"
+              >▼</span
+            >
+          </th>
+          <th>Category</th>
+          <th>Language</th>
+          <th>Stream Info</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let channel of channels" class="channel-row">
+          <td class="channel-number">{{ channel.channelNumber }}</td>
+          <td class="channel-logo">
+            <img
+              *ngIf="channel.logoUrl"
+              [src]="channel.logoUrl"
+              [alt]="channel.name"
+              class="logo-img"
+              onerror="this.style.display='none'"
+            />
+            <div *ngIf="!channel.logoUrl" class="logo-placeholder">
+              {{ channel.name.charAt(0) }}
+            </div>
+          </td>
+          <td class="channel-info">
+            <div class="channel-name">{{ channel.name }}</div>
+            <div class="channel-description" *ngIf="channel.description">
+              {{ channel.description }}
+            </div>
+          </td>
+          <td class="channel-category">
+            <span class="category-badge" *ngIf="channel.category">
+              {{ channel.category.name }}
+            </span>
+          </td>
+          <td class="channel-language">
+            <span class="language-badge" *ngIf="channel.language">
+              {{ channel.language.name }} ({{ channel.language.code }})
+            </span>
+          </td>
+          <td class="stream-info">
+            <div class="stream-details">
+              <span class="ip">{{ channel.ip }}:{{ channel.port }}</span>
+            </div>
+          </td>
+          <td class="actions">
+            <button
+              class="action-btn view-btn"
+              [routerLink]="['/channels', channel.id]"
+            >
+              <i class="icon-eye"></i> View
+            </button>
+            <button
+              class="action-btn edit-btn"
+              [routerLink]="['/channels', channel.id, 'edit']"
+            >
+              <i class="icon-edit"></i> Edit
+            </button>
+            <button
+              class="action-btn delete-btn"
+              (click)="deleteChannel(channel.id!)"
+            >
+              <i class="icon-trash"></i> Delete
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- No Results -->
+    <div *ngIf="channels.length === 0" class="no-results">
+      <p>No channels found.</p>
+      <button class="add-btn" routerLink="/channels/add">
+        Add First Channel
+      </button>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div *ngIf="pagedChannels && totalElements > pageSize" class="pagination">
+    <button
+      class="page-btn"
+      [disabled]="pagedChannels.first"
+      (click)="onPageChange(currentPage - 1)"
+    >
+      Previous
+    </button>
+
+    <span class="page-info">
+      Page {{ currentPage + 1 }} of {{ pagedChannels.totalPages }} ({{
+        totalElements
+      }}
+      total)
+    </span>
+
+    <button
+      class="page-btn"
+      [disabled]="pagedChannels.last"
+      (click)="onPageChange(currentPage + 1)"
+    >
+      Next
+    </button>
+  </div>
+</div>

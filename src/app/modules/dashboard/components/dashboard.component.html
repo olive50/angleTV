@@ -1,0 +1,36 @@
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1 class="page-title">Dashboard</h1>
+    <p class="page-subtitle">Welcome to your IPTV Management System</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <app-stats-card
+      *ngFor="let stat of stats"
+      [title]="stat.title"
+      [value]="stat.value"
+      [icon]="stat.icon"
+      [color]="stat.color"
+      [trend]="stat.trend"
+      [trendUp]="stat.trendUp"
+    >
+    </app-stats-card>
+  </div>
+
+  <div class="dashboard-content">
+    <!-- Quick Actions -->
+    <div class="dashboard-section">
+      <h2 class="section-title">Quick Actions</h2>
+      <app-quick-actions [actions]="quickActions"></app-quick-actions>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="dashboard-section">
+      <h2 class="section-title">Recent Activities</h2>
+      <app-recent-activities
+        [activities]="recentActivities"
+      ></app-recent-activities>
+    </div>
+  </div>
+</div>

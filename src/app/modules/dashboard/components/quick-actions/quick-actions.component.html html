@@ -1,0 +1,11 @@
+<div class="quick-actions-grid">
+  <div 
+    *ngFor="let action of actions" 
+    class="quick-action" 
+    (click)="onActionClick(action)">
+    <div class="quick-action-icon" [class]="action.color">
+      <i [class]="action.icon"></i>
+    </div>
+    <h4 class="quick-action-title">{{ action.title }}</h4>
+  </div>
+</div>

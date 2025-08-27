@@ -1,0 +1,17 @@
+[
+  { "code": "DZ", "name": "Algeria" },
+  { "code": "FR", "name": "France" },
+  { "code": "MA", "name": "Morocco" },
+  { "code": "TN", "name": "Tunisia" },
+  { "code": "EG", "name": "Egypt" },
+  { "code": "SA", "name": "Saudi Arabia" },
+  { "code": "AE", "name": "United Arab Emirates" },
+  { "code": "US", "name": "United States" },
+  { "code": "GB", "name": "United Kingdom" },
+  { "code": "DE", "name": "Germany" },
+  { "code": "IT", "name": "Italy" },
+  { "code": "ES", "name": "Spain" },
+  { "code": "TR", "name": "Turkey" },
+  { "code": "LB", "name": "Lebanon" },
+  { "code": "JO", "name": "Jordan" }
+]

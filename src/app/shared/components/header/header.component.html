@@ -1,0 +1,84 @@
+<header class="app-header">
+  <div class="header-left">
+    <button class="sidebar-toggle" (click)="onToggleSidebar()">
+      <i class="fas fa-bars"></i>
+    </button>
+
+    <div class="logo-container">
+      <img src="assets/images/tvboot-logo.png" alt="TVBoot Logo" class="logo" />
+      <h1 class="app-title">IPTV Management</h1>
+    </div>
+  </div>
+
+  <div class="header-center">
+    <div class="breadcrumb">
+      <!-- Breadcrumb will be added later -->
+    </div>
+  </div>
+
+  <div class="header-right">
+    <div class="header-actions">
+      <!-- Notifications -->
+      <button class="header-btn notification-btn">
+        <i class="fas fa-bell"></i>
+        <span class="notification-badge">3</span>
+      </button>
+
+      <!-- Language Selector -->
+      <div class="language-selector">
+        <button class="header-btn">
+          <i class="fas fa-globe"></i>
+          <span>EN</span>
+        </button>
+      </div>
+
+      <!-- User Menu -->
+      <div class="user-menu" [class.active]="showUserMenu">
+        <button class="user-menu-trigger" (click)="toggleUserMenu()">
+          <img
+            [src]="currentUser?.avatar || 'assets/images/avatar-default.png'"
+            [alt]="currentUser?.firstName"
+            class="user-avatar"
+          />
+          <div class="user-info">
+            <span class="user-name"
+              >{{ currentUser?.firstName }} {{ currentUser?.lastName }}</span
+            >
+            <span class="user-role">{{ currentUser?.role }}</span>
+          </div>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+
+        <div class="user-dropdown" *ngIf="showUserMenu">
+          <div class="dropdown-header">
+            <img
+              [src]="currentUser?.avatar || 'assets/images/avatar-default.png'"
+              [alt]="currentUser?.firstName"
+              class="dropdown-avatar"
+            />
+            <div class="dropdown-user-info">
+              <h4>{{ currentUser?.firstName }} {{ currentUser?.lastName }}</h4>
+              <p>{{ currentUser?.email }}</p>
+            </div>
+          </div>
+
+          <div class="dropdown-menu">
+            <button class="dropdown-item" (click)="onProfile()">
+              <i class="fas fa-user"></i>
+              <span>Profile</span>
+            </button>
+            <button class="dropdown-item" (click)="onSettings()">
+              <i class="fas fa-cog"></i>
+              <span>Settings</span>
+            </button>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout" (click)="onLogout()">
+              <i class="fas fa-sign-out-alt"></i>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>

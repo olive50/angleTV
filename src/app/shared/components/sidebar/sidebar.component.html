@@ -1,0 +1,69 @@
+<aside class="sidebar" [class.collapsed]="isCollapsed">
+  <div class="sidebar-content">
+    <nav class="sidebar-nav">
+      <ul class="nav-list">
+        <li
+          class="nav-item"
+          *ngFor="let item of menuItems"
+          [class.active]="item.isActive"
+          [class.expanded]="item.isExpanded"
+        >
+          <a
+            class="nav-link"
+            (click)="toggleMenuItem(item)"
+            [class.has-children]="item.children && item.children.length > 0"
+          >
+            <i [class]="item.icon" class="nav-icon"></i>
+            <span class="nav-text" *ngIf="!isCollapsed">{{ item.title }}</span>
+
+            <span
+              class="nav-badge"
+              *ngIf="item.badge && !isCollapsed"
+              [class]="'badge-' + item.badge.color"
+            >
+              {{ item.badge.text }}
+            </span>
+
+            <i
+              class="fas fa-chevron-down nav-arrow"
+              *ngIf="item.children && item.children.length > 0 && !isCollapsed"
+              [class.rotated]="item.isExpanded"
+            ></i>
+          </a>
+
+          <ul
+            class="nav-submenu"
+            *ngIf="
+              item.children &&
+              item.children.length > 0 &&
+              item.isExpanded &&
+              !isCollapsed
+            "
+          >
+            <li
+              class="nav-subitem"
+              *ngFor="let child of item.children"
+              [class.active]="child.isActive"
+            >
+              <a
+                class="nav-sublink"
+                [routerLink]="child.route"
+                routerLinkActive="active"
+              >
+                <i [class]="child.icon" class="nav-subicon"></i>
+                <span class="nav-subtext">{{ child.title }}</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="sidebar-footer" *ngIf="!isCollapsed">
+    <div class="sidebar-footer-content">
+      <p class="footer-text">TVBoot IPTV Platform</p>
+      <p class="footer-version">v1.0.0</p>
+    </div>
+  </div>
+</aside>

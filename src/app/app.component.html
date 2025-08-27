@@ -1,0 +1,23 @@
+<div class="app-container">
+  <header class="app-header">
+    <nav class="navbar">
+      <div class="nav-brand">
+        <h1>{{ title }}</h1>
+      </div>
+      <li class="nav-links">
+        <a routerLink="/channels" routerLinkActive="active">Channels</a>
+      </li>
+      <li class="nav-links">
+        <a routerLink="/Terminals" routerLinkActive="">Terminals</a>
+      </li>
+    </nav>
+  </header>
+
+  <main class="app-main">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="app-footer">
+    <p>&copy; 2024 IPTV Platform. All rights reserved.</p>
+  </footer>
+</div>

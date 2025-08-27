@@ -1,0 +1,331 @@
+<div class="terminals-page">
+  <div class="page-header">
+    <div class="page-header-content">
+      <h1 class="page-title">Terminal Management</h1>
+      <p class="page-subtitle">
+        Manage and monitor all IPTV devices across the hotel
+      </p>
+    </div>
+    <div class="page-actions">
+      <button
+        class="btn btn-secondary"
+        (click)="refreshData()"
+        [disabled]="loading"
+      >
+        <i
+          class="fas"
+          [class.fa-sync-alt]="!loading"
+          [class.fa-spinner]="loading"
+          [class.fa-spin]="loading"
+        ></i>
+        {{ loading ? "Refreshing..." : "Refresh" }}
+      </button>
+      <button class="btn btn-primary btn-lg" (click)="addTerminal()">
+        <i class="fas fa-plus"></i>
+        Add Terminal
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    <div class="stats-card">
+      <div class="stats-card-header">
+        <h3 class="stats-card-title">Total Terminals</h3>
+        <div class="stats-card-icon success">
+          <i class="fas fa-desktop"></i>
+        </div>
+      </div>
+      <div class="stats-card-value">{{ getTerminalStats().total }}</div>
+      <div class="stats-card-trend trend-up">
+        <i class="fas fa-arrow-up"></i>
+        <span>All devices</span>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="stats-card-header">
+        <h3 class="stats-card-title">Active</h3>
+        <div class="stats-card-icon success">
+          <i class="fas fa-check-circle"></i>
+        </div>
+      </div>
+      <div class="stats-card-value">{{ getTerminalStats().active }}</div>
+      <div class="stats-card-trend trend-up">
+        <i class="fas fa-arrow-up"></i>
+        <span>Online now</span>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="stats-card-header">
+        <h3 class="stats-card-title">Offline</h3>
+        <div class="stats-card-icon warning">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+      </div>
+      <div class="stats-card-value">{{ getTerminalStats().offline }}</div>
+      <div
+        class="stats-card-trend"
+        [class.trend-down]="getTerminalStats().offline > 0"
+      >
+        <i
+          class="fas"
+          [class.fa-arrow-down]="getTerminalStats().offline > 0"
+          [class.fa-check]="getTerminalStats().offline === 0"
+        ></i>
+        <span>{{
+          getTerminalStats().offline > 0 ? "Needs attention" : "All online"
+        }}</span>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="stats-card-header">
+        <h3 class="stats-card-title">Maintenance</h3>
+        <div class="stats-card-icon info">
+          <i class="fas fa-tools"></i>
+        </div>
+      </div>
+      <div class="stats-card-value">{{ getTerminalStats().maintenance }}</div>
+      <div class="stats-card-trend">
+        <i class="fas fa-wrench"></i>
+        <span>Scheduled</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filters-row">
+      <div class="search-group">
+        <div class="search-input-container">
+          <i class="fas fa-search search-icon"></i>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            placeholder="Search terminals, brands, models, IP, MAC..."
+            class="search-input"
+          />
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <select
+          [(ngModel)]="deviceTypeFilter"
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option value="">All Device Types</option>
+          <option *ngFor="let type of deviceTypes" [value]="type.value">
+            {{ type.label }}
+          </option>
+        </select>
+
+        <select
+          [(ngModel)]="statusFilter"
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option value="">All Status</option>
+          <option *ngFor="let status of statuses" [value]="status.value">
+            {{ status.label }}
+          </option>
+        </select>
+
+        <select
+          [(ngModel)]="locationFilter"
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option value="">All Locations</option>
+          <option *ngFor="let location of locations" [value]="location">
+            {{ location }}
+          </option>
+        </select>
+
+        <button class="btn btn-secondary" (click)="clearFilters()">
+          <i class="fas fa-times"></i>
+          Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Terminals Table -->
+  <div class="table-container">
+    <div class="table-header">
+      <h3 class="table-title">Terminals ({{ filteredTerminals.length }})</h3>
+      <div class="table-actions">
+        <button class="btn btn-secondary btn-sm" (click)="exportTerminals()">
+          <i class="fas fa-download"></i>
+          Export
+        </button>
+      </div>
+    </div>
+
+    <div class="table-content" *ngIf="!loading">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Terminal Info</th>
+            <th>Device</th>
+            <th>Network</th>
+            <th>Location</th>
+            <th>Status</th>
+            <th>Last Seen</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let terminal of filteredTerminals" class="table-row">
+            <td>
+              <div class="terminal-id">
+                <strong>{{ terminal.terminalId }}</strong>
+                <div class="terminal-mac">{{ terminal.macAddress }}</div>
+                <div class="terminal-mac" *ngIf="terminal.serialNumber">
+                  SN: {{ terminal.serialNumber }}
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="device-info">
+                <div class="device-type">
+                  <i
+                    [class]="getDeviceIcon(terminal.deviceType)"
+                    class="device-icon"
+                  ></i>
+                  <span>{{ getDeviceTypeLabel(terminal.deviceType) }}</span>
+                </div>
+                <div class="device-model">
+                  {{ terminal.brand }} {{ terminal.model }}
+                </div>
+                <div class="device-model" *ngIf="terminal.firmwareVersion">
+                  FW: {{ terminal.firmwareVersion }}
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="network-info">
+                <div class="ip-address">
+                  <i class="fas fa-globe"></i>
+                  {{ terminal.ipAddress }}
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="location-info">
+                <span>
+                  <i class="fas fa-map-marker-alt"></i>
+                  {{ terminal.location }}
+                </span>
+                <div class="room-number" *ngIf="terminal.room">
+                  Room {{ terminal.room.roomNumber }}
+                </div>
+              </div>
+            </td>
+            <td>
+              <span
+                class="status-badge"
+                [class]="'status-' + getStatusClass(terminal.status)"
+              >
+                <i
+                  class="fas"
+                  [class.fa-circle]="terminal.status === 'ACTIVE'"
+                  [class.fa-pause-circle]="terminal.status === 'INACTIVE'"
+                  [class.fa-tools]="terminal.status === 'MAINTENANCE'"
+                  [class.fa-times-circle]="terminal.status === 'OFFLINE'"
+                  [class.fa-exclamation-circle]="terminal.status === 'FAULTY'"
+                ></i>
+                {{ terminal.status }}
+              </span>
+            </td>
+            <td>
+              <div class="last-seen">
+                <span [class]="getLastSeenClass(terminal.lastSeen)">
+                  {{ getLastSeenText(terminal.lastSeen) }}
+                </span>
+                <div class="last-seen-date">
+                  {{ terminal.lastSeen | date : "MMM dd, HH:mm" }}
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="action-buttons">
+                <button
+                  class="btn btn-sm btn-secondary action-btn"
+                  (click)="viewTerminal(terminal.id)"
+                  title="View Details"
+                >
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-info action-btn"
+                  (click)="pingTerminal(terminal.id)"
+                  title="Ping Terminal"
+                  [disabled]="terminal.status === 'OFFLINE'"
+                >
+                  <i class="fas fa-satellite-dish"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-warning action-btn"
+                  (click)="rebootTerminal(terminal.id)"
+                  title="Reboot Terminal"
+                  [disabled]="terminal.status === 'OFFLINE'"
+                >
+                  <i class="fas fa-redo"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-primary action-btn"
+                  (click)="editTerminal(terminal.id)"
+                  title="Edit Terminal"
+                >
+                  <i class="fas fa-edit"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-danger action-btn"
+                  (click)="deleteTerminal(terminal.id)"
+                  title="Delete Terminal"
+                >
+                  <i class="fas fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- Empty State -->
+      <div *ngIf="filteredTerminals.length === 0" class="empty-state">
+        <div class="empty-state-content">
+          <i class="fas fa-desktop empty-state-icon"></i>
+          <h3 class="empty-state-title">No terminals found</h3>
+          <p class="empty-state-description">
+            No terminals match your current search criteria. Try adjusting your
+            filters or search terms.
+          </p>
+          <div style="display: flex; gap: 12px; justify-content: center">
+            <button class="btn btn-secondary" (click)="clearFilters()">
+              Clear Filters
+            </button>
+            <button class="btn btn-primary" (click)="addTerminal()">
+              Add Terminal
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="empty-state">
+      <div class="empty-state-content">
+        <i class="fas fa-spinner fa-spin empty-state-icon"></i>
+        <h3 class="empty-state-title">Loading terminals...</h3>
+        <p class="empty-state-description">
+          Please wait while we fetch the latest terminal data.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

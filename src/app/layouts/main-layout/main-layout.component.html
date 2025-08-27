@@ -1,0 +1,21 @@
+<div class="app-layout" [class.sidebar-collapsed]="sidebarCollapsed">
+  <!-- Header -->
+  <app-header (toggleSidebar)="onToggleSidebar()"></app-header>
+
+  <!-- Sidebar -->
+  <app-sidebar [isCollapsed]="sidebarCollapsed"></app-sidebar>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="content-wrapper">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p>&copy; 2024 TVBoot IPTV Platform. All rights reserved.</p>
+    </div>
+  </footer>
+</div>
