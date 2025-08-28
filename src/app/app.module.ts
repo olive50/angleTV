@@ -33,6 +33,9 @@ import { LoadingComponent } from './shared/components/loading/loading.component'
     ReactiveFormsModule,
     FormsModule,
   ],
+  exports: [
+    LoadingComponent  // Export so other modules can use it
+  ],
   providers: [],
   bootstrap: [AppComponent],
 })

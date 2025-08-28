@@ -83,4 +83,9 @@ export class TvChannelsListComponent implements OnInit {
   addChannel(): void {
     this.router.navigate(['/channels/add']);
   }
+
+  onSortChange(sortBy: string): void {
+    console.log('Sort by:', sortBy);
+     // Sorting logic will be implemented later"
+   }
 }
