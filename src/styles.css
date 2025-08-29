@@ -5,7 +5,7 @@
 :root {
   /* Primary Colors - TVBoot Theme */
   /* --primary-color: #2563eb; */
-  --primary-color:#eb611c;
+  --primary-color: #eb611c;
   --primary-dark: #1d4ed8;
   --primary-light: #3b82f6;
 
@@ -34,8 +34,8 @@
   --gray-900: #0f172a;
 
   /* Layout */
-  --sidebar-width: 280px;
-  --sidebar-collapsed-width: 70px;
+  --sidebar-width: 256px;
+  --sidebar-collapsed-width: 85px;
   --header-height: 70px;
   --footer-height: 60px;
 
@@ -111,9 +111,9 @@ body {
   right: 0;
   height: var(--header-height);
   background: linear-gradient(
-    135deg,
+    270deg,
     var(--primary-color) 0%,
-    var(--primary-dark) 100%
+    var(--secondary-color) 100%
   );
   color: var(--white);
   display: flex;
@@ -1166,7 +1166,7 @@ body {
 
 /* Footer */
 .app-footer {
-  background-color: var(--gray-800);
+  background-color: var(--secondary-color);
   color: var(--gray-300);
   text-align: center;
   padding: 20px;

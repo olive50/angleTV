@@ -26,7 +26,7 @@ export class HeaderComponent implements OnInit {
       role: 'ADMIN' as any,
       permissions: [],
       isActive: true,
-      avatar: 'assets/images/avatar-default.png',
+      avatar: 'assets/images/user.svg',
     };
   }
 
