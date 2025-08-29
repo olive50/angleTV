@@ -9,4 +9,9 @@ export const environment = {
     multiLanguage: true,
     darkMode: true,
   },
+  jwt: {
+    tokenKey: 'jwt_token',
+    userKey: 'current_user',
+    refreshTokenKey: 'refresh_token',
+  },
 };
