@@ -1344,7 +1344,6 @@ body {
   }
 }
 
-// Add missing CSS classes to global styles.css
 /* Additional styles for guests and other components */
 .guest-info {
   display: flex;
