@@ -1,85 +1,139 @@
+// src/app/core/services/tv-channel.service.ts (mis à jour)
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import {
-  TvChannel,
-  TvChannelCreateRequest,
-  TvChannelUpdateRequest,
-  PagedResponse,
-} from '../models/tv-channel.model';
+import { HttpParams } from '@angular/common/http';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { BaseApiService } from './base-api.service';
+import { TvChannel, TvChannelCreateRequest, TvChannelUpdateRequest } from '../models/tv-channel.model';
+import { PagedApiResponse } from '../models/api-response.model';
+
+export interface ChannelFilters {
+  search?: string;
+  categoryId?: number;
+  languageId?: number;
+  isActive?: boolean;
+}
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
-export class TvChannelService {
-  private apiUrl = 'http://localhost:8080/api/channels';
+export class TvChannelService extends BaseApiService {
+  private channelsSubject = new BehaviorSubject<TvChannel[]>([]);
+  public channels$ = this.channelsSubject.asObservable();
 
-  constructor(private http: HttpClient) {}
+  private loadingSubject = new BehaviorSubject<boolean>(false);
+  public loading$ = this.loadingSubject.asObservable();
 
-  getAllChannels(): Observable<TvChannel[]> {
-    return this.http.get<TvChannel[]>(this.apiUrl);
+  // Cache pour éviter les appels répétés
+  private channelsCache = new Map<string, { data: any, timestamp: number }>();
+  private cacheTimeout = 5 * 60 * 1000; // 5 minutes
+
+  getAllChannels(forceRefresh = false): Observable<TvChannel[]> {
+    const cacheKey = 'all_channels';
+    
+    if (!forceRefresh && this.channelsCache.has(cacheKey)) {
+      const cached = this.channelsCache.get(cacheKey)!;
+      if (Date.now() - cached.timestamp < this.cacheTimeout) {
+        this.channelsSubject.next(cached.data);
+        return this.channels$;
+      }
+    }
+
+    this.loadingSubject.next(true);
+    
+    return this.get<TvChannel[]>('/channels').pipe(
+      tap(channels => {
+        this.channelsSubject.next(channels);
+        this.channelsCache.set(cacheKey, { data: channels, timestamp: Date.now() });
+        this.loadingSubject.next(false);
+      })
+    );
   }
 
   getChannelsPaged(
-    page: number = 0,
-    size: number = 10,
-    sortBy: string = 'channelNumber',
-    sortDir: string = 'asc'
-  ): Observable<PagedResponse<TvChannel>> {
-    const params = new HttpParams()
+    page = 0,
+    size = 20,
+    sortBy = 'channelNumber',
+    sortDir = 'asc',
+    filters?: ChannelFilters
+  ): Observable<PagedApiResponse<TvChannel>['data']> {
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString())
-      .set('sortBy', sortBy)
-      .set('sortDir', sortDir);
+      .set('sort', `${sortBy},${sortDir}`);
 
-    return this.http.get<PagedResponse<TvChannel>>(`${this.apiUrl}/paged`, {
-      params,
-    });
+    if (filters) {
+      if (filters.search) params = params.set('search', filters.search);
+      if (filters.categoryId) params = params.set('categoryId', filters.categoryId.toString());
+      if (filters.languageId) params = params.set('languageId', filters.languageId.toString());
+      if (filters.isActive !== undefined) params = params.set('isActive', filters.isActive.toString());
+    }
+
+    this.loadingSubject.next(true);
+
+    return this.getPagedData<TvChannel>('/channels/paged', params).pipe(
+      tap(() => this.loadingSubject.next(false))
+    );
   }
 
   getChannelById(id: number): Observable<TvChannel> {
-    return this.http.get<TvChannel>(`${this.apiUrl}/${id}`);
-  }
-
-  getChannelByNumber(channelNumber: number): Observable<TvChannel> {
-    return this.http.get<TvChannel>(`${this.apiUrl}/number/${channelNumber}`);
-  }
-
-  getChannelsByCategory(categoryId: number): Observable<TvChannel[]> {
-    return this.http.get<TvChannel[]>(`${this.apiUrl}/category/${categoryId}`);
-  }
-
-  getChannelsByLanguage(languageId: number): Observable<TvChannel[]> {
-    return this.http.get<TvChannel[]>(`${this.apiUrl}/language/${languageId}`);
-  }
-
-  searchChannels(
-    name: string,
-    page: number = 0,
-    size: number = 10
-  ): Observable<PagedResponse<TvChannel>> {
-    const params = new HttpParams()
-      .set('name', name)
-      .set('page', page.toString())
-      .set('size', size.toString());
-
-    return this.http.get<PagedResponse<TvChannel>>(`${this.apiUrl}/search`, {
-      params,
-    });
+    return this.get<TvChannel>(`/channels/${id}`);
   }
 
   createChannel(channel: TvChannelCreateRequest): Observable<TvChannel> {
-    return this.http.post<TvChannel>(this.apiUrl, channel);
+    return this.post<TvChannel>('/channels', channel).pipe(
+      tap(() => {
+        this.channelsCache.clear(); // Clear cache after modification
+        this.getAllChannels(true); // Refresh channels list
+      })
+    );
   }
 
-  updateChannel(
-    id: number,
-    channel: TvChannelUpdateRequest
-  ): Observable<TvChannel> {
-    return this.http.put<TvChannel>(`${this.apiUrl}/${id}`, channel);
+  updateChannel(id: number, channel: TvChannelUpdateRequest): Observable<TvChannel> {
+    return this.put<TvChannel>(`/channels/${id}`, channel).pipe(
+      tap(() => {
+        this.channelsCache.clear();
+        this.getAllChannels(true);
+      })
+    );
   }
 
   deleteChannel(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    return this.delete<void>(`/channels/${id}`).pipe(
+      tap(() => {
+        this.channelsCache.clear();
+        this.getAllChannels(true);
+      })
+    );
+  }
+
+  searchChannels(query: string, page = 0, size = 20): Observable<PagedApiResponse<TvChannel>['data']> {
+    const params = new HttpParams()
+      .set('q', query)
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    return this.getPagedData<TvChannel>('/channels/search', params);
+  }
+
+  getChannelsByCategory(categoryId: number): Observable<TvChannel[]> {
+    return this.get<TvChannel[]>(`/channels/category/${categoryId}`);
+  }
+
+  getChannelsByLanguage(languageId: number): Observable<TvChannel[]> {
+    return this.get<TvChannel[]>(`/channels/language/${languageId}`);
+  }
+
+  // Méthodes utilitaires
+  clearCache(): void {
+    this.channelsCache.clear();
+  }
+
+  isLoading(): boolean {
+    return this.loadingSubject.value;
+  }
+
+  refreshChannels(): void {
+    this.getAllChannels(true).subscribe();
   }
 }

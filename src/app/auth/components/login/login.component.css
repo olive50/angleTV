@@ -1,4 +1,4 @@
-/* src/app/auth/components/login/login.component.css */
+/* Optimized login.component.css - Reduced size */
 .login-container {
   min-height: 100vh;
   display: flex;
@@ -14,10 +14,7 @@
 .login-container::before {
   content: "";
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><polygon fill="%23ffffff05" points="0,1000 1000,0 1000,1000"/></svg>');
   background-size: cover;
 }
@@ -40,20 +37,13 @@
 }
 
 @keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .login-header {
   text-align: center;
   margin-bottom: 30px;
-  /* margin-bottom: 30px; */
 }
 
 .logo-container {
@@ -157,11 +147,6 @@
   color: var(--gray-600);
 }
 
-.password-toggle:disabled {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
 .error-message {
   color: var(--danger-color);
   font-size: 12px;
@@ -203,7 +188,6 @@
   align-items: center;
   justify-content: center;
   transition: all 0.3s ease;
-  position: relative;
 }
 
 .checkbox-input:checked + .checkbox-custom {
@@ -216,16 +200,6 @@
   color: white;
   font-size: 12px;
   font-weight: bold;
-}
-
-.checkbox-input:disabled + .checkbox-custom {
-  background-color: var(--gray-100);
-  border-color: var(--gray-300);
-  cursor: not-allowed;
-}
-
-.checkbox-text {
-  user-select: none;
 }
 
 .alert {
@@ -245,16 +219,9 @@
 }
 
 @keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-5px);
-  }
-  75% {
-    transform: translateX(5px);
-  }
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
 }
 
 .login-button {
@@ -280,18 +247,10 @@
   box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
 }
 
-.login-button:active {
-  transform: translateY(0);
-}
-
 .login-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;
-}
-
-.login-button.loading {
-  cursor: not-allowed;
 }
 
 .button-content {
@@ -348,29 +307,11 @@
   cursor: not-allowed;
 }
 
-.demo-btn.admin:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.1);
-  border-color: var(--danger-color);
-  color: var(--danger-color);
-}
-
-.demo-btn.manager:hover:not(:disabled) {
-  background: rgba(37, 99, 235, 0.1);
-  border-color: var(--primary-color);
-  color: var(--primary-color);
-}
-
-.demo-btn.receptionist:hover:not(:disabled) {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: var(--success-color);
-  color: var(--success-color);
-}
-
-.demo-btn.technician:hover:not(:disabled) {
-  background: rgba(245, 158, 11, 0.1);
-  border-color: var(--warning-color);
-  color: var(--warning-color);
-}
+/* Demo button color variants - consolidated */
+.demo-btn.admin:hover:not(:disabled) { background: rgba(239, 68, 68, 0.1); border-color: var(--danger-color); color: var(--danger-color); }
+.demo-btn.manager:hover:not(:disabled) { background: rgba(37, 99, 235, 0.1); border-color: var(--primary-color); color: var(--primary-color); }
+.demo-btn.receptionist:hover:not(:disabled) { background: rgba(16, 185, 129, 0.1); border-color: var(--success-color); color: var(--success-color); }
+.demo-btn.technician:hover:not(:disabled) { background: rgba(245, 158, 11, 0.1); border-color: var(--warning-color); color: var(--warning-color); }
 
 .login-footer {
   margin-top: 30px;
@@ -410,32 +351,12 @@
 
 /* Responsive Design */
 @media (max-width: 480px) {
-  .login-container {
-    padding: 16px;
-  }
-
-  .login-card {
-    padding: 30px 20px;
-    border-radius: 16px;
-  }
-
-  .login-title {
-    font-size: 24px;
-  }
-
-  .form-input {
-    padding: 10px 14px 10px 36px;
-  }
-
-  .login-button {
-    padding: 12px 18px;
-    font-size: 15px;
-  }
-
-  .demo-buttons {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
+  .login-container { padding: 16px; }
+  .login-card { padding: 30px 20px; border-radius: 16px; }
+  .login-title { font-size: 24px; }
+  .form-input { padding: 10px 14px 10px 36px; }
+  .login-button { padding: 12px 18px; font-size: 15px; }
+  .demo-buttons { grid-template-columns: 1fr; gap: 6px; }
 }
 
 /* Dark mode support */
@@ -444,29 +365,16 @@
     background: rgba(30, 30, 30, 0.95);
     color: white;
   }
-
-  .login-title {
-    color: white;
-  }
-
-  .login-subtitle {
-    color: rgba(255, 255, 255, 0.7);
-  }
-
-  .form-label {
-    color: rgba(255, 255, 255, 0.9);
-  }
-
+  
+  .login-title { color: white; }
+  .login-subtitle { color: rgba(255, 255, 255, 0.7); }
+  .form-label { color: rgba(255, 255, 255, 0.9); }
   .form-input {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
     color: white;
   }
-
-  .form-input:focus {
-    background: rgba(255, 255, 255, 0.15);
-  }
-
+  .form-input:focus { background: rgba(255, 255, 255, 0.15); }
   .demo-btn {
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.2);
