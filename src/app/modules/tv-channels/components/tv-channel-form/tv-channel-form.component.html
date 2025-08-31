@@ -1,3 +1,4 @@
+<!-- src/app/modules/tv-channels/components/tv-channel-form/tv-channel-form.component.html -->
 <div class="channel-form-container">
   <div class="page-header">
     <div class="page-header-content">
@@ -6,41 +7,79 @@
       </h1>
       <p class="page-subtitle">
         {{
-          isEditMode ? "Update channel information" : "Enter channel details"
+          isEditMode
+            ? "Update channel information and settings"
+            : "Configure a new TV channel for your IPTV system"
         }}
       </p>
     </div>
     <div class="page-actions">
-      <button class="btn btn-secondary" (click)="onCancel()">
+      <button
+        class="btn btn-secondary"
+        (click)="onCancel()"
+        [disabled]="submitting"
+      >
         <i class="fas fa-arrow-left"></i>
         Back to List
       </button>
     </div>
   </div>
 
-  <div class="form-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading channel data...</p>
+    </div>
+  </div>
+
+  <div class="form-container" *ngIf="!loading">
     <form [formGroup]="channelForm" (ngSubmit)="onSubmit()">
+      <!-- Basic Information Section -->
       <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-tv"></i>
+          Basic Information
+        </h3>
+
         <div class="form-row">
           <div class="form-group">
-            <label for="channelNumber">Channel Number *</label>
+            <label for="channelNumber" class="required">Channel Number</label>
             <input
               type="number"
               id="channelNumber"
               formControlName="channelNumber"
               class="form-control"
-              placeholder="101"
+              [class.error]="isFieldInvalid('channelNumber')"
+              placeholder="e.g., 101"
+              min="1"
+              max="9999"
             />
+            <div class="input-help">
+              <small>Unique number for this channel (1-9999)</small>
+            </div>
+            <div *ngIf="isFieldInvalid('channelNumber')" class="error-message">
+              {{ getFieldError("channelNumber") }}
+            </div>
           </div>
+
           <div class="form-group">
-            <label for="name">Channel Name *</label>
+            <label for="name" class="required">Channel Name</label>
             <input
               type="text"
               id="name"
               formControlName="name"
               class="form-control"
-              placeholder="CNN International"
+              [class.error]="isFieldInvalid('name')"
+              placeholder="e.g., CNN International"
+              maxlength="100"
             />
+            <div class="input-help">
+              <small>Display name for the channel (2-100 characters)</small>
+            </div>
+            <div *ngIf="isFieldInvalid('name')" class="error-message">
+              {{ getFieldError("name") }}
+            </div>
           </div>
         </div>
 
@@ -50,75 +89,217 @@
             id="description"
             formControlName="description"
             class="form-control"
+            [class.error]="isFieldInvalid('description')"
             rows="3"
-            placeholder="Channel description..."
+            placeholder="Brief description of the channel content..."
+            maxlength="500"
           ></textarea>
+          <div class="input-help">
+            <small>Optional description (max 500 characters)</small>
+          </div>
+          <div *ngIf="isFieldInvalid('description')" class="error-message">
+            {{ getFieldError("description") }}
+          </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="ip">IP Address *</label>
-            <input
-              type="text"
-              id="ip"
-              formControlName="ip"
-              class="form-control"
-              placeholder="192.168.1.100"
-            />
-          </div>
-          <div class="form-group">
-            <label for="port">Port *</label>
-            <input
-              type="number"
-              id="port"
-              formControlName="port"
-              class="form-control"
-              placeholder="8001"
-            />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="logoUrl">Logo URL</label>
-          <input
-            type="url"
-            id="logoUrl"
-            formControlName="logoUrl"
-            class="form-control"
-            placeholder="https://example.com/logo.png"
-          />
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label for="categoryId">Category *</label>
+            <label for="categoryId" class="required">Category</label>
             <select
               id="categoryId"
               formControlName="categoryId"
               class="form-control"
+              [class.error]="isFieldInvalid('categoryId')"
             >
               <option value="">Select Category</option>
               <option *ngFor="let category of categories" [value]="category.id">
                 {{ category.name }}
               </option>
             </select>
+            <div class="input-help">
+              <small>Channel category for organization</small>
+            </div>
+            <div *ngIf="isFieldInvalid('categoryId')" class="error-message">
+              {{ getFieldError("categoryId") }}
+            </div>
           </div>
+
           <div class="form-group">
-            <label for="languageId">Language *</label>
+            <label for="languageId" class="required">Language</label>
             <select
               id="languageId"
               formControlName="languageId"
               class="form-control"
+              [class.error]="isFieldInvalid('languageId')"
             >
               <option value="">Select Language</option>
               <option *ngFor="let language of languages" [value]="language.id">
                 {{ language.name }} ({{ language.code }})
               </option>
             </select>
+            <div class="input-help">
+              <small>Primary language of the channel</small>
+            </div>
+            <div *ngIf="isFieldInvalid('languageId')" class="error-message">
+              {{ getFieldError("languageId") }}
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- Network Configuration Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-network-wired"></i>
+          Network Configuration
+        </h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="ip" class="required">IP Address</label>
+            <input
+              type="text"
+              id="ip"
+              formControlName="ip"
+              class="form-control"
+              [class.error]="isFieldInvalid('ip')"
+              [class.success]="connectionTestResult?.success"
+              placeholder="192.168.1.100"
+              pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+            />
+            <div class="input-help">
+              <small>Stream server IP address (IPv4 format)</small>
+            </div>
+            <div *ngIf="isFieldInvalid('ip')" class="error-message">
+              {{ getFieldError("ip") }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="port" class="required">Port</label>
+            <input
+              type="number"
+              id="port"
+              formControlName="port"
+              class="form-control"
+              [class.error]="isFieldInvalid('port')"
+              [class.success]="connectionTestResult?.success"
+              placeholder="8001"
+              min="1"
+              max="65535"
+            />
+            <div class="input-help">
+              <small>Stream server port (1-65535)</small>
+            </div>
+            <div *ngIf="isFieldInvalid('port')" class="error-message">
+              {{ getFieldError("port") }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Connection Test -->
+        <div class="connection-test-section">
+          <div class="connection-test-header">
+            <h4>Connection Test</h4>
+            <button
+              type="button"
+              class="btn btn-secondary btn-sm"
+              (click)="onTestConnection()"
+              [disabled]="
+                testingConnection ||
+                channelForm.get('ip')?.invalid ||
+                channelForm.get('port')?.invalid
+              "
+            >
+              <i
+                class="fas fa-satellite-dish"
+                [class.fa-spin]="testingConnection"
+              ></i>
+              {{ testingConnection ? "Testing..." : "Test Connection" }}
+            </button>
+          </div>
+
+          <div *ngIf="connectionTestResult" class="connection-result">
+            <div
+              class="alert"
+              [class.alert-success]="connectionTestResult.success"
+              [class.alert-error]="!connectionTestResult.success"
+            >
+              <i
+                class="fas"
+                [class.fa-check-circle]="connectionTestResult.success"
+                [class.fa-times-circle]="!connectionTestResult.success"
+              ></i>
+              {{ connectionTestResult.message }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logo and Branding Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-image"></i>
+          Logo and Branding
+        </h3>
+
+        <div class="logo-section">
+          <div class="form-group flex-grow">
+            <label for="logoUrl">Logo URL</label>
+            <div class="logo-input-group">
+              <input
+                type="url"
+                id="logoUrl"
+                formControlName="logoUrl"
+                class="form-control"
+                [class.error]="isFieldInvalid('logoUrl')"
+                placeholder="https://example.com/logo.png"
+              />
+              <button
+                type="button"
+                class="btn btn-secondary btn-sm"
+                (click)="onClearLogo()"
+                *ngIf="logoUrl?.value"
+                title="Clear logo URL"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="input-help">
+              <small>Optional logo image URL (PNG, JPG, SVG supported)</small>
+            </div>
+            <div *ngIf="isFieldInvalid('logoUrl')" class="error-message">
+              {{ getFieldError("logoUrl") }}
+            </div>
+          </div>
+
+          <div class="logo-preview" *ngIf="logoPreviewUrl || logoUrl?.value">
+            <div class="preview-label">Preview:</div>
+            <div class="preview-container">
+              <img
+                *ngIf="logoPreviewUrl"
+                [src]="logoPreviewUrl"
+                [alt]="name?.value || 'Channel logo'"
+                class="logo-image"
+                (error)="logoPreviewUrl = null"
+              />
+              <div
+                *ngIf="!logoPreviewUrl && logoUrl?.value"
+                class="preview-error"
+              >
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Unable to load image</span>
+              </div>
+              <div *ngIf="!logoUrl?.value" class="preview-placeholder">
+                <i class="fas fa-image"></i>
+                <span>No logo</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Actions -->
       <div class="form-actions">
         <button
           type="button"
@@ -126,22 +307,90 @@
           (click)="onCancel()"
           [disabled]="submitting"
         >
+          <i class="fas fa-times"></i>
           Cancel
         </button>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="channelForm.invalid || submitting"
-        >
-          {{
-            submitting
-              ? "Saving..."
-              : isEditMode
-              ? "Update Channel"
-              : "Create Channel"
-          }}
-        </button>
+
+        <div class="action-group">
+          <button
+            type="button"
+            class="btn btn-info"
+            (click)="onTestConnection()"
+            [disabled]="
+              submitting ||
+              testingConnection ||
+              channelForm.get('ip')?.invalid ||
+              channelForm.get('port')?.invalid
+            "
+          >
+            <i
+              class="fas fa-satellite-dish"
+              [class.fa-spin]="testingConnection"
+            ></i>
+            {{ testingConnection ? "Testing..." : "Test Connection" }}
+          </button>
+
+          <button
+            type="submit"
+            class="btn btn-primary"
+            [disabled]="channelForm.invalid || submitting || testingConnection"
+          >
+            <i
+              class="fas"
+              [class.fa-save]="!submitting"
+              [class.fa-spinner]="submitting"
+              [class.fa-spin]="submitting"
+            ></i>
+            {{
+              submitting
+                ? "Saving..."
+                : isEditMode
+                ? "Update Channel"
+                : "Create Channel"
+            }}
+          </button>
+        </div>
       </div>
     </form>
+  </div>
+
+  <!-- Form Summary (for review before submit) -->
+  <div class="form-summary" *ngIf="!loading && channelForm.valid">
+    <h4>Channel Summary</h4>
+    <div class="summary-content">
+      <div class="summary-row">
+        <span class="label">Channel:</span>
+        <span class="value"
+          >{{ channelNumber?.value }} - {{ name?.value }}</span
+        >
+      </div>
+      <div class="summary-row" *ngIf="categoryId?.value">
+        <span class="label">Category:</span>
+        <span class="value">{{ getCategoryName(categoryId.value) }}</span>
+      </div>
+      <div class="summary-row" *ngIf="languageId?.value">
+        <span class="label">Language:</span>
+        <span class="value">{{ getLanguageName(languageId.value) }}</span>
+      </div>
+      <div class="summary-row">
+        <span class="label">Stream:</span>
+        <span class="value">{{ ip?.value }}:{{ port?.value }}</span>
+      </div>
+      <div class="summary-row" *ngIf="connectionTestResult">
+        <span class="label">Connection:</span>
+        <span
+          class="value status"
+          [class.success]="connectionTestResult.success"
+          [class.error]="!connectionTestResult.success"
+        >
+          <i
+            class="fas"
+            [class.fa-check]="connectionTestResult.success"
+            [class.fa-times]="!connectionTestResult.success"
+          ></i>
+          {{ connectionTestResult.success ? "Available" : "Failed" }}
+        </span>
+      </div>
+    </div>
   </div>
 </div>

@@ -1,21 +1,70 @@
 <!-- src/app/modules/tv-channels/components/tv-channels-list/tv-channels-list.component.html -->
 <div class="channel-list-container">
+  <!-- Success Message -->
+  <div *ngIf="showSuccessMessage" class="success-banner">
+    <div class="alert alert-success">
+      <i class="fas fa-check-circle"></i>
+      {{ successMessage }}
+      <button class="btn btn-sm btn-link" (click)="dismissSuccessMessage()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Page Header -->
   <div class="page-header">
     <div class="page-header-content">
       <h1 class="page-title">TV Channels Management</h1>
-      <p class="page-subtitle">Manage and configure television channels</p>
+      <p class="page-subtitle">
+        Manage and configure television channels for your IPTV system
+      </p>
     </div>
     <div class="page-actions">
-      <button 
-        class="btn btn-secondary" 
-        (click)="refreshChannels()" 
-        [disabled]="loading$ | async">
-        <i class="fas" 
-           [class.fa-sync-alt]="!(loading$ | async)" 
-           [class.fa-spinner]="loading$ | async" 
-           [class.fa-spin]="loading$ | async"></i>
-        {{ (loading$ | async) ? 'Loading...' : 'Refresh' }}
-      </button>
+      <div class="action-group">
+        <!-- Auto Refresh Toggle -->
+        <button
+          class="btn btn-secondary"
+          [class.active]="autoRefreshEnabled"
+          (click)="toggleAutoRefresh()"
+          title="Auto refresh every 30 seconds"
+        >
+          <i
+            class="fas"
+            [class.fa-pause]="autoRefreshEnabled"
+            [class.fa-play]="!autoRefreshEnabled"
+          ></i>
+          Auto Refresh
+        </button>
+
+        <!-- View Mode Toggle -->
+        <button
+          class="btn btn-secondary"
+          (click)="toggleViewMode()"
+          [title]="
+            viewMode === 'table'
+              ? 'Switch to grid view'
+              : 'Switch to table view'
+          "
+        >
+          <i
+            class="fas"
+            [class.fa-th]="viewMode === 'table'"
+            [class.fa-list]="viewMode === 'grid'"
+          ></i>
+        </button>
+
+        <!-- Refresh Button -->
+        <button
+          class="btn btn-secondary"
+          (click)="refreshChannels()"
+          [disabled]="loading$ | async"
+          title="Refresh channel list"
+        >
+          <i class="fas fa-sync-alt" [class.fa-spin]="loading$ | async"></i>
+          Refresh
+        </button>
+      </div>
+
       <button class="btn btn-primary btn-lg" (click)="addChannel()">
         <i class="fas fa-plus"></i>
         Add Channel
@@ -23,59 +72,220 @@
     </div>
   </div>
 
+  <!-- Statistics Cards -->
+  <div class="stats-grid" *ngIf="channelStats.total > 0">
+    <div class="stats-card">
+      <div class="stats-card-header">
+        <h3 class="stats-card-title">Total Channels</h3>
+        <div class="stats-card-icon primary">
+          <i class="fas fa-tv"></i>
+        </div>
+      </div>
+      <div class="stats-card-value">{{ channelStats.total }}</div>
+      <div class="stats-card-trend">
+        <span>All registered channels</span>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="stats-card-header">
+        <h3 class="stats-card-title">Active</h3>
+        <div class="stats-card-icon success">
+          <i class="fas fa-check-circle"></i>
+        </div>
+      </div>
+      <div class="stats-card-value">{{ channelStats.active }}</div>
+      <div class="stats-card-trend trend-up">
+        <i class="fas fa-arrow-up"></i>
+        <span>Currently broadcasting</span>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="stats-card-header">
+        <h3 class="stats-card-title">Categories</h3>
+        <div class="stats-card-icon info">
+          <i class="fas fa-tags"></i>
+        </div>
+      </div>
+      <div class="stats-card-value">{{ categories.length }}</div>
+      <div class="stats-card-trend">
+        <span>Channel categories</span>
+      </div>
+    </div>
+
+    <div class="stats-card">
+      <div class="stats-card-header">
+        <h3 class="stats-card-title">Languages</h3>
+        <div class="stats-card-icon warning">
+          <i class="fas fa-language"></i>
+        </div>
+      </div>
+      <div class="stats-card-value">{{ languages.length }}</div>
+      <div class="stats-card-trend">
+        <span>Supported languages</span>
+      </div>
+    </div>
+  </div>
+
   <!-- Error Display -->
-  <div *ngIf="error" class="alert alert-error" style="margin-bottom: 24px;">
-    <i class="fas fa-exclamation-triangle"></i>
-    <span>{{ error }}</span>
-    <button class="btn btn-sm btn-secondary" (click)="refreshChannels()">
-      <i class="fas fa-redo"></i>
-      Retry
-    </button>
+  <div *ngIf="error" class="error-banner">
+    <div class="alert alert-error">
+      <i class="fas fa-exclamation-triangle"></i>
+      <span>{{ error }}</span>
+      <button class="btn btn-sm btn-secondary" (click)="refreshChannels()">
+        <i class="fas fa-redo"></i>
+        Retry
+      </button>
+    </div>
   </div>
 
   <!-- Filters Section -->
   <div class="filters-section">
-    <div class="filters-row">
-      <div class="search-group">
-        <div class="search-input-container">
-          <i class="fas fa-search search-icon"></i>
-          <input
-            type="text"
-            [value]="searchTerm"
-            (input)="onSearchChange($any($event.target).value)"
-            placeholder="Search channels by name, number, IP..."
-            class="search-input"
-          />
+    <div class="filters-header">
+      <div class="filters-main">
+        <div class="search-group">
+          <div class="search-input-container">
+            <i class="fas fa-search search-icon"></i>
+            <input
+              type="text"
+              [value]="searchTerm"
+              (input)="onSearchChange($any($event.target).value)"
+              placeholder="Search channels by name, number, IP address..."
+              class="search-input"
+            />
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <select
+            [(ngModel)]="selectedCategoryId"
+            (change)="onFilterChange()"
+            class="filter-select"
+          >
+            <option [value]="null">All Categories</option>
+            <option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+
+          <select
+            [(ngModel)]="selectedLanguageId"
+            (change)="onFilterChange()"
+            class="filter-select"
+          >
+            <option [value]="null">All Languages</option>
+            <option *ngFor="let language of languages" [value]="language.id">
+              {{ language.name }} ({{ language.code }})
+            </option>
+          </select>
+
+          <select
+            [(ngModel)]="activeFilter"
+            (change)="onFilterChange()"
+            class="filter-select"
+          >
+            <option [value]="null">All Status</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+
+          <button class="btn btn-secondary" (click)="clearFilters()">
+            <i class="fas fa-times"></i>
+            Clear
+          </button>
         </div>
       </div>
 
-      <div class="filter-group">
-        <select
-          [(ngModel)]="selectedCategoryId"
-          (change)="onFilterChange()"
-          class="filter-select">
-          <option [value]="null">All Categories</option>
-          <option *ngFor="let category of categories" [value]="category.id">
-            {{ category.name }}
-          </option>
-        </select>
-
-        <select
-          [(ngModel)]="selectedLanguageId"
-          (change)="onFilterChange()"
-          class="filter-select">
-          <option [value]="null">All Languages</option>
-          <option *ngFor="let language of languages" [value]="language.id">
-            {{ language.name }} ({{ language.code }})
-          </option>
-        </select>
-
-        <button class="btn btn-secondary" (click)="clearFilters()">
-          <i class="fas fa-times"></i>
-          Clear
+      <div class="filters-actions">
+        <button
+          class="btn btn-secondary btn-sm"
+          (click)="toggleAdvancedFilters()"
+          [class.active]="showAdvancedFilters"
+        >
+          <i class="fas fa-filter"></i>
+          Advanced
         </button>
       </div>
     </div>
+
+    <!-- Advanced Filters -->
+    <div class="advanced-filters" *ngIf="showAdvancedFilters">
+      <div class="advanced-filter-row">
+        <div class="filter-group">
+          <label>Import/Export:</label>
+          <input
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            (change)="onImportChannels($event)"
+            class="file-input"
+            id="importFile"
+            style="display: none"
+          />
+          <button
+            class="btn btn-sm btn-secondary"
+            onclick="document.getElementById('importFile').click()"
+          >
+            <i class="fas fa-upload"></i>
+            Import
+          </button>
+          <button class="btn btn-sm btn-secondary" (click)="exportChannels()">
+            <i class="fas fa-download"></i>
+            Export CSV
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bulk Operations Bar -->
+  <div class="bulk-operations-bar" *ngIf="bulkOperationsEnabled">
+    <div class="bulk-info">
+      <i class="fas fa-check-square"></i>
+      <span
+        >{{ getSelectedChannelsCount() }} channel{{
+          getSelectedChannelsCount() > 1 ? "s" : ""
+        }}
+        selected</span
+      >
+    </div>
+    <div class="bulk-actions">
+      <button
+        class="btn btn-sm btn-success"
+        (click)="performBulkOperation('ACTIVATE')"
+      >
+        <i class="fas fa-play"></i>
+        Activate
+      </button>
+      <button
+        class="btn btn-sm btn-warning"
+        (click)="performBulkOperation('DEACTIVATE')"
+      >
+        <i class="fas fa-pause"></i>
+        Deactivate
+      </button>
+      <button
+        class="btn btn-sm btn-info"
+        (click)="performBulkOperation('TEST_CONNECTIVITY')"
+      >
+        <i class="fas fa-satellite-dish"></i>
+        Test Connection
+      </button>
+      <button
+        class="btn btn-sm btn-danger"
+        (click)="performBulkOperation('DELETE')"
+      >
+        <i class="fas fa-trash"></i>
+        Delete
+      </button>
+    </div>
+    <button
+      class="btn btn-sm btn-secondary"
+      (click)="selectedChannels.clear(); bulkOperationsEnabled = false"
+    >
+      <i class="fas fa-times"></i>
+      Cancel
+    </button>
   </div>
 
   <!-- Loading Overlay -->
@@ -86,15 +296,31 @@
     </div>
   </div>
 
-  <!-- Channels Table -->
-  <div class="table-container" *ngIf="!(loading$ | async)">
+  <!-- Channels Table View -->
+  <div
+    class="table-container"
+    *ngIf="viewMode === 'table' && !(loading$ | async)"
+  >
     <div class="table-header">
-      <h3 class="table-title">Channels ({{ totalElements }})</h3>
+      <h3 class="table-title">
+        Channels ({{ totalElements }})
+        <span class="page-info">
+          Page {{ currentPage + 1 }} of {{ totalPages || 1 }}
+        </span>
+      </h3>
       <div class="table-actions">
-        <button class="btn btn-secondary btn-sm" (click)="exportChannels()">
-          <i class="fas fa-download"></i>
-          Export
-        </button>
+        <div class="page-size-selector">
+          <label>Show:</label>
+          <select
+            [(ngModel)]="pageSize"
+            (change)="onPageSizeChange(pageSize)"
+            class="page-size-select"
+          >
+            <option *ngFor="let size of pageSizeOptions" [value]="size">
+              {{ size }}
+            </option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -102,20 +328,27 @@
       <table class="table" *ngIf="channels.length > 0">
         <thead>
           <tr>
+            <th class="checkbox-col">
+              <input
+                type="checkbox"
+                [checked]="areAllChannelsSelected()"
+                (change)="toggleAllChannels($event)"
+                class="bulk-checkbox"
+              />
+            </th>
             <th>
               <button class="sort-btn" (click)="onSortChange('channelNumber')">
                 Channel #
-                <i class="fas fa-sort" 
-                   [class.fa-sort-up]="sortBy === 'channelNumber' && sortDirection === 'asc'"
-                   [class.fa-sort-down]="sortBy === 'channelNumber' && sortDirection === 'desc'"></i>
+                <i
+                  class="fas"
+                  [class]="'fas ' + getSortIcon('channelNumber')"
+                ></i>
               </button>
             </th>
             <th>
               <button class="sort-btn" (click)="onSortChange('name')">
                 Name
-                <i class="fas fa-sort" 
-                   [class.fa-sort-up]="sortBy === 'name' && sortDirection === 'asc'"
-                   [class.fa-sort-down]="sortBy === 'name' && sortDirection === 'desc'"></i>
+                <i class="fas" [class]="'fas ' + getSortIcon('name')"></i>
               </button>
             </th>
             <th>Category</th>
@@ -126,23 +359,43 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let channel of channels" class="table-row">
+          <tr
+            *ngFor="let channel of channels"
+            class="table-row"
+            [class.selected]="isChannelSelected(channel.id!)"
+          >
+            <td class="checkbox-col">
+              <input
+                type="checkbox"
+                [checked]="isChannelSelected(channel.id!)"
+                (change)="toggleChannelSelection(channel.id!, $event)"
+                class="row-checkbox"
+              />
+            </td>
             <td>
               <div class="channel-number">
                 <strong>{{ channel.channelNumber }}</strong>
               </div>
             </td>
             <td>
-              <div class="channel-info">
+              <div class="channel-info" (click)="viewChannel(channel.id)">
                 <div class="channel-name">
-                  <img *ngIf="channel.logoUrl" 
-                       [src]="channel.logoUrl" 
-                       [alt]="channel.name"
-                       class="channel-logo">
+                  <img
+                    *ngIf="channel.logoUrl"
+                    [src]="channel.logoUrl"
+                    [alt]="channel.name"
+                    class="channel-logo"
+                    (error)="$event.target.style.display = 'none'"
+                  />
                   <span>{{ channel.name }}</span>
                 </div>
                 <div class="channel-description" *ngIf="channel.description">
-                  {{ channel.description }}
+                  {{ channel.description | slice : 0 : 80
+                  }}{{
+                    channel.description && channel.description.length > 80
+                      ? "..."
+                      : ""
+                  }}
                 </div>
               </div>
             </td>
@@ -155,7 +408,10 @@
               </span>
             </td>
             <td>
-              <span *ngIf="channel.language" class="status-badge status-secondary">
+              <span
+                *ngIf="channel.language"
+                class="status-badge status-secondary"
+              >
                 {{ channel.language.name }} ({{ channel.language.code }})
               </span>
               <span *ngIf="!channel.language" class="text-secondary">
@@ -166,13 +422,21 @@
               <div class="network-info">
                 <div class="ip-port">
                   <i class="fas fa-globe"></i>
-                  {{ channel.ip }}:{{ channel.port }}
+                  <code>{{ channel.ip }}:{{ channel.port }}</code>
+                </div>
+                <div class="stream-url" title="{{ formatStreamUrl(channel) }}">
+                  <small
+                    >{{ formatStreamUrl(channel) | slice : 0 : 25 }}...</small
+                  >
                 </div>
               </div>
             </td>
             <td>
-              <span class="status-badge" 
-                    [class]="'status-' + getStatusClass(getChannelStatus(channel))">
+              <span
+                class="status-badge"
+                [class]="'status-' + getStatusClass(getChannelStatus(channel))"
+              >
+                <i class="fas fa-circle status-indicator"></i>
                 {{ getChannelStatus(channel) | titlecase }}
               </span>
             </td>
@@ -181,19 +445,36 @@
                 <button
                   class="btn btn-sm btn-secondary action-btn"
                   (click)="viewChannel(channel.id)"
-                  title="View Details">
+                  title="View Details"
+                >
                   <i class="fas fa-eye"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-info action-btn"
+                  (click)="testChannelConnection(channel)"
+                  title="Test Connection"
+                >
+                  <i class="fas fa-satellite-dish"></i>
                 </button>
                 <button
                   class="btn btn-sm btn-primary action-btn"
                   (click)="editChannel(channel.id)"
-                  title="Edit Channel">
+                  title="Edit Channel"
+                >
                   <i class="fas fa-edit"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-warning action-btn"
+                  (click)="duplicateChannel(channel)"
+                  title="Duplicate Channel"
+                >
+                  <i class="fas fa-copy"></i>
                 </button>
                 <button
                   class="btn btn-sm btn-danger action-btn"
                   (click)="deleteChannel(channel.id)"
-                  title="Delete Channel">
+                  title="Delete Channel"
+                >
                   <i class="fas fa-trash"></i>
                 </button>
               </div>
@@ -203,20 +484,36 @@
       </table>
 
       <!-- Empty State -->
-      <div *ngIf="channels.length === 0 && !(loading$ | async)" class="empty-state">
+      <div
+        *ngIf="channels.length === 0 && !(loading$ | async)"
+        class="empty-state"
+      >
         <div class="empty-state-content">
           <i class="fas fa-tv empty-state-icon"></i>
           <h3 class="empty-state-title">No channels found</h3>
           <p class="empty-state-description">
-            {{ error ? 'There was an error loading channels.' : 
-               (searchTerm || selectedCategoryId || selectedLanguageId ? 
-                'No channels match your current search criteria.' : 
-                'No channels have been configured yet.') }}
+            {{
+              error
+                ? "There was an error loading channels."
+                : searchTerm ||
+                  selectedCategoryId ||
+                  selectedLanguageId ||
+                  activeFilter
+                ? "No channels match your current search criteria."
+                : "No channels have been configured yet."
+            }}
           </p>
           <div class="empty-state-actions">
-            <button *ngIf="searchTerm || selectedCategoryId || selectedLanguageId" 
-                    class="btn btn-secondary" 
-                    (click)="clearFilters()">
+            <button
+              *ngIf="
+                searchTerm ||
+                selectedCategoryId ||
+                selectedLanguageId ||
+                activeFilter
+              "
+              class="btn btn-secondary"
+              (click)="clearFilters()"
+            >
               <i class="fas fa-times"></i>
               Clear Filters
             </button>
@@ -230,41 +527,273 @@
     </div>
   </div>
 
+  <!-- Channels Grid View -->
+  <div
+    class="grid-container"
+    *ngIf="viewMode === 'grid' && !(loading$ | async)"
+  >
+    <div class="grid-header">
+      <h3 class="grid-title">
+        Channels ({{ totalElements }})
+        <span class="page-info">
+          Page {{ currentPage + 1 }} of {{ totalPages || 1 }}
+        </span>
+      </h3>
+      <div class="grid-actions">
+        <div class="page-size-selector">
+          <label>Show:</label>
+          <select
+            [(ngModel)]="pageSize"
+            (change)="onPageSizeChange(pageSize)"
+            class="page-size-select"
+          >
+            <option *ngFor="let size of pageSizeOptions" [value]="size">
+              {{ size }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="channels-grid" *ngIf="channels.length > 0">
+      <div
+        *ngFor="let channel of channels"
+        class="channel-card"
+        [class.selected]="isChannelSelected(channel.id!)"
+      >
+        <!-- Selection Checkbox -->
+        <div class="card-checkbox">
+          <input
+            type="checkbox"
+            [checked]="isChannelSelected(channel.id!)"
+            (change)="toggleChannelSelection(channel.id!, $event)"
+          />
+        </div>
+
+        <!-- Channel Header -->
+        <div class="card-header" (click)="viewChannel(channel.id)">
+          <div class="channel-number-badge">{{ channel.channelNumber }}</div>
+          <div class="channel-status">
+            <span
+              class="status-badge status-sm"
+              [class]="'status-' + getStatusClass(getChannelStatus(channel))"
+            >
+              <i class="fas fa-circle"></i>
+            </span>
+          </div>
+        </div>
+
+        <!-- Channel Logo -->
+        <div class="card-logo" (click)="viewChannel(channel.id)">
+          <img
+            *ngIf="channel.logoUrl"
+            [src]="channel.logoUrl"
+            [alt]="channel.name"
+            class="logo-image"
+            (error)="$event.target.style.display = 'none'"
+          />
+          <div *ngIf="!channel.logoUrl" class="logo-placeholder">
+            <i class="fas fa-tv"></i>
+          </div>
+        </div>
+
+        <!-- Channel Info -->
+        <div class="card-content">
+          <h4
+            class="channel-title"
+            (click)="viewChannel(channel.id)"
+            [title]="channel.name"
+          >
+            {{ channel.name }}
+          </h4>
+          <p
+            class="channel-desc"
+            *ngIf="channel.description"
+            [title]="channel.description"
+          >
+            {{ channel.description | slice : 0 : 60
+            }}{{
+              channel.description && channel.description.length > 60
+                ? "..."
+                : ""
+            }}
+          </p>
+
+          <div class="card-tags">
+            <span *ngIf="channel.category" class="tag tag-category">
+              {{ channel.category.name }}
+            </span>
+            <span *ngIf="channel.language" class="tag tag-language">
+              {{ channel.language.code }}
+            </span>
+          </div>
+
+          <div class="card-network">
+            <i class="fas fa-globe"></i>
+            <code>{{ channel.ip }}:{{ channel.port }}</code>
+          </div>
+        </div>
+
+        <!-- Card Actions -->
+        <div class="card-actions">
+          <button
+            class="btn btn-sm btn-secondary"
+            (click)="viewChannel(channel.id)"
+            title="View Details"
+          >
+            <i class="fas fa-eye"></i>
+          </button>
+          <button
+            class="btn btn-sm btn-info"
+            (click)="testChannelConnection(channel)"
+            title="Test Connection"
+          >
+            <i class="fas fa-satellite-dish"></i>
+          </button>
+          <button
+            class="btn btn-sm btn-primary"
+            (click)="editChannel(channel.id)"
+            title="Edit"
+          >
+            <i class="fas fa-edit"></i>
+          </button>
+          <div class="dropdown">
+            <button
+              class="btn btn-sm btn-secondary dropdown-toggle"
+              title="More actions"
+            >
+              <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="dropdown-menu">
+              <button class="dropdown-item" (click)="duplicateChannel(channel)">
+                <i class="fas fa-copy"></i>
+                Duplicate
+              </button>
+              <button
+                class="dropdown-item text-danger"
+                (click)="deleteChannel(channel.id)"
+              >
+                <i class="fas fa-trash"></i>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Grid Empty State -->
+    <div
+      *ngIf="channels.length === 0 && !(loading$ | async)"
+      class="empty-state"
+    >
+      <div class="empty-state-content">
+        <i class="fas fa-th empty-state-icon"></i>
+        <h3 class="empty-state-title">No channels to display</h3>
+        <p class="empty-state-description">
+          {{
+            searchTerm ||
+            selectedCategoryId ||
+            selectedLanguageId ||
+            activeFilter
+              ? "Try adjusting your filters to see more results."
+              : "Start by adding your first channel."
+          }}
+        </p>
+        <div class="empty-state-actions">
+          <button
+            *ngIf="
+              searchTerm ||
+              selectedCategoryId ||
+              selectedLanguageId ||
+              activeFilter
+            "
+            class="btn btn-secondary"
+            (click)="clearFilters()"
+          >
+            <i class="fas fa-times"></i>
+            Clear Filters
+          </button>
+          <button class="btn btn-primary" (click)="addChannel()">
+            <i class="fas fa-plus"></i>
+            Add Channel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Pagination -->
-  <div class="pagination-container" *ngIf="totalPages > 1 && !(loading$ | async)">
+  <div
+    class="pagination-container"
+    *ngIf="totalPages > 1 && !(loading$ | async)"
+  >
     <div class="pagination-info">
-      Showing {{ (currentPage * pageSize) + 1 }} to 
-      {{ Math.min((currentPage + 1) * pageSize, totalElements) }} 
+      Showing {{ currentPage * pageSize + 1 }} to
+      {{ Math.min((currentPage + 1) * pageSize, totalElements) }}
       of {{ totalElements }} channels
     </div>
-    
+
     <div class="pagination-controls">
-      <button 
-        class="btn btn-sm btn-secondary" 
-        [disabled]="currentPage === 0" 
-        (click)="onPageChange(currentPage - 1)">
-        <i class="fas fa-chevron-left"></i>
-        Previous
+      <button
+        class="btn btn-sm btn-secondary"
+        [disabled]="currentPage === 0"
+        (click)="onPageChange(0)"
+        title="First page"
+      >
+        <i class="fas fa-angle-double-left"></i>
       </button>
-      
+
+      <button
+        class="btn btn-sm btn-secondary"
+        [disabled]="currentPage === 0"
+        (click)="onPageChange(currentPage - 1)"
+        title="Previous page"
+      >
+        <i class="fas fa-angle-left"></i>
+      </button>
+
       <div class="page-numbers">
-        <button 
-          *ngFor="let page of getPageNumbers()" 
-          class="btn btn-sm" 
+        <button
+          *ngFor="let page of getPageNumbers()"
+          class="btn btn-sm"
           [class.btn-primary]="page === currentPage"
           [class.btn-secondary]="page !== currentPage"
-          (click)="onPageChange(page)">
+          (click)="onPageChange(page)"
+        >
           {{ page + 1 }}
         </button>
       </div>
-      
-      <button 
-        class="btn btn-sm btn-secondary" 
-        [disabled]="currentPage === totalPages - 1" 
-        (click)="onPageChange(currentPage + 1)">
-        Next
-        <i class="fas fa-chevron-right"></i>
+
+      <button
+        class="btn btn-sm btn-secondary"
+        [disabled]="currentPage === totalPages - 1"
+        (click)="onPageChange(currentPage + 1)"
+        title="Next page"
+      >
+        <i class="fas fa-angle-right"></i>
       </button>
+
+      <button
+        class="btn btn-sm btn-secondary"
+        [disabled]="currentPage === totalPages - 1"
+        (click)="onPageChange(totalPages - 1)"
+        title="Last page"
+      >
+        <i class="fas fa-angle-double-right"></i>
+      </button>
+    </div>
+
+    <div class="pagination-jump">
+      <span>Go to page:</span>
+      <input
+        type="number"
+        class="page-jump-input"
+        [value]="currentPage + 1"
+        (keyup.enter)="onPageChange($any($event.target).value - 1)"
+        min="1"
+        [max]="totalPages"
+      />
     </div>
   </div>
 </div>

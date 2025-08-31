@@ -1,75 +1,333 @@
-<div class="channel-detail-container" *ngIf="!loading && channel">
-  <div class="page-header">
-    <div class="page-header-content">
-      <h1 class="page-title">{{ channel.name }}</h1>
-      <p class="page-subtitle">Channel {{ channel.channelNumber }} Details</p>
-    </div>
-    <div class="page-actions">
-      <button class="btn btn-secondary" (click)="goBack()">
-        <i class="fas fa-arrow-left"></i>
-        Back to List
-      </button>
-      <button class="btn btn-primary" (click)="editChannel()">
-        <i class="fas fa-edit"></i>
-        Edit Channel
-      </button>
-      <button class="btn btn-danger" (click)="deleteChannel()">
-        <i class="fas fa-trash"></i>
-        Delete
-      </button>
+<!-- src/app/modules/tv-channels/components/tv-channel-detail/tv-channel-detail.component.html -->
+<div class="channel-detail-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-content">
+      <i class="fas fa-spinner fa-spin loading-icon"></i>
+      <h3>Loading Channel Details...</h3>
+      <p>Please wait while we fetch the channel information.</p>
     </div>
   </div>
 
-  <div class="channel-detail-content">
-    <div class="channel-info-card">
-      <div class="channel-logo" *ngIf="channel.logoUrl">
-        <img [src]="channel.logoUrl" [alt]="channel.name" />
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-state">
+    <div class="error-content">
+      <i class="fas fa-exclamation-triangle error-icon"></i>
+      <h3>Failed to Load Channel</h3>
+      <p>{{ error }}</p>
+      <div class="error-actions">
+        <button class="btn btn-primary" (click)="refreshChannel()">
+          <i class="fas fa-redo"></i>
+          Try Again
+        </button>
+        <button class="btn btn-secondary" (click)="goBack()">
+          <i class="fas fa-arrow-left"></i>
+          Back to List
+        </button>
       </div>
+    </div>
+  </div>
 
-      <div class="channel-details">
-        <div class="detail-row">
-          <label>Channel Number:</label>
-          <span>{{ channel.channelNumber }}</span>
+  <!-- Channel Details -->
+  <div *ngIf="channel && !loading && !error">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="page-header-content">
+        <div class="channel-title-section">
+          <div class="channel-logo" *ngIf="hasLogo()">
+            <img
+              [src]="channel.logoUrl"
+              [alt]="getLogoAlt()"
+              class="logo-image"
+            />
+          </div>
+          <div class="channel-title-info">
+            <div class="channel-number">{{ channel.channelNumber }}</div>
+            <h1 class="page-title">{{ channel.name }}</h1>
+            <p class="page-subtitle" *ngIf="channel.description">
+              {{ channel.description }}
+            </p>
+          </div>
         </div>
+      </div>
+      <div class="page-actions">
+        <button class="btn btn-secondary" (click)="goBack()">
+          <i class="fas fa-arrow-left"></i>
+          Back to List
+        </button>
+        <button class="btn btn-info" (click)="duplicateChannel()">
+          <i class="fas fa-copy"></i>
+          Duplicate
+        </button>
+        <button class="btn btn-primary" (click)="editChannel()">
+          <i class="fas fa-edit"></i>
+          Edit Channel
+        </button>
+        <button class="btn btn-danger" (click)="deleteChannel()">
+          <i class="fas fa-trash"></i>
+          Delete
+        </button>
+      </div>
+    </div>
 
-        <div class="detail-row">
-          <label>Name:</label>
-          <span>{{ channel.name }}</span>
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-label">Status</div>
+        <div class="status-value">
+          <span class="status-badge" [class]="'status-' + getStatusClass()">
+            <i [class]="'fas ' + getStatusIcon()"></i>
+            {{ getChannelStatus() | titlecase }}
+          </span>
         </div>
-
-        <div class="detail-row" *ngIf="channel.description">
-          <label>Description:</label>
-          <span>{{ channel.description }}</span>
-        </div>
-
-        <div class="detail-row">
-          <label>IP Address:</label>
-          <span>{{ channel.ip }}</span>
-        </div>
-
-        <div class="detail-row">
-          <label>Port:</label>
-          <span>{{ channel.port }}</span>
-        </div>
-
-        <div class="detail-row" *ngIf="channel.category">
-          <label>Category:</label>
-          <span class="status-badge status-info">{{
-            channel.category.name
-          }}</span>
-        </div>
-
-        <div class="detail-row" *ngIf="channel.language">
-          <label>Language:</label>
-          <span class="status-badge status-secondary"
-            >{{ channel.language.name }} ({{ channel.language.code }})</span
+      </div>
+      <div class="status-item">
+        <div class="status-label">Category</div>
+        <div class="status-value">
+          <span class="category-badge" *ngIf="channel.category">
+            {{ channel.category.name }}
+          </span>
+          <span class="text-muted" *ngIf="!channel.category"
+            >Not categorized</span
           >
         </div>
       </div>
+      <div class="status-item">
+        <div class="status-label">Language</div>
+        <div class="status-value">
+          <span class="language-badge" *ngIf="channel.language">
+            {{ channel.language.name }} ({{ channel.language.code }})
+          </span>
+          <span class="text-muted" *ngIf="!channel.language"
+            >Not specified</span
+          >
+        </div>
+      </div>
+      <div class="status-item">
+        <div class="status-label">Connection</div>
+        <div class="status-value">
+          <button
+            class="btn btn-sm btn-info test-connection-btn"
+            (click)="testConnection()"
+            [disabled]="testingConnection"
+          >
+            <i
+              class="fas"
+              [class.fa-satellite-dish]="!testingConnection"
+              [class.fa-spinner]="testingConnection"
+              [class.fa-spin]="testingConnection"
+            ></i>
+            {{ testingConnection ? "Testing..." : "Test Connection" }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connection Test Result -->
+    <div *ngIf="connectionResult" class="connection-result-section">
+      <div
+        class="alert"
+        [class.alert-success]="connectionResult.success"
+        [class.alert-error]="!connectionResult.success"
+      >
+        <i
+          class="fas"
+          [class.fa-check-circle]="connectionResult.success"
+          [class.fa-times-circle]="!connectionResult.success"
+        ></i>
+        <strong>Connection Test Result:</strong>
+        {{ connectionResult.message }}
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="channel-detail-content">
+      <!-- Technical Information -->
+      <div class="detail-section">
+        <h3 class="section-title">
+          <i class="fas fa-cogs"></i>
+          Technical Information
+        </h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">Channel Number</div>
+            <div class="detail-value highlight">
+              {{ channel.channelNumber }}
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Stream URL</div>
+            <div
+              class="detail-value copyable"
+              (click)="copyToClipboard(formatStreamUrl())"
+            >
+              <code>{{ formatStreamUrl() }}</code>
+              <i class="fas fa-copy copy-icon" title="Click to copy"></i>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">IP Address</div>
+            <div
+              class="detail-value copyable"
+              (click)="copyToClipboard(channel.ip)"
+            >
+              <code>{{ channel.ip }}</code>
+              <i class="fas fa-copy copy-icon" title="Click to copy"></i>
+            </div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Port</div>
+            <div
+              class="detail-value copyable"
+              (click)="copyToClipboard(channel.port.toString())"
+            >
+              <code>{{ channel.port }}</code>
+              <i class="fas fa-copy copy-icon" title="Click to copy"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel Information -->
+      <div class="detail-section">
+        <h3 class="section-title">
+          <i class="fas fa-info-circle"></i>
+          Channel Information
+        </h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <div class="detail-label">Name</div>
+            <div class="detail-value">{{ channel.name }}</div>
+          </div>
+          <div class="detail-item" *ngIf="channel.description">
+            <div class="detail-label">Description</div>
+            <div class="detail-value">{{ channel.description }}</div>
+          </div>
+          <div class="detail-item" *ngIf="channel.category">
+            <div class="detail-label">Category</div>
+            <div class="detail-value">
+              <span class="category-tag">{{ channel.category.name }}</span>
+              <small
+                *ngIf="channel.category.description"
+                class="category-description"
+              >
+                {{ channel.category.description }}
+              </small>
+            </div>
+          </div>
+          <div class="detail-item" *ngIf="channel.language">
+            <div class="detail-label">Language</div>
+            <div class="detail-value">
+              <span class="language-tag">
+                {{ channel.language.name }} ({{ channel.language.code }})
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Logo and Branding -->
+      <div class="detail-section" *ngIf="channel.logoUrl">
+        <h3 class="section-title">
+          <i class="fas fa-image"></i>
+          Logo and Branding
+        </h3>
+        <div class="logo-section">
+          <div class="logo-display">
+            <img
+              [src]="channel.logoUrl"
+              [alt]="getLogoAlt()"
+              class="channel-logo-large"
+              (error)="$event.target.style.display = 'none'"
+            />
+          </div>
+          <div class="logo-info">
+            <div class="detail-item">
+              <div class="detail-label">Logo URL</div>
+              <div
+                class="detail-value copyable"
+                (click)="copyToClipboard(channel.logoUrl!)"
+              >
+                <code class="logo-url">{{ channel.logoUrl }}</code>
+                <i class="fas fa-copy copy-icon" title="Click to copy"></i>
+              </div>
+            </div>
+            <div class="logo-actions">
+              <button
+                class="btn btn-sm btn-secondary"
+                (click)="copyToClipboard(channel.logoUrl!)"
+              >
+                <i class="fas fa-copy"></i>
+                Copy URL
+              </button>
+              <a
+                [href]="channel.logoUrl"
+                target="_blank"
+                class="btn btn-sm btn-info"
+              >
+                <i class="fas fa-external-link-alt"></i>
+                Open Original
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="detail-section">
+        <h3 class="section-title">
+          <i class="fas fa-bolt"></i>
+          Quick Actions
+        </h3>
+        <div class="action-grid">
+          <button
+            class="action-card"
+            (click)="testConnection()"
+            [disabled]="testingConnection"
+          >
+            <div class="action-icon">
+              <i
+                class="fas fa-satellite-dish"
+                [class.fa-spin]="testingConnection"
+              ></i>
+            </div>
+            <div class="action-content">
+              <h4>Test Connection</h4>
+              <p>Verify stream connectivity</p>
+            </div>
+          </button>
+
+          <button class="action-card" (click)="editChannel()">
+            <div class="action-icon">
+              <i class="fas fa-edit"></i>
+            </div>
+            <div class="action-content">
+              <h4>Edit Channel</h4>
+              <p>Modify channel settings</p>
+            </div>
+          </button>
+
+          <button class="action-card" (click)="duplicateChannel()">
+            <div class="action-icon">
+              <i class="fas fa-copy"></i>
+            </div>
+            <div class="action-content">
+              <h4>Duplicate Channel</h4>
+              <p>Create a copy of this channel</p>
+            </div>
+          </button>
+
+          <button class="action-card danger" (click)="deleteChannel()">
+            <div class="action-icon">
+              <i class="fas fa-trash"></i>
+            </div>
+            <div class="action-content">
+              <h4>Delete Channel</h4>
+              <p>Remove from system</p>
+            </div>
+          </button>
+        </div>
+      </div>
     </div>
   </div>
-</div>
-
-<div *ngIf="loading" class="empty-state">
-  <div class="loading">Loading...</div>
 </div>
