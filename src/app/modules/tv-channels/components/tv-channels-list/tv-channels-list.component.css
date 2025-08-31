@@ -1,4 +1,214 @@
-/* Component-specific styles - most styles are in global styles.css */
+/* Additional CSS for TV Channels List Component */
+/* Add this to src/app/modules/tv-channels/components/tv-channels-list/tv-channels-list.component.css */
+
 .channel-list-container {
-  /* Additional component-specific styles if needed */
+  /* Component specific styles */
+}
+
+/* Loading Overlay */
+.loading-overlay {
+  position: relative;
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--border-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  margin-bottom: 24px;
+}
+
+.loading-spinner {
+  text-align: center;
+  color: var(--primary-color);
+}
+
+.loading-spinner i {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+/* Alert Styles */
+.alert {
+  padding: 16px 20px;
+  border-radius: var(--border-radius);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.alert-error {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+/* Sortable Table Headers */
+.sort-btn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color var(--transition-fast);
+}
+
+.sort-btn:hover {
+  color: var(--primary-color);
+}
+
+.sort-btn i {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
+.sort-btn:hover i {
+  opacity: 1;
+}
+
+/* Channel Info Styles */
+.channel-number {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.channel-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.channel-name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+.channel-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid var(--gray-200);
+}
+
+.channel-description {
+  font-size: 12px;
+  color: var(--gray-600);
+  line-height: 1.4;
+}
+
+.network-info {
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.ip-port {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--gray-700);
+}
+
+/* Empty State Actions */
+.empty-state-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+/* Pagination Styles */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: var(--white);
+  border-top: 1px solid var(--gray-200);
+  border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg);
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: var(--gray-600);
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 4px;
+  margin: 0 8px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .channel-info {
+    gap: 4px;
+  }
+  
+  .channel-name {
+    gap: 8px;
+  }
+  
+  .channel-logo {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .pagination-container {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .pagination-controls {
+    justify-content: center;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .action-btn {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-numbers {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .filters-row {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .filter-group {
+    width: 100%;
+    justify-content: stretch;
+  }
+  
+  .filter-select {
+    flex: 1;
+    min-width: 0;
+  }
 }
