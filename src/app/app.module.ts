@@ -2,7 +2,7 @@
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -31,43 +31,37 @@ import { ErrorInterceptor } from './core/interceptors/error.interceptor';
 // Services
 import { JwtAuthService } from './core/services/jwt-auth.service';
 
-@NgModule({
-  declarations: [
-    AppComponent,
-    MainLayoutComponent,
-    HeaderComponent,
-    SidebarComponent,
-    FooterComponent,
-    LoadingComponent,
-    UnauthorizedComponent,
-    NotFoundComponent,
-    LoginComponent,
-  ],
-  imports: [
-    BrowserModule,
-    BrowserAnimationsModule,
-    AppRoutingModule,
-    HttpClientModule,
-    ReactiveFormsModule,
-    FormsModule,
-  ],
-  providers: [
-    // JWT Interceptor - Order matters!
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: JwtInterceptor,
-      multi: true,
-    },
-    // Error Interceptor
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: ErrorInterceptor,
-      multi: true,
-    },
-    // Services
-    JwtAuthService,
-  ],
-  exports: [LoadingComponent],
-  bootstrap: [AppComponent],
-})
+@NgModule({ declarations: [
+        AppComponent,
+        MainLayoutComponent,
+        HeaderComponent,
+        SidebarComponent,
+        FooterComponent,
+        LoadingComponent,
+        UnauthorizedComponent,
+        NotFoundComponent,
+        LoginComponent,
+    ],
+    exports: [LoadingComponent],
+    bootstrap: [AppComponent], imports: [BrowserModule,
+        BrowserAnimationsModule,
+        AppRoutingModule,
+        ReactiveFormsModule,
+        FormsModule], providers: [
+        // JWT Interceptor - Order matters!
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: JwtInterceptor,
+            multi: true,
+        },
+        // Error Interceptor
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: ErrorInterceptor,
+            multi: true,
+        },
+        // Services
+        JwtAuthService,
+        provideHttpClient(withInterceptorsFromDi()),
+    ] })
 export class AppModule {}
