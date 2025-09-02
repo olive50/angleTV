@@ -238,7 +238,7 @@
               [src]="channel.logoUrl"
               [alt]="getLogoAlt()"
               class="channel-logo-large"
-              (error)="$event.target.style.display = 'none'"
+              (error)="onImageError($event)"
             />
           </div>
           <div class="logo-info">

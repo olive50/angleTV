@@ -29,6 +29,7 @@ import { TvChannelCategory } from '../../../../core/models/tv-channel-category.m
   styleUrls: ['./tv-channels-list.component.css'],
 })
 export class TvChannelsListComponent implements OnInit, OnDestroy {
+  [x: string]: any;
   // Data properties
   channels: TvChannel[] = [];
   categories: TvChannelCategory[] = [];
@@ -241,7 +242,10 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (stats) => {
-          this.channelStats = stats;
+          this.channelStats = {
+            ...stats,
+            inactive: 0, // Provide a default value
+          };
         },
         error: (error) => {
           console.warn('Failed to load channel statistics:', error);
@@ -415,7 +419,10 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     return this.selectedChannels.size;
   }
 
-  performBulkOperation(operation: BulkOperation): void {
+  // Convert string to enum if needed
+
+  performBulkOperation(operation: string): void {
+    const bulkOp = operation as BulkOperation;
     const channelIds = Array.from(this.selectedChannels);
 
     if (channelIds.length === 0) {
@@ -424,7 +431,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     }
 
     const confirmMessage = this.getBulkOperationConfirmMessage(
-      operation,
+      bulkOp,
       channelIds.length
     );
     if (!confirm(confirmMessage)) {
@@ -713,5 +720,12 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
 
   dismissSuccessMessage(): void {
     this.showSuccessMessage = false;
+  }
+
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.style.display = 'none';
+    }
   }
 }

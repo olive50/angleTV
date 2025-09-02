@@ -366,11 +366,11 @@
       </div>
       <div class="summary-row" *ngIf="categoryId?.value">
         <span class="label">Category:</span>
-        <span class="value">{{ getCategoryName(categoryId.value) }}</span>
+        <span class="value">{{ getCategoryName(categoryId?.value) }}</span>
       </div>
       <div class="summary-row" *ngIf="languageId?.value">
         <span class="label">Language:</span>
-        <span class="value">{{ getLanguageName(languageId.value) }}</span>
+        <span class="value">{{ getLanguageName(languageId?.value) }}</span>
       </div>
       <div class="summary-row">
         <span class="label">Stream:</span>

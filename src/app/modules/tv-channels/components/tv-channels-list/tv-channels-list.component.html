@@ -385,7 +385,7 @@
                     [src]="channel.logoUrl"
                     [alt]="channel.name"
                     class="channel-logo"
-                    (error)="$event.target.style.display = 'none'"
+                    (error)="onImageError($event)"
                   />
                   <span>{{ channel.name }}</span>
                 </div>
@@ -590,7 +590,7 @@
             [src]="channel.logoUrl"
             [alt]="channel.name"
             class="logo-image"
-            (error)="$event.target.style.display = 'none'"
+            (error)="onImageError($event)"
           />
           <div *ngIf="!channel.logoUrl" class="logo-placeholder">
             <i class="fas fa-tv"></i>

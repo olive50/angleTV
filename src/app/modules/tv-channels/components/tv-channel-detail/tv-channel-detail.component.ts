@@ -219,4 +219,10 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
   getLogoAlt(): string {
     return this.channel?.name ? `${this.channel.name} logo` : 'Channel logo';
   }
+  onImageError(event: Event) {
+    const target = event.target as HTMLImageElement;
+    if (target) {
+      target.style.display = 'none';
+    }
+  }
 }

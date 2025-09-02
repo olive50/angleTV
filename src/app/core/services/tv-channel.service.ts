@@ -744,7 +744,10 @@ export class TvChannelService {
     channel: TvChannelCreateRequest | TvChannelUpdateRequest
   ): string | null {
     if ('channelNumber' in channel) {
-      if (channel.channelNumber < 1 || channel.channelNumber > 9999) {
+      if (
+        channel.channelNumber != null &&
+        (channel.channelNumber < 1 || channel.channelNumber > 9999)
+      ) {
         return 'Channel number must be between 1 and 9999';
       }
 
