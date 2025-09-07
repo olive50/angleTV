@@ -12,8 +12,22 @@ export class LanguageService {
   constructor(private http: HttpClient) {}
 
   getAllLanguages(): Observable<Language[]> {
-    return this.http.get<Language[]>(this.apiUrl);
+    return this.http.get<Language[]>(`${this.apiUrl}/admin`);
   }
+
+//   // In tv-channel.service.ts
+//   getAllLanguages(): Observable<any[]> {
+//   return this.http.get<any>(this.apiUrl).pipe(
+//     map(response => {
+//       // Extract the content array
+//       return response.content || [];
+//     }),
+//     catchError(error => {
+//       console.error('Error fetching channels:', error);
+//       return of([]);
+//     })
+//   );
+// }
 
   getLanguageById(id: number): Observable<Language> {
     return this.http.get<Language>(`${this.apiUrl}/${id}`);

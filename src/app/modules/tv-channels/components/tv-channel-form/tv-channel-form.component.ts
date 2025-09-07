@@ -1,5 +1,11 @@
-// src/app/modules/tv-channels/components/tv-channel-form/tv-channel-form.component.ts
-import { Component, OnInit, OnDestroy } from '@angular/core';
+// UPDATED tv-channel-form.component.ts
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -33,6 +39,8 @@ import { TvChannelCategory } from '../../../../core/models/tv-channel-category.m
   styleUrls: ['./tv-channel-form.component.css'],
 })
 export class TvChannelFormComponent implements OnInit, OnDestroy {
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
+
   channelForm: FormGroup;
   categories: TvChannelCategory[] = [];
   languages: Language[] = [];
@@ -43,11 +51,19 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
   submitting = false;
   testingConnection = false;
 
-  // Form states
+  // Logo related properties
+  logoUploadMode: 'file' | 'url' = 'url';
+  logoFile: File | null = null;
+  logoFileError: string | null = null;
   logoPreviewUrl: string | null = null;
+  existingLogoUrl: string | null = null;
+  existingLogoPath: string | null = null;
+
+  // Form states
   connectionTestResult: { success: boolean; message: string } | null = null;
 
   private destroy$ = new Subject<void>();
+  private currentChannel: TvChannel | null = null;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -69,6 +85,10 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    // Clean up object URLs
+    if (this.logoPreviewUrl && this.logoPreviewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(this.logoPreviewUrl);
+    }
   }
 
   private createForm(): FormGroup {
@@ -122,7 +142,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       )
       .subscribe();
 
-    // Preview logo URL
+    // Preview logo URL when in URL mode
     this.channelForm
       .get('logoUrl')
       ?.valueChanges.pipe(
@@ -131,7 +151,9 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
         distinctUntilChanged()
       )
       .subscribe((url) => {
-        this.updateLogoPreview(url);
+        if (this.logoUploadMode === 'url') {
+          this.updateLogoPreview(url);
+        }
       });
   }
 
@@ -142,7 +164,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       this.categoryService.getAllCategories().pipe(
         catchError(() =>
           of([
-            { id: 1, name: 'News', description: 'News channels' },
+            { id: 1, name: 'News-MOCK-DATA', description: 'News channels' },
             { id: 2, name: 'Sports', description: 'Sports channels' },
             { id: 3, name: 'Documentary', description: 'Documentary channels' },
             {
@@ -156,9 +178,236 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       this.languageService.getAllLanguages().pipe(
         catchError(() =>
           of([
-            { id: 1, name: 'English', code: 'EN' },
-            { id: 2, name: 'Arabic', code: 'AR' },
-            { id: 3, name: 'French', code: 'FR' },
+            {
+              "id": 1,
+              "name": "English",
+              "nativeName": "English",
+              "iso6391": "en",
+              "iso6392": "eng",
+              "localeCode": "en-US",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/us.svg",
+              "flagPath": "/assets/flags/us.svg",
+              "flagSource": "https://flags.example.com/us.svg",
+              "isRtl": false,
+              "isActive": true,
+              "isDefault": true,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 1,
+              "fontFamily": "Arial, sans-serif",
+              "currencyCode": "USD",
+              "currencySymbol": "$",
+              "dateFormat": "MM/dd/yyyy",
+              "timeFormat": "hh:mm a",
+              "numberFormat": "#,##0.00",
+              "decimalSeparator": ".",
+              "thousandsSeparator": ",",
+              "uiTranslationProgress": 100,
+              "channelTranslationProgress": 95,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "Welcome to our hotel entertainment system!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 97,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
+          {
+              "id": 2,
+              "name": "Arabic",
+              "nativeName": "العربية",
+              "iso6391": "ar",
+              "iso6392": "ara",
+              "localeCode": "ar-SA",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/sa.svg",
+              "flagPath": "/assets/flags/sa.svg",
+              "flagSource": "https://flags.example.com/sa.svg",
+              "isRtl": true,
+              "isActive": true,
+              "isDefault": false,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 2,
+              "fontFamily": "Arial, Noto Sans Arabic",
+              "currencyCode": "SAR",
+              "currencySymbol": "ر.س",
+              "dateFormat": "yyyy/MM/dd",
+              "timeFormat": "HH:mm",
+              "numberFormat": "#,##0.00",
+              "decimalSeparator": ".",
+              "thousandsSeparator": ",",
+              "uiTranslationProgress": 98,
+              "channelTranslationProgress": 90,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "مرحباً بكم في نظام الترفيه بالفندق!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 94,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
+          {
+              "id": 3,
+              "name": "French",
+              "nativeName": "Français",
+              "iso6391": "fr",
+              "iso6392": "fra",
+              "localeCode": "fr-FR",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/fr.svg",
+              "flagPath": "/assets/flags/fr.svg",
+              "flagSource": "https://flags.example.com/fr.svg",
+              "isRtl": false,
+              "isActive": true,
+              "isDefault": false,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 3,
+              "fontFamily": "Arial, sans-serif",
+              "currencyCode": "EUR",
+              "currencySymbol": "€",
+              "dateFormat": "dd/MM/yyyy",
+              "timeFormat": "HH:mm",
+              "numberFormat": "# ##0,00",
+              "decimalSeparator": ",",
+              "thousandsSeparator": " ",
+              "uiTranslationProgress": 100,
+              "channelTranslationProgress": 88,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "Bienvenue dans notre système de divertissement hôtelier!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 94,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
+          {
+              "id": 4,
+              "name": "Spanish",
+              "nativeName": "Español",
+              "iso6391": "es",
+              "iso6392": "spa",
+              "localeCode": "es-ES",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/es.svg",
+              "flagPath": "/assets/flags/es.svg",
+              "flagSource": "https://flags.example.com/es.svg",
+              "isRtl": false,
+              "isActive": true,
+              "isDefault": false,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 4,
+              "fontFamily": "Arial, sans-serif",
+              "currencyCode": "EUR",
+              "currencySymbol": "€",
+              "dateFormat": "dd/MM/yyyy",
+              "timeFormat": "HH:mm",
+              "numberFormat": "#,##0.00",
+              "decimalSeparator": ",",
+              "thousandsSeparator": ".",
+              "uiTranslationProgress": 95,
+              "channelTranslationProgress": 85,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "¡Bienvenido a nuestro sistema de entretenimiento hotelero!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 90,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
+          {
+              "id": 5,
+              "name": "German",
+              "nativeName": "Deutsch",
+              "iso6391": "de",
+              "iso6392": "deu",
+              "localeCode": "de-DE",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/de.svg",
+              "flagPath": "/assets/flags/de.svg",
+              "flagSource": "https://flags.example.com/de.svg",
+              "isRtl": false,
+              "isActive": true,
+              "isDefault": false,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 5,
+              "fontFamily": "Arial, sans-serif",
+              "currencyCode": "EUR",
+              "currencySymbol": "€",
+              "dateFormat": "dd.MM.yyyy",
+              "timeFormat": "HH:mm",
+              "numberFormat": "#.##0,00",
+              "decimalSeparator": ",",
+              "thousandsSeparator": ".",
+              "uiTranslationProgress": 92,
+              "channelTranslationProgress": 80,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "Willkommen in unserem Hotel-Unterhaltungssystem!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 86,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
           ])
         )
       ),
@@ -195,6 +444,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (channel) => {
+          this.currentChannel = channel;
           this.populateForm(channel);
           this.loading = false;
         },
@@ -219,14 +469,120 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       languageId: channel.language?.id || '',
     });
 
-    if (channel.logoUrl) {
+    // Handle existing logo
+    if (channel.logoPath) {
+      this.existingLogoPath = channel.logoPath;
+      this.existingLogoUrl = this.tvChannelService.getLogoUrl(this.channelId!);
+      this.logoPreviewUrl = this.existingLogoUrl;
+    } else if (channel.logoUrl) {
+      this.logoUploadMode = 'url';
       this.logoPreviewUrl = channel.logoUrl;
     }
   }
 
+  setLogoUploadMode(mode: 'file' | 'url'): void {
+    this.logoUploadMode = mode;
+    this.logoFileError = null;
+
+    if (mode === 'file') {
+      // Clear URL when switching to file mode
+      this.channelForm.patchValue({ logoUrl: '' });
+      // If there's a file, show its preview
+      if (this.logoFile) {
+        this.createFilePreview(this.logoFile);
+      } else if (!this.existingLogoUrl) {
+        this.logoPreviewUrl = null;
+      }
+    } else {
+      // Clear file when switching to URL mode
+      this.clearLogoFile();
+      // Update preview based on URL field
+      const url = this.channelForm.get('logoUrl')?.value;
+      if (url) {
+        this.updateLogoPreview(url);
+      } else if (!this.existingLogoUrl) {
+        this.logoPreviewUrl = null;
+      }
+    }
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+
+      // Validate file type
+      const validTypes = [
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+        'image/gif',
+        'image/webp',
+      ];
+      if (!validTypes.includes(file.type)) {
+        this.logoFileError =
+          'Please select a valid image file (JPG, PNG, GIF, or WebP)';
+        this.logoFile = null;
+        this.logoPreviewUrl = this.existingLogoUrl;
+        return;
+      }
+
+      // Validate file size (5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        this.logoFileError = 'File size must be less than 5MB';
+        this.logoFile = null;
+        this.logoPreviewUrl = this.existingLogoUrl;
+        return;
+      }
+
+      this.logoFileError = null;
+      this.logoFile = file;
+      this.createFilePreview(file);
+    }
+  }
+
+  private createFilePreview(file: File): void {
+    // Clean up previous object URL if it exists
+    if (this.logoPreviewUrl && this.logoPreviewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(this.logoPreviewUrl);
+    }
+
+    // Create new preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.logoPreviewUrl = e.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  clearLogoFile(): void {
+    this.logoFile = null;
+    this.logoFileError = null;
+
+    // Reset file input
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
+    }
+
+    // Reset preview to existing logo or null
+    this.logoPreviewUrl = this.existingLogoUrl;
+  }
+
+  onClearLogo(): void {
+    this.channelForm.patchValue({ logoUrl: '' });
+    if (this.logoUploadMode === 'url') {
+      this.logoPreviewUrl = this.existingLogoUrl;
+    }
+  }
+
+  onLogoPreviewError(): void {
+    this.logoPreviewUrl = null;
+  }
+
   private updateLogoPreview(url: string): void {
     if (!url || !this.isValidUrl(url)) {
-      this.logoPreviewUrl = null;
+      this.logoPreviewUrl = this.existingLogoUrl;
       return;
     }
 
@@ -236,7 +592,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       this.logoPreviewUrl = url;
     };
     img.onerror = () => {
-      this.logoPreviewUrl = null;
+      this.logoPreviewUrl = this.existingLogoUrl;
     };
     img.src = url;
   }
@@ -291,7 +647,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (this.channelForm.invalid || this.submitting) {
+    if (this.channelForm.invalid || this.submitting || this.logoFileError) {
       this.markFormGroupTouched();
       return;
     }
@@ -299,22 +655,57 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
     this.submitting = true;
     const formValue = this.channelForm.value;
 
-    const channelData = {
+    const channelData: TvChannelCreateRequest | TvChannelUpdateRequest = {
       channelNumber: parseInt(formValue.channelNumber),
       name: formValue.name.trim(),
       description: formValue.description?.trim() || undefined,
       ip: formValue.ip.trim(),
       port: parseInt(formValue.port),
-      logoUrl: formValue.logoUrl?.trim() || undefined,
+      logoUrl:
+        this.logoUploadMode === 'url' && formValue.logoUrl?.trim()
+          ? formValue.logoUrl.trim()
+          : undefined,
       categoryId: parseInt(formValue.categoryId),
       languageId: parseInt(formValue.languageId),
     };
 
-    const operation$ = this.isEditMode
-      ? this.tvChannelService.updateChannel(this.channelId!, channelData)
-      : this.tvChannelService.createChannel(
+    let operation$: Observable<TvChannel>;
+
+    // Determine which endpoint to use based on whether we have a logo file
+    if (this.isEditMode && this.channelId) {
+      // UPDATE
+      if (
+        this.logoFile ||
+        (this.logoUploadMode === 'file' && this.existingLogoPath)
+      ) {
+        // Use update with logo endpoint (supports both file upload and keeping existing)
+        operation$ = this.tvChannelService.updateChannelWithLogo(
+          this.channelId,
+          channelData,
+          this.logoFile || undefined
+        );
+      } else {
+        // Use regular update endpoint (for URL or no logo)
+        operation$ = this.tvChannelService.updateChannel(
+          this.channelId,
+          channelData
+        );
+      }
+    } else {
+      // CREATE
+      if (this.logoFile) {
+        // Use create with logo endpoint
+        operation$ = this.tvChannelService.createChannelWithLogo(
+          channelData as TvChannelCreateRequest,
+          this.logoFile
+        );
+      } else {
+        // Use regular create endpoint
+        operation$ = this.tvChannelService.createChannel(
           channelData as TvChannelCreateRequest
         );
+      }
+    }
 
     operation$.pipe(takeUntil(this.destroy$)).subscribe({
       next: (channel) => {
@@ -331,10 +722,12 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       error: (error) => {
         console.error('Error saving channel:', error);
         this.submitting = false;
+        const errorMessage =
+          error.error?.message || error.message || 'Unknown error';
         alert(
-          `Failed to ${this.isEditMode ? 'update' : 'create'} channel: ${
-            error.message || 'Unknown error'
-          }`
+          `Failed to ${
+            this.isEditMode ? 'update' : 'create'
+          } channel: ${errorMessage}`
         );
       },
     });
@@ -352,11 +745,6 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
 
   onTestConnection(): void {
     this.testConnection(true).subscribe();
-  }
-
-  onClearLogo(): void {
-    this.channelForm.patchValue({ logoUrl: '' });
-    this.logoPreviewUrl = null;
   }
 
   private markFormGroupTouched(): void {
@@ -408,7 +796,6 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
     }
 
     // In a real implementation, you would check against the backend
-    // For now, simulate async validation
     return of(null).pipe(debounceTime(300));
   }
 
@@ -496,6 +883,6 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
 
   getLanguageName(languageId: number): string {
     const language = this.languages.find((l) => l.id === languageId);
-    return language ? `${language.name} (${language.code})` : '';
+    return language ? `${language.name} (${language.iso6392})` : '';
   }
 }

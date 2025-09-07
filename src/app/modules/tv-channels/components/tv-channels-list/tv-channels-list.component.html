@@ -83,7 +83,7 @@
       </div>
       <div class="stats-card-value">{{ channelStats.total }}</div>
       <div class="stats-card-trend">
-        <span>All registered channels</span>
+        <span>All channels</span>
       </div>
     </div>
 
@@ -108,7 +108,7 @@
           <i class="fas fa-tags"></i>
         </div>
       </div>
-      <div class="stats-card-value">{{ categories.length }}</div>
+      <div class="stats-card-value">Cat :{{ categories.length }}</div>
       <div class="stats-card-trend">
         <span>Channel categories</span>
       </div>
@@ -169,16 +169,33 @@
             </option>
           </select>
 
-          <select
+          <!-- <select
             [(ngModel)]="selectedLanguageId"
             (change)="onFilterChange()"
             class="filter-select"
           >
             <option [value]="null">All Languages</option>
             <option *ngFor="let language of languages" [value]="language.id">
-              {{ language.name }} ({{ language.code }})
+              {{ language.name }} ({{ language.iso6392 }})
             </option>
-          </select>
+          </select> -->
+
+          <select
+          [(ngModel)]="selectedLanguageId"
+          (change)="onFilterChange()"
+          class="filter-select"
+         >
+          <option [value]="null">All Languages</option>
+          @if (languages && languages.length) {
+            @for (language of languages; track language.id) {
+              <option [value]="language.id">
+                {{ language.name }} ({{ language.iso6392 }})
+              </option>
+            }
+          } @else {
+            <option [value]="null" disabled>No languages available</option>
+          }
+        </select>
 
           <select
             [(ngModel)]="activeFilter"
@@ -412,7 +429,7 @@
                 *ngIf="channel.language"
                 class="status-badge status-secondary"
               >
-                {{ channel.language.name }} ({{ channel.language.code }})
+                {{ channel.language.name }} ({{ channel.language.iso6392 }})
               </span>
               <span *ngIf="!channel.language" class="text-secondary">
                 No language
@@ -624,7 +641,7 @@
               {{ channel.category.name }}
             </span>
             <span *ngIf="channel.language" class="tag tag-language">
-              {{ channel.language.code }}
+              {{ channel.language.iso6392 }}
             </span>
           </div>
 
@@ -796,4 +813,7 @@
       />
     </div>
   </div>
+</div>
+<div class="log">
+  <pre>{{ languages | json }}</pre>
 </div>

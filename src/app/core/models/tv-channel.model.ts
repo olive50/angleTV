@@ -10,6 +10,7 @@ export interface TvChannel {
   ip: string;
   port: number;
   logoUrl?: string | null;
+  logoPath?: string | null;
   category?: TvChannelCategory;
   language?: Language;
   isActive?: boolean;
@@ -385,4 +386,12 @@ export interface UserChannelPreferences {
   customOrder: number[];
   defaultLanguage?: number;
   defaultCategory?: number;
+}
+
+export interface TvChannelStats {
+  total: number;
+  active: number;
+  inactive: number;
+  byCategory: { [key: string]: number };
+  byLanguage: { [key: string]: number };
 }

@@ -1,4 +1,4 @@
-<!-- src/app/modules/tv-channels/components/tv-channel-form/tv-channel-form.component.html -->
+<!-- UPDATED tv-channel-form.component.html -->
 <div class="channel-form-container">
   <div class="page-header">
     <div class="page-header-content">
@@ -134,7 +134,7 @@
             >
               <option value="">Select Language</option>
               <option *ngFor="let language of languages" [value]="language.id">
-                {{ language.name }} ({{ language.code }})
+                {{ language.name }} ({{ language.iso6392 }})
               </option>
             </select>
             <div class="input-help">
@@ -236,7 +236,7 @@
         </div>
       </div>
 
-      <!-- Logo and Branding Section -->
+      <!-- Logo and Branding Section - UPDATED -->
       <div class="form-section">
         <h3 class="section-title">
           <i class="fas fa-image"></i>
@@ -244,56 +244,112 @@
         </h3>
 
         <div class="logo-section">
-          <div class="form-group flex-grow">
-            <label for="logoUrl">Logo URL</label>
-            <div class="logo-input-group">
-              <input
-                type="url"
-                id="logoUrl"
-                formControlName="logoUrl"
-                class="form-control"
-                [class.error]="isFieldInvalid('logoUrl')"
-                placeholder="https://example.com/logo.png"
-              />
-              <button
-                type="button"
-                class="btn btn-secondary btn-sm"
-                (click)="onClearLogo()"
-                *ngIf="logoUrl?.value"
-                title="Clear logo URL"
-              >
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-            <div class="input-help">
-              <small>Optional logo image URL (PNG, JPG, SVG supported)</small>
-            </div>
-            <div *ngIf="isFieldInvalid('logoUrl')" class="error-message">
-              {{ getFieldError("logoUrl") }}
+          <!-- Logo Upload Options -->
+          <div class="logo-upload-tabs">
+            <button
+              type="button"
+              class="tab-button"
+              [class.active]="logoUploadMode === 'file'"
+              (click)="setLogoUploadMode('file')"
+            >
+              <i class="fas fa-upload"></i> Upload File
+            </button>
+            <button
+              type="button"
+              class="tab-button"
+              [class.active]="logoUploadMode === 'url'"
+              (click)="setLogoUploadMode('url')"
+            >
+              <i class="fas fa-link"></i> Use URL
+            </button>
+          </div>
+
+          <!-- File Upload Option -->
+          <div *ngIf="logoUploadMode === 'file'" class="logo-upload-section">
+            <div class="form-group">
+              <label for="logoFile">Logo File</label>
+              <div class="file-upload-wrapper">
+                <input
+                  type="file"
+                  id="logoFile"
+                  accept="image/*"
+                  (change)="onFileSelected($event)"
+                  class="file-input"
+                  #fileInput
+                />
+                <label for="logoFile" class="file-upload-label">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                  <span *ngIf="!logoFile">Choose a logo file</span>
+                  <span *ngIf="logoFile">{{ logoFile.name }}</span>
+                </label>
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  *ngIf="logoFile"
+                  (click)="clearLogoFile()"
+                >
+                  <i class="fas fa-times"></i> Clear
+                </button>
+              </div>
+              <div class="input-help">
+                <small>Accepted formats: JPG, PNG, GIF, WebP (Max 5MB)</small>
+              </div>
+              <div *ngIf="logoFileError" class="error-message">
+                {{ logoFileError }}
+              </div>
             </div>
           </div>
 
-          <div class="logo-preview" *ngIf="logoPreviewUrl || logoUrl?.value">
+          <!-- URL Option -->
+          <div *ngIf="logoUploadMode === 'url'" class="logo-upload-section">
+            <div class="form-group">
+              <label for="logoUrl">Logo URL</label>
+              <div class="logo-input-group">
+                <input
+                  type="url"
+                  id="logoUrl"
+                  formControlName="logoUrl"
+                  class="form-control"
+                  [class.error]="isFieldInvalid('logoUrl')"
+                  placeholder="https://example.com/logo.png"
+                />
+                <button
+                  type="button"
+                  class="btn btn-secondary btn-sm"
+                  (click)="onClearLogo()"
+                  *ngIf="logoUrl?.value"
+                  title="Clear logo URL"
+                >
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="input-help">
+                <small>Optional logo image URL (PNG, JPG, SVG supported)</small>
+              </div>
+              <div *ngIf="isFieldInvalid('logoUrl')" class="error-message">
+                {{ getFieldError("logoUrl") }}
+              </div>
+            </div>
+          </div>
+
+          <!-- Logo Preview -->
+          <div class="logo-preview" *ngIf="logoPreviewUrl || existingLogoUrl">
             <div class="preview-label">Preview:</div>
             <div class="preview-container">
               <img
-                *ngIf="logoPreviewUrl"
-                [src]="logoPreviewUrl"
+                *ngIf="logoPreviewUrl || existingLogoUrl"
+                [src]="logoPreviewUrl || existingLogoUrl"
                 [alt]="name?.value || 'Channel logo'"
                 class="logo-image"
-                (error)="logoPreviewUrl = null"
+                (error)="onLogoPreviewError()"
               />
-              <div
-                *ngIf="!logoPreviewUrl && logoUrl?.value"
-                class="preview-error"
-              >
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>Unable to load image</span>
-              </div>
-              <div *ngIf="!logoUrl?.value" class="preview-placeholder">
+              <div *ngIf="!logoPreviewUrl && !existingLogoUrl" class="preview-placeholder">
                 <i class="fas fa-image"></i>
                 <span>No logo</span>
               </div>
+            </div>
+            <div *ngIf="existingLogoUrl && !logoFile && !logoUrl?.value" class="preview-info">
+              <small><i class="fas fa-info-circle"></i> Current logo from server</small>
             </div>
           </div>
         </div>
@@ -333,7 +389,7 @@
           <button
             type="submit"
             class="btn btn-primary"
-            [disabled]="channelForm.invalid || submitting || testingConnection"
+            [disabled]="channelForm.invalid || submitting || testingConnection || !!logoFileError"
           >
             <i
               class="fas"
@@ -360,9 +416,7 @@
     <div class="summary-content">
       <div class="summary-row">
         <span class="label">Channel:</span>
-        <span class="value"
-          >{{ channelNumber?.value }} - {{ name?.value }}</span
-        >
+        <span class="value">{{ channelNumber?.value }} - {{ name?.value }}</span>
       </div>
       <div class="summary-row" *ngIf="categoryId?.value">
         <span class="label">Category:</span>
@@ -375,6 +429,13 @@
       <div class="summary-row">
         <span class="label">Stream:</span>
         <span class="value">{{ ip?.value }}:{{ port?.value }}</span>
+      </div>
+      <div class="summary-row" *ngIf="logoFile || logoUrl?.value">
+        <span class="label">Logo:</span>
+        <span class="value">
+          <i class="fas fa-check text-success"></i>
+          {{ logoFile ? 'File selected' : 'URL provided' }}
+        </span>
       </div>
       <div class="summary-row" *ngIf="connectionTestResult">
         <span class="label">Connection:</span>

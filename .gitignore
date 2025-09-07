@@ -51,6 +51,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 package-lock.json
+angular.json
 .pnpm-debug.log*
 
 # IDEs/OS

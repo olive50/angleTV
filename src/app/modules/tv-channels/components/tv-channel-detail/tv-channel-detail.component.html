@@ -96,7 +96,7 @@
         <div class="status-label">Language</div>
         <div class="status-value">
           <span class="language-badge" *ngIf="channel.language">
-            {{ channel.language.name }} ({{ channel.language.code }})
+            {{ channel.language.name }} ({{ channel.language.iso6392 }})
           </span>
           <span class="text-muted" *ngIf="!channel.language"
             >Not specified</span
@@ -219,7 +219,7 @@
             <div class="detail-label">Language</div>
             <div class="detail-value">
               <span class="language-tag">
-                {{ channel.language.name }} ({{ channel.language.code }})
+                {{ channel.language.name }} ({{ channel.language.iso6392 }})
               </span>
             </div>
           </div>

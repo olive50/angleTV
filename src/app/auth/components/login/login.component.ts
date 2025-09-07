@@ -147,7 +147,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   private blockLogin(): void {
     this.isBlocked = true;
-    this.blockTimeRemaining = 300; // 5 minutes
+    this.blockTimeRemaining = 3; // IF 300=5 minutes
     this.error = `Too many failed attempts. Please wait ${this.blockTimeRemaining} seconds.`;
 
     const interval = setInterval(() => {

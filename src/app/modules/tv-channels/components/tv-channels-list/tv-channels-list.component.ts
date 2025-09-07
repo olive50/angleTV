@@ -19,6 +19,7 @@ import {
   TvChannel,
   PagedResponse,
   BulkOperation,
+  TvChannelStats,
 } from '../../../../core/models/tv-channel.model';
 import { Language } from '../../../../core/models/language.model';
 import { TvChannelCategory } from '../../../../core/models/tv-channel-category.model';
@@ -74,12 +75,12 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
   private autoRefreshTimer$ = new Subject<void>();
 
   // Statistics
-  channelStats = {
+  channelStats: TvChannelStats = {
     total: 0,
     active: 0,
     inactive: 0,
-    byCategory: {} as { [key: string]: number },
-    byLanguage: {} as { [key: string]: number },
+    byCategory: {},
+    byLanguage: {},
   };
 
   // Utility
@@ -180,9 +181,236 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
         catchError((error) => {
           console.warn('Failed to load languages:', error);
           return of([
-            { id: 1, name: 'English', code: 'EN' },
-            { id: 2, name: 'Arabic', code: 'AR' },
-            { id: 3, name: 'French', code: 'FR' },
+            {
+              "id": 1,
+              "name": "English",
+              "nativeName": "English",
+              "iso6391": "en",
+              "iso6392": "eng",
+              "localeCode": "en-US",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/us.svg",
+              "flagPath": "/assets/flags/us.svg",
+              "flagSource": "https://flags.example.com/us.svg",
+              "isRtl": false,
+              "isActive": true,
+              "isDefault": true,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 1,
+              "fontFamily": "Arial, sans-serif",
+              "currencyCode": "USD",
+              "currencySymbol": "$",
+              "dateFormat": "MM/dd/yyyy",
+              "timeFormat": "hh:mm a",
+              "numberFormat": "#,##0.00",
+              "decimalSeparator": ".",
+              "thousandsSeparator": ",",
+              "uiTranslationProgress": 100,
+              "channelTranslationProgress": 95,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "Welcome to our hotel entertainment system!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 97,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
+          {
+              "id": 2,
+              "name": "Arabic",
+              "nativeName": "العربية",
+              "iso6391": "ar",
+              "iso6392": "ara",
+              "localeCode": "ar-SA",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/sa.svg",
+              "flagPath": "/assets/flags/sa.svg",
+              "flagSource": "https://flags.example.com/sa.svg",
+              "isRtl": true,
+              "isActive": true,
+              "isDefault": false,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 2,
+              "fontFamily": "Arial, Noto Sans Arabic",
+              "currencyCode": "SAR",
+              "currencySymbol": "ر.س",
+              "dateFormat": "yyyy/MM/dd",
+              "timeFormat": "HH:mm",
+              "numberFormat": "#,##0.00",
+              "decimalSeparator": ".",
+              "thousandsSeparator": ",",
+              "uiTranslationProgress": 98,
+              "channelTranslationProgress": 90,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "مرحباً بكم في نظام الترفيه بالفندق!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 94,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
+          {
+              "id": 3,
+              "name": "French",
+              "nativeName": "Français",
+              "iso6391": "fr",
+              "iso6392": "fra",
+              "localeCode": "fr-FR",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/fr.svg",
+              "flagPath": "/assets/flags/fr.svg",
+              "flagSource": "https://flags.example.com/fr.svg",
+              "isRtl": false,
+              "isActive": true,
+              "isDefault": false,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 3,
+              "fontFamily": "Arial, sans-serif",
+              "currencyCode": "EUR",
+              "currencySymbol": "€",
+              "dateFormat": "dd/MM/yyyy",
+              "timeFormat": "HH:mm",
+              "numberFormat": "# ##0,00",
+              "decimalSeparator": ",",
+              "thousandsSeparator": " ",
+              "uiTranslationProgress": 100,
+              "channelTranslationProgress": 88,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "Bienvenue dans notre système de divertissement hôtelier!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 94,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
+          {
+              "id": 4,
+              "name": "Spanish",
+              "nativeName": "Español",
+              "iso6391": "es",
+              "iso6392": "spa",
+              "localeCode": "es-ES",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/es.svg",
+              "flagPath": "/assets/flags/es.svg",
+              "flagSource": "https://flags.example.com/es.svg",
+              "isRtl": false,
+              "isActive": true,
+              "isDefault": false,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 4,
+              "fontFamily": "Arial, sans-serif",
+              "currencyCode": "EUR",
+              "currencySymbol": "€",
+              "dateFormat": "dd/MM/yyyy",
+              "timeFormat": "HH:mm",
+              "numberFormat": "#,##0.00",
+              "decimalSeparator": ",",
+              "thousandsSeparator": ".",
+              "uiTranslationProgress": 95,
+              "channelTranslationProgress": 85,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "¡Bienvenido a nuestro sistema de entretenimiento hotelero!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 90,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
+          {
+              "id": 5,
+              "name": "German",
+              "nativeName": "Deutsch",
+              "iso6391": "de",
+              "iso6392": "deu",
+              "localeCode": "de-DE",
+              "charset": "UTF-8",
+              "flagUrl": "https://flags.example.com/de.svg",
+              "flagPath": "/assets/flags/de.svg",
+              "flagSource": "https://flags.example.com/de.svg",
+              "isRtl": false,
+              "isActive": true,
+              "isDefault": false,
+              "isAdminEnabled": true,
+              "isGuestEnabled": true,
+              "displayOrder": 5,
+              "fontFamily": "Arial, sans-serif",
+              "currencyCode": "EUR",
+              "currencySymbol": "€",
+              "dateFormat": "dd.MM.yyyy",
+              "timeFormat": "HH:mm",
+              "numberFormat": "#.##0,00",
+              "decimalSeparator": ",",
+              "thousandsSeparator": ".",
+              "uiTranslationProgress": 92,
+              "channelTranslationProgress": 80,
+              "epgTranslationEnabled": true,
+              "welcomeMessage": "Willkommen in unserem Hotel-Unterhaltungssystem!",
+              "supportedPlatforms": [
+                  "WEBOS",
+                  "WEB",
+                  "ANDROID",
+                  "IOS",
+                  "TIZEN"
+              ],
+              "overallTranslationProgress": 86,
+              "isFullyTranslated": false,
+              "isReadyForDisplay": true,
+              "isAvailableForAdmin": true,
+              "isAvailableForGuests": true,
+              "createdAt": "2025-09-07T10:59:53",
+              "updatedAt": "2025-09-07T10:59:53",
+              "createdBy": "system",
+              "lastModifiedBy": "system"
+          },
           ]);
         })
       ),
@@ -221,6 +449,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
             this.channels = response.content;
             this.totalElements = response.totalElements;
             this.totalPages = response.totalPages;
+            // console.log("response ::::::::::::::::::::::::::::::::", response)
 
             console.log(
               `Loaded ${this.channels.length} channels, total: ${this.totalElements}`
@@ -249,6 +478,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.warn('Failed to load channel statistics:', error);
+          this.error = 'Failed to load statistics';
         },
       });
   }
@@ -693,7 +923,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
   getLanguageName(languageId?: number): string {
     if (!languageId) return '';
     const language = this.languages.find((l) => l.id === languageId);
-    return language ? `${language.name} (${language.code})` : '';
+    return language ? `${language.name} ` : '';
   }
 
   getChannelStatus(channel: TvChannel): 'active' | 'inactive' | 'error' {
