@@ -5,6 +5,13 @@ export interface ApiResponse<T> {
     timestamp: string;
     errors?: string[];
   }
+
+  // export interface ResponseWrapper<T> {
+  //   success: boolean;
+  //   message?: string;
+  //   data: T;
+  //   timestamp: number;
+  // }
   
   export interface PagedApiResponse<T> {
     success: boolean;

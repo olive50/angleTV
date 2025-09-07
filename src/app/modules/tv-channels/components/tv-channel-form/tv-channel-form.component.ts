@@ -175,7 +175,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
           ])
         )
       ),
-      this.languageService.getAllLanguages().pipe(
+      this.languageService.getAdminLanguages().pipe(
         catchError(() =>
           of([
             {

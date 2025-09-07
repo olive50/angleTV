@@ -116,16 +116,23 @@ export enum ChannelStatus {
 }
 
 // Filter interfaces
+// export interface ChannelFilters {
+//   search?: string;
+//   categoryId?: number;
+//   languageId?: number;
+//   isActive?: boolean;
+//   streamType?: StreamType;
+//   status?: ChannelStatus;
+//   hasLogo?: boolean;
+//   hasEpg?: boolean;
+//   countryCode?: string;
+// }
+
 export interface ChannelFilters {
   search?: string;
   categoryId?: number;
   languageId?: number;
   isActive?: boolean;
-  streamType?: StreamType;
-  status?: ChannelStatus;
-  hasLogo?: boolean;
-  hasEpg?: boolean;
-  countryCode?: string;
 }
 
 // Sorting options

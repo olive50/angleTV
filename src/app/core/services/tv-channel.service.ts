@@ -1,5 +1,5 @@
 // UPDATED tv-channel.service.ts (relevant parts)
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import {
   HttpClient,
   HttpParams,
@@ -13,20 +13,16 @@ import {
   TvChannelCreateRequest,
   TvChannelUpdateRequest,
   PagedResponse,
+  ChannelFilters,
 } from '../models/tv-channel.model';
-
-export interface ChannelFilters {
-  search?: string;
-  categoryId?: number;
-  languageId?: number;
-  isActive?: boolean;
-}
 
 @Injectable({
   providedIn: 'root',
 })
 export class TvChannelService {
   private readonly apiUrl = `${environment.apiUrl}/channels`;
+
+  private http = inject(HttpClient); //constructor(private http: HttpClient) {}
 
   private channelsSubject = new BehaviorSubject<TvChannel[]>([]);
   public channels$ = this.channelsSubject.asObservable();
@@ -41,7 +37,9 @@ export class TvChannelService {
   private channelsCache = new Map<string, { data: any; timestamp: number }>();
   private readonly cacheTimeout = 5 * 60 * 1000; // 5 minutes
 
-  constructor(private http: HttpClient) {}
+  // filters: ChannelFilters = {};
+
+  // constructor(private http: HttpClient) {}
 
   /**
    * Get all channels (cached)
@@ -150,26 +148,24 @@ export class TvChannelService {
     this.clearError();
 
     const formData = new FormData();
-    
+
     // Append channel data as JSON blob
     const channelBlob = new Blob([JSON.stringify(channel)], {
       type: 'application/json',
     });
     formData.append('channel', channelBlob);
-    
+
     // Append logo file
     formData.append('logo', logoFile, logoFile.name);
 
-    return this.http
-      .post<TvChannel>(`${this.apiUrl}/with-logo`, formData)
-      .pipe(
-        tap(() => {
-          this.clearCache();
-          this.setLoading(false);
-          this.refreshChannelsList();
-        }),
-        catchError((error) => this.handleError(error))
-      );
+    return this.http.post<TvChannel>(`${this.apiUrl}/with-logo`, formData).pipe(
+      tap(() => {
+        this.clearCache();
+        this.setLoading(false);
+        this.refreshChannelsList();
+      }),
+      catchError((error) => this.handleError(error))
+    );
   }
 
   /**
@@ -204,13 +200,13 @@ export class TvChannelService {
     this.clearError();
 
     const formData = new FormData();
-    
+
     // Append channel data as JSON blob
     const channelBlob = new Blob([JSON.stringify(channel)], {
       type: 'application/json',
     });
     formData.append('channel', channelBlob);
-    
+
     // Append logo file if provided (optional for updates)
     if (logoFile) {
       formData.append('logo', logoFile, logoFile.name);
@@ -408,7 +404,7 @@ export class TvChannelService {
   private handleError(error: HttpErrorResponse): Observable<never> {
     console.error('API Error:', error);
     this.setLoading(false);
-    
+
     let errorMessage = 'An error occurred';
     if (error.error instanceof ErrorEvent) {
       // Client-side error
@@ -417,7 +413,7 @@ export class TvChannelService {
       // Server-side error
       errorMessage = error.error?.message || `Error Code: ${error.status}`;
     }
-    
+
     this.setError(errorMessage);
     return throwError(() => new Error(errorMessage));
   }
