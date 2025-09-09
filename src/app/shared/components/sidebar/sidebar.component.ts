@@ -25,6 +25,12 @@ export class SidebarComponent implements OnInit {
       route: '/channels',
     },
     {
+      id: 'rooms',
+      title: 'Rooms',
+      icon: 'fas fa-bed',
+      route: '/rooms',
+    },
+    {
       id: 'terminals',
       title: 'Terminals',
       icon: 'fas fa-desktop',
@@ -56,12 +62,7 @@ export class SidebarComponent implements OnInit {
         },
       ],
     },
-    {
-      id: 'rooms',
-      title: 'Rooms',
-      icon: 'fas fa-bed',
-      route: '/rooms',
-    },
+   
     {
       id: 'reservations',
       title: 'Reservations',

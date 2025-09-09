@@ -2,68 +2,72 @@
   <div class="sidebar-content">
     <nav class="sidebar-nav">
       <ul class="nav-list">
-        <li
-          class="nav-item"
-          *ngFor="let item of menuItems"
-          [class.active]="item.isActive"
-          [class.expanded]="item.isExpanded"
-        >
-          <a
-            class="nav-link"
-            (click)="toggleMenuItem(item)"
-            [class.has-children]="item.children && item.children.length > 0"
+        @for (item of menuItems; track item) {
+          <li
+            class="nav-item"
+            [class.active]="item.isActive"
+            [class.expanded]="item.isExpanded"
           >
-            <i [class]="item.icon" class="nav-icon"></i>
-            <span class="nav-text" *ngIf="!isCollapsed">{{ item.title }}</span>
-
-            <span
-              class="nav-badge"
-              *ngIf="item.badge && !isCollapsed"
-              [class]="'badge-' + item.badge.color"
+            <a
+              class="nav-link"
+              (click)="toggleMenuItem(item)"
+              [class.has-children]="item.children && item.children.length > 0"
             >
-              {{ item.badge.text }}
-            </span>
+              <i [class]="item.icon" class="nav-icon"></i>
+              @if (!isCollapsed) {
+                <span class="nav-text">{{ item.title }}</span>
+              }
 
-            <i
-              class="fas fa-chevron-down nav-arrow"
-              *ngIf="item.children && item.children.length > 0 && !isCollapsed"
-              [class.rotated]="item.isExpanded"
-            ></i>
-          </a>
+              @if (item.badge && !isCollapsed) {
+                <span
+                  class="nav-badge"
+                  [class]="'badge-' + item.badge.color"
+                >
+                  {{ item.badge.text }}
+                </span>
+              }
 
-          <ul
-            class="nav-submenu"
-            *ngIf="
-              item.children &&
-              item.children.length > 0 &&
-              item.isExpanded &&
-              !isCollapsed
-            "
-          >
-            <li
-              class="nav-subitem"
-              *ngFor="let child of item.children"
-              [class.active]="child.isActive"
-            >
-              <a
-                class="nav-sublink"
-                [routerLink]="child.route"
-                routerLinkActive="active"
+              @if (item.children && item.children.length > 0 && !isCollapsed) {
+                <i
+                  class="fas fa-chevron-down nav-arrow"
+                  [class.rotated]="item.isExpanded"
+                ></i>
+              }
+            </a>
+
+            @if (item.children && item.children.length > 0 && item.isExpanded && !isCollapsed) {
+              <ul
+                class="nav-submenu"
               >
-                <i [class]="child.icon" class="nav-subicon"></i>
-                <span class="nav-subtext">{{ child.title }}</span>
-              </a>
-            </li>
-          </ul>
-        </li>
+                @for (child of item.children; track child) {
+                  <li
+                    class="nav-subitem"
+                    [class.active]="child.isActive"
+                  >
+                    <a
+                      class="nav-sublink"
+                      [routerLink]="child.route"
+                      routerLinkActive="active"
+                    >
+                      <i [class]="child.icon" class="nav-subicon"></i>
+                      <span class="nav-subtext">{{ child.title }}</span>
+                    </a>
+                  </li>
+                }
+              </ul>
+            }
+          </li>
+        }
       </ul>
     </nav>
   </div>
 
-  <div class="sidebar-footer" *ngIf="!isCollapsed">
-    <div class="sidebar-footer-content">
-      <p class="footer-text">TVBoot IPTV Platform</p>
-      <p class="footer-version">v1.0.0</p>
+  @if (!isCollapsed) {
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-content">
+        <p class="footer-text">TVBoot IPTV Platform</p>
+        <p class="footer-version">v1.0.0</p>
+      </div>
     </div>
-  </div>
+  }
 </aside>
