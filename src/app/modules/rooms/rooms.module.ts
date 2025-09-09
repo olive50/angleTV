@@ -8,12 +8,50 @@ import { RoomsListComponent } from './components/rooms-list/rooms-list.component
 import { RoomDetailComponent } from './components/room-detail/room-detail.component';
 import { RoomFormComponent } from './room-form/room-form.component';
 
+// const routes: Routes = [
+//   { path: '', component: RoomsListComponent },
+//   { path: 'add', component: RoomFormComponent },
+//   { path: ':id', component: RoomDetailComponent },
+//   { path: ':id/edit', component: RoomFormComponent },
+// ];
+
 const routes: Routes = [
-  { path: '', component: RoomsListComponent },
-  { path: 'add', component: RoomFormComponent },
-  { path: ':id', component: RoomDetailComponent },
-  { path: ':id/edit', component: RoomFormComponent },
+  {
+    path: '',
+    component: RoomsListComponent,
+    data: {
+      title: 'Rooms',
+      breadcrumb: 'Rooms',
+    },
+  },
+  {
+    path: 'add',
+    component: RoomFormComponent,
+    data: {
+      title: 'Add Room',
+      breadcrumb: 'Add Room',
+    },
+  },
+  {
+    path: ':id',
+    component: RoomDetailComponent,
+    data: {
+      title: 'Room Details',
+      breadcrumb: 'Details',
+    },
+  },
+  {
+    path: ':id/edit',
+    component: RoomFormComponent,
+    data: {
+      title: 'Edit Room',
+      breadcrumb: 'Edit',
+    },
+  },
+  // Redirect any other routes to the main list
+  { path: '**', redirectTo: '', pathMatch: 'full' },
 ];
+
 
 @NgModule({
   declarations: [RoomsListComponent, RoomFormComponent, RoomDetailComponent],
