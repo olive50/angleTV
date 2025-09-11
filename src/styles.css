@@ -1492,3 +1492,8 @@ body {
 .text-secondary {
   color: var(--secondary-color) !important;
 }
+
+/* Toast & Confirm base utilities */
+.toast-container { pointer-events: none; }
+.toast { pointer-events: auto; }
+.confirm-overlay { backdrop-filter: blur(2px); }

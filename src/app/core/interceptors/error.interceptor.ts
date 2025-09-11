@@ -14,41 +14,12 @@ export class ErrorInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
       catchError((error: HttpErrorResponse) => {
+        // Log for diagnostics but preserve the original HttpErrorResponse
         console.error('HTTP Error:', error);
 
-        let errorMessage = 'An unexpected error occurred';
-
-        if (error.error instanceof ErrorEvent) {
-          // Client-side error
-          errorMessage = `Error: ${error.error.message}`;
-        } else {
-          // Server-side error
-          switch (error.status) {
-            case 400:
-              errorMessage = error.error?.message || 'Bad Request';
-              break;
-            case 401:
-              errorMessage = 'Unauthorized - Please log in';
-              break;
-            case 403:
-              errorMessage = 'Forbidden - Access denied';
-              break;
-            case 404:
-              errorMessage = 'Resource not found';
-              break;
-            case 500:
-              errorMessage = 'Internal server error';
-              break;
-            default:
-              errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-          }
-        }
-
-        return throwError({
-          message: errorMessage,
-          status: error.status,
-          error: error,
-        });
+        // IMPORTANT: Do not transform the error; rethrow it unchanged so callers
+        // (like the login component) can reliably inspect status and error payload
+        return throwError(() => error);
       })
     );
   }

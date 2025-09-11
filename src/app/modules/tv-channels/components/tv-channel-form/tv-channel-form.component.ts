@@ -32,6 +32,8 @@ import {
 } from '../../../../core/models/tv-channel.model';
 import { Language } from '../../../../core/models/language.model';
 import { TvChannelCategory } from '../../../../core/models/tv-channel-category.model';
+import { ToastService } from '../../../../shared/components/toast/toast.service';
+import { ConfirmService } from '../../../../shared/components/confirm/confirm.service';
 
 @Component({
   selector: 'app-tv-channel-form',
@@ -71,7 +73,9 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private tvChannelService: TvChannelService,
     private languageService: LanguageService,
-    private categoryService: TvChannelCategoryService
+    private categoryService: TvChannelCategoryService,
+    private toast: ToastService,
+    private confirm: ConfirmService,
   ) {
     this.channelForm = this.createForm();
   }
@@ -422,6 +426,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error loading form data:', error);
           this.loading = false;
+          this.toast.warning('Some form data could not be loaded');
         },
       });
   }
@@ -451,7 +456,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Error loading channel:', error);
           this.loading = false;
-          alert('Failed to load channel data. Redirecting to list.');
+          this.toast.error('Failed to load channel. Redirecting to list.');
           this.router.navigate(['/channels']);
         },
       });
@@ -632,6 +637,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
         if (showLoading) {
           this.testingConnection = false;
         }
+        this.toast.info(result.message);
       }),
       catchError((error) => {
         this.connectionTestResult = {
@@ -641,6 +647,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
         if (showLoading) {
           this.testingConnection = false;
         }
+        this.toast.error('Connection test failed');
         return of(this.connectionTestResult);
       })
     );
@@ -711,6 +718,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       next: (channel) => {
         console.log('Channel saved successfully:', channel);
         this.submitting = false;
+        this.toast.success(`Channel "${channel.name}" ${this.isEditMode ? 'updated' : 'created'}`);
         this.router.navigate(['/channels'], {
           queryParams: {
             message: `Channel "${channel.name}" ${
@@ -724,21 +732,19 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
         this.submitting = false;
         const errorMessage =
           error.error?.message || error.message || 'Unknown error';
-        alert(
-          `Failed to ${
-            this.isEditMode ? 'update' : 'create'
-          } channel: ${errorMessage}`
+        this.toast.error(
+          `Failed to ${this.isEditMode ? 'update' : 'create'} channel: ${errorMessage}`
         );
       },
     });
   }
 
-  onCancel(): void {
+  async onCancel(): Promise<void> {
     if (
-      this.channelForm.dirty &&
-      !confirm('You have unsaved changes. Are you sure you want to leave?')
+      this.channelForm.dirty
     ) {
-      return;
+      const ok = await this.confirm.open('Discard changes', 'You have unsaved changes. Are you sure you want to leave?', 'Leave', 'Stay');
+      if (!ok) return;
     }
     this.router.navigate(['/channels']);
   }

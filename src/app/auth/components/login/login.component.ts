@@ -59,7 +59,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         }
       });
 
-    // Load saved username if any
+    // Load saved credentials if any
     this.loadSavedCredentials();
   }
 
@@ -116,23 +116,9 @@ export class LoginComponent implements OnInit, OnDestroy {
           // Navigate to return URL or dashboard
           this.router.navigate([this.returnUrl]);
         },
-        error: (error) => {
-          console.log('=== SIMPLE ERROR TEST ===');
-          console.log('Error:', error);
-          console.log('Error type:', typeof error);
-          console.log('Error constructor:', error.constructor.name);
-          console.log('Error status:', error.status);
-          console.log('Error message:', error.message);
-          console.log('=============================');
-          
-          // Simple status check
-          if (error.status === 0) {
-            this.error = 'Server is offline. Please check if the backend is running.';
-          } else if (error.status === 401) {
-            this.error = error.error?.message || 'Invalid username or password';
-          } else {
-            this.error = `Connection error (Status: ${error.status || 'unknown'})`;
-          }
+        error: (error: HttpErrorResponse) => {
+          // Delegate to centralized handler to increment attempts/block and set message
+          this.handleLoginError(error);
         },
       });
   }
@@ -148,6 +134,12 @@ export class LoginComponent implements OnInit, OnDestroy {
     console.log('Type of error.error:', typeof error.error);
     console.log('========================');
     
+    // Do NOT count attempts or block when server is offline
+    if (error instanceof HttpErrorResponse && error.status === 0) {
+      this.error = 'Server is offline. Please check if the backend is running.';
+      return;
+    }
+
     this.loginAttempts++;
     
     // Handle HTTP error responses properly
@@ -181,15 +173,22 @@ export class LoginComponent implements OnInit, OnDestroy {
           break;
 
         case 500:
-          if (error.error && error.error.message) {
+          // Map credential-like 500s to friendly message
+          const backendMessage = String(error?.error?.message || '').toLowerCase();
+          const looksLikeBadCreds = backendMessage.includes('bad credential') ||
+                                    backendMessage.includes('invalid credential') ||
+                                    backendMessage.includes('invalid username') ||
+                                    backendMessage.includes('invalid password') ||
+                                    backendMessage.includes('user not found') ||
+                                    backendMessage.includes('authentication failed') ||
+                                    backendMessage.includes('unauthorized');
+          if (looksLikeBadCreds) {
+            this.error = 'Invalid username or password';
+          } else if (error.error && error.error.message) {
             this.error = error.error.message;
           } else {
             this.error = 'Server error. Please try again later or contact support.';
           }
-          break;
-
-        case 0:
-          this.error = 'Network error. Please check your connection and try again.';
           break;
 
         default:

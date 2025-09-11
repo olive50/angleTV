@@ -21,6 +21,8 @@ import {
 } from '../../../../core/models/tv-channel.model';
 import { Language } from '../../../../core/models/language.model';
 import { TvChannelCategory } from '../../../../core/models/tv-channel-category.model';
+import { ToastService } from '../../../../shared/components/toast/toast.service';
+import { ConfirmService } from '../../../../shared/components/confirm/confirm.service';
 
 @Component({
   selector: 'app-tv-channels-list',
@@ -92,7 +94,9 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     private languageService: LanguageService,
     private categoryService: TvChannelCategoryService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private toast: ToastService,
+    private confirm: ConfirmService,
   ) {
     this.setupSearchDebounce();
     this.setupAutoRefresh();
@@ -163,6 +167,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
       this.categoryService.getAllCategories().pipe(
         catchError((error) => {
           console.warn('Failed to load categories:', error);
+          this.toast.warning('Could not load categories, using defaults');
           return of([
             { id: 1, name: 'News', description: 'News channels' },
             { id: 2, name: 'Sports', description: 'Sports channels' },
@@ -178,6 +183,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
       this.languageService.getAdminLanguages().pipe(
         catchError((error) => {
           console.warn('Failed to load languages:', error);
+          this.toast.warning('Could not load languages, using defaults');
           return of([
             {
               id: 1,
@@ -219,169 +225,6 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
               createdBy: 'system',
               lastModifiedBy: 'system',
             },
-            {
-              id: 2,
-              name: 'Arabic',
-              nativeName: 'العربية',
-              iso6391: 'ar',
-              iso6392: 'ara',
-              localeCode: 'ar-SA',
-              charset: 'UTF-8',
-              flagUrl: 'https://flags.example.com/sa.svg',
-              flagPath: '/assets/flags/sa.svg',
-              flagSource: 'https://flags.example.com/sa.svg',
-              isRtl: true,
-              isActive: true,
-              isDefault: false,
-              isAdminEnabled: true,
-              isGuestEnabled: true,
-              displayOrder: 2,
-              fontFamily: 'Arial, Noto Sans Arabic',
-              currencyCode: 'SAR',
-              currencySymbol: 'ر.س',
-              dateFormat: 'yyyy/MM/dd',
-              timeFormat: 'HH:mm',
-              numberFormat: '#,##0.00',
-              decimalSeparator: '.',
-              thousandsSeparator: ',',
-              uiTranslationProgress: 98,
-              channelTranslationProgress: 90,
-              epgTranslationEnabled: true,
-              welcomeMessage: 'مرحباً بكم في نظام الترفيه بالفندق!',
-              supportedPlatforms: ['WEBOS', 'WEB', 'ANDROID', 'IOS', 'TIZEN'],
-              overallTranslationProgress: 94,
-              isFullyTranslated: false,
-              isReadyForDisplay: true,
-              isAvailableForAdmin: true,
-              isAvailableForGuests: true,
-              createdAt: '2025-09-07T10:59:53',
-              updatedAt: '2025-09-07T10:59:53',
-              createdBy: 'system',
-              lastModifiedBy: 'system',
-            },
-            {
-              id: 3,
-              name: 'French',
-              nativeName: 'Français',
-              iso6391: 'fr',
-              iso6392: 'fra',
-              localeCode: 'fr-FR',
-              charset: 'UTF-8',
-              flagUrl: 'https://flags.example.com/fr.svg',
-              flagPath: '/assets/flags/fr.svg',
-              flagSource: 'https://flags.example.com/fr.svg',
-              isRtl: false,
-              isActive: true,
-              isDefault: false,
-              isAdminEnabled: true,
-              isGuestEnabled: true,
-              displayOrder: 3,
-              fontFamily: 'Arial, sans-serif',
-              currencyCode: 'EUR',
-              currencySymbol: '€',
-              dateFormat: 'dd/MM/yyyy',
-              timeFormat: 'HH:mm',
-              numberFormat: '# ##0,00',
-              decimalSeparator: ',',
-              thousandsSeparator: ' ',
-              uiTranslationProgress: 100,
-              channelTranslationProgress: 88,
-              epgTranslationEnabled: true,
-              welcomeMessage:
-                'Bienvenue dans notre système de divertissement hôtelier!',
-              supportedPlatforms: ['WEBOS', 'WEB', 'ANDROID', 'IOS', 'TIZEN'],
-              overallTranslationProgress: 94,
-              isFullyTranslated: false,
-              isReadyForDisplay: true,
-              isAvailableForAdmin: true,
-              isAvailableForGuests: true,
-              createdAt: '2025-09-07T10:59:53',
-              updatedAt: '2025-09-07T10:59:53',
-              createdBy: 'system',
-              lastModifiedBy: 'system',
-            },
-            {
-              id: 4,
-              name: 'Spanish',
-              nativeName: 'Español',
-              iso6391: 'es',
-              iso6392: 'spa',
-              localeCode: 'es-ES',
-              charset: 'UTF-8',
-              flagUrl: 'https://flags.example.com/es.svg',
-              flagPath: '/assets/flags/es.svg',
-              flagSource: 'https://flags.example.com/es.svg',
-              isRtl: false,
-              isActive: true,
-              isDefault: false,
-              isAdminEnabled: true,
-              isGuestEnabled: true,
-              displayOrder: 4,
-              fontFamily: 'Arial, sans-serif',
-              currencyCode: 'EUR',
-              currencySymbol: '€',
-              dateFormat: 'dd/MM/yyyy',
-              timeFormat: 'HH:mm',
-              numberFormat: '#,##0.00',
-              decimalSeparator: ',',
-              thousandsSeparator: '.',
-              uiTranslationProgress: 95,
-              channelTranslationProgress: 85,
-              epgTranslationEnabled: true,
-              welcomeMessage:
-                '¡Bienvenido a nuestro sistema de entretenimiento hotelero!',
-              supportedPlatforms: ['WEBOS', 'WEB', 'ANDROID', 'IOS', 'TIZEN'],
-              overallTranslationProgress: 90,
-              isFullyTranslated: false,
-              isReadyForDisplay: true,
-              isAvailableForAdmin: true,
-              isAvailableForGuests: true,
-              createdAt: '2025-09-07T10:59:53',
-              updatedAt: '2025-09-07T10:59:53',
-              createdBy: 'system',
-              lastModifiedBy: 'system',
-            },
-            {
-              id: 5,
-              name: 'German',
-              nativeName: 'Deutsch',
-              iso6391: 'de',
-              iso6392: 'deu',
-              localeCode: 'de-DE',
-              charset: 'UTF-8',
-              flagUrl: 'https://flags.example.com/de.svg',
-              flagPath: '/assets/flags/de.svg',
-              flagSource: 'https://flags.example.com/de.svg',
-              isRtl: false,
-              isActive: true,
-              isDefault: false,
-              isAdminEnabled: true,
-              isGuestEnabled: true,
-              displayOrder: 5,
-              fontFamily: 'Arial, sans-serif',
-              currencyCode: 'EUR',
-              currencySymbol: '€',
-              dateFormat: 'dd.MM.yyyy',
-              timeFormat: 'HH:mm',
-              numberFormat: '#.##0,00',
-              decimalSeparator: ',',
-              thousandsSeparator: '.',
-              uiTranslationProgress: 92,
-              channelTranslationProgress: 80,
-              epgTranslationEnabled: true,
-              welcomeMessage:
-                'Willkommen in unserem Hotel-Unterhaltungssystem!',
-              supportedPlatforms: ['WEBOS', 'WEB', 'ANDROID', 'IOS', 'TIZEN'],
-              overallTranslationProgress: 86,
-              isFullyTranslated: false,
-              isReadyForDisplay: true,
-              isAvailableForAdmin: true,
-              isAvailableForGuests: true,
-              createdAt: '2025-09-07T10:59:53',
-              updatedAt: '2025-09-07T10:59:53',
-              createdBy: 'system',
-              lastModifiedBy: 'system',
-            },
           ]);
         })
       ),
@@ -396,6 +239,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error loading initial data:', error);
+          this.toast.error('Failed to load initial data');
           this.loadChannels(); // Still try to load channels
         },
       });
@@ -420,8 +264,6 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
             this.channels = response.content;
             this.totalElements = response.totalElements;
             this.totalPages = response.totalPages;
-            // console.log("response ::::::::::::::::::::::::::::::::", response)
-
             console.log(
               `Loaded ${this.channels.length} channels, total: ${this.totalElements}`
             );
@@ -450,6 +292,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.warn('Failed to load channel statistics:', error);
           this.error = 'Failed to load statistics';
+          this.toast.warning('Could not load channel statistics');
         },
       });
   }
@@ -460,6 +303,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     this.totalElements = 0;
     this.totalPages = 0;
     this.error = 'Invalid response format from server';
+    this.toast.error('Invalid response from server while loading channels');
   }
 
   private handleLoadError(error: any): void {
@@ -468,6 +312,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     this.channels = [];
     this.totalElements = 0;
     this.totalPages = 0;
+    this.toast.error(this.error);
   }
 
   private getErrorMessage(error: any): string {
@@ -517,6 +362,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     this.filters = {};
     this.currentPage = 0;
     this.loadChannels();
+    this.toast.info('Filters cleared');
   }
 
   toggleAdvancedFilters(): void {
@@ -620,14 +466,12 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     return this.selectedChannels.size;
   }
 
-  // Convert string to enum if needed
-
   performBulkOperation(operation: string): void {
     const bulkOp = operation as BulkOperation;
     const channelIds = Array.from(this.selectedChannels);
 
     if (channelIds.length === 0) {
-      alert('Please select at least one channel.');
+      this.toast.info('Please select at least one channel');
       return;
     }
 
@@ -635,27 +479,27 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
       bulkOp,
       channelIds.length
     );
-    if (!confirm(confirmMessage)) {
-      return;
-    }
 
-    // Handle different bulk operations
-    switch (operation) {
-      case BulkOperation.DELETE:
-        this.performBulkDelete(channelIds);
-        break;
-      case BulkOperation.ACTIVATE:
-        this.performBulkStatusChange(channelIds, true);
-        break;
-      case BulkOperation.DEACTIVATE:
-        this.performBulkStatusChange(channelIds, false);
-        break;
-      case BulkOperation.TEST_CONNECTIVITY:
-        this.performBulkConnectivityTest(channelIds);
-        break;
-      default:
-        alert('This bulk operation is not yet implemented.');
-    }
+    this.confirm.open('Confirm bulk action', confirmMessage, 'Proceed', 'Cancel')
+      .then((ok) => {
+        if (!ok) return;
+        switch (operation) {
+          case BulkOperation.DELETE:
+            this.performBulkDelete(channelIds);
+            break;
+          case BulkOperation.ACTIVATE:
+            this.performBulkStatusChange(channelIds, true);
+            break;
+          case BulkOperation.DEACTIVATE:
+            this.performBulkStatusChange(channelIds, false);
+            break;
+          case BulkOperation.TEST_CONNECTIVITY:
+            this.performBulkConnectivityTest(channelIds);
+            break;
+          default:
+            this.toast.info('This bulk operation is not yet implemented');
+        }
+      });
   }
 
   private getBulkOperationConfirmMessage(
@@ -695,16 +539,11 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
           this.selectedChannels.clear();
           this.bulkOperationsEnabled = false;
           this.loadChannels();
-          this.showSuccessMessage = true;
-          this.successMessage = `Successfully deleted ${
-            channelIds.length
-          } channel${channelIds.length > 1 ? 's' : ''}.`;
+          this.toast.success(`Deleted ${channelIds.length} channel${channelIds.length > 1 ? 's' : ''}`);
         },
         error: (error) => {
           console.error('Bulk delete failed:', error);
-          alert(
-            `Failed to delete channels: ${error.message || 'Unknown error'}`
-          );
+          this.toast.error(`Failed to delete channels: ${error.message || 'Unknown error'}`);
         },
       });
   }
@@ -713,19 +552,17 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     channelIds: number[],
     isActive: boolean
   ): void {
-    // Implementation would depend on your API
     console.log(
       `Changing status of channels ${channelIds.join(', ')} to ${
         isActive ? 'active' : 'inactive'
       }`
     );
-    alert('Bulk status change is not yet implemented.');
+    this.toast.info('Bulk status change is not yet implemented');
   }
 
   private performBulkConnectivityTest(channelIds: number[]): void {
-    // Implementation would depend on your API
     console.log(`Testing connectivity for channels ${channelIds.join(', ')}`);
-    alert('Bulk connectivity test is not yet implemented.');
+    this.toast.info('Bulk connectivity test is not yet implemented');
   }
 
   // Navigation Methods
@@ -757,34 +594,33 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
   }
 
   // Channel Operations
-  deleteChannel(id?: number): void {
+  async deleteChannel(id?: number): Promise<void> {
     if (!id) return;
 
     const channel = this.channels.find((c) => c.id === id);
     const channelName = channel?.name || `Channel ${id}`;
 
-    if (
-      confirm(
-        `Are you sure you want to delete "${channelName}"? This action cannot be undone.`
-      )
-    ) {
-      this.tvChannelService
-        .deleteChannel(id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.loadChannels();
-            this.showSuccessMessage = true;
-            this.successMessage = `Channel "${channelName}" deleted successfully.`;
-          },
-          error: (error) => {
-            console.error('Error deleting channel:', error);
-            alert(
-              `Failed to delete channel: ${error.message || 'Unknown error'}`
-            );
-          },
-        });
-    }
+    const ok = await this.confirm.open(
+      'Delete channel',
+      `Are you sure you want to delete "${channelName}"? This action cannot be undone.`,
+      'Delete',
+      'Cancel'
+    );
+    if (!ok) return;
+
+    this.tvChannelService
+      .deleteChannel(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.loadChannels();
+          this.toast.success(`Channel "${channelName}" deleted`);
+        },
+        error: (error) => {
+          console.error('Error deleting channel:', error);
+          this.toast.error(`Failed to delete channel: ${error.message || 'Unknown error'}`);
+        },
+      });
   }
 
   testChannelConnection(channel: TvChannel): void {
@@ -796,11 +632,11 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => {
           const message = `Connection test for "${channel.name}": ${result.message}`;
-          alert(message);
+          this.toast.info(message);
         },
         error: (error) => {
           console.error('Connection test failed:', error);
-          alert(`Connection test failed: ${error.message || 'Unknown error'}`);
+          this.toast.error(`Connection test failed: ${error.message || 'Unknown error'}`);
         },
       });
   }
@@ -815,6 +651,9 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
 
     if (this.autoRefreshEnabled) {
       this.autoRefreshTimer$.next();
+      this.toast.info('Auto refresh enabled');
+    } else {
+      this.toast.info('Auto refresh disabled');
     }
   }
 
@@ -823,6 +662,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     this.error = null;
     this.loadChannels();
     this.loadChannelStats();
+    this.toast.success('Channels refreshed');
   }
 
   // Export and Import
@@ -836,10 +676,11 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
             blob,
             `tv-channels-${new Date().toISOString().split('T')[0]}.csv`
           );
+          this.toast.success('Export started');
         },
         error: (error) => {
           console.error('Export failed:', error);
-          alert('Export failed. Please try again.');
+          this.toast.error('Export failed. Please try again.');
         },
       });
   }
@@ -867,8 +708,8 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (result) => {
           this.loadChannels();
-          alert(
-            `Import completed: ${result.success} channels imported. ${result.errors.length} errors.`
+          this.toast.success(
+            `Import completed: ${result.success} imported, ${result.errors.length} errors`
           );
           if (result.errors.length > 0) {
             console.error('Import errors:', result.errors);
@@ -876,7 +717,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Import failed:', error);
-          alert('Import failed. Please check the file format and try again.');
+          this.toast.error('Import failed. Please check the file format and try again.');
         },
       });
 

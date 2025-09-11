@@ -5,6 +5,8 @@ import { Subject } from 'rxjs';
 import { takeUntil, switchMap } from 'rxjs/operators';
 import { TvChannelService } from '../../../../core/services/tv-channel.service';
 import { TvChannel } from '../../../../core/models/tv-channel.model';
+import { ConfirmService } from '../../../../shared/components/confirm/confirm.service';
+import { ToastService } from '../../../../shared/components/toast/toast.service';
 
 @Component({
   selector: 'app-tv-channel-detail',
@@ -23,7 +25,9 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private tvChannelService: TvChannelService
+    private tvChannelService: TvChannelService,
+    private confirm: ConfirmService,
+    private toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -59,6 +63,8 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
           console.error('Error loading channel:', error);
           this.error = error.message || 'Failed to load channel details';
           this.loading = false;
+          // this.toast.error(this.error);
+          this.toast.error(this.error ?? '');
         },
       });
   }
@@ -76,6 +82,7 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
         next: (result) => {
           this.connectionResult = result;
           this.testingConnection = false;
+          this.toast.info(result.message);
         },
         error: (error) => {
           console.error('Connection test failed:', error);
@@ -84,6 +91,7 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
             message: 'Connection test failed',
           };
           this.testingConnection = false;
+          this.toast.error('Connection test failed');
         },
       });
   }
@@ -94,33 +102,34 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  deleteChannel(): void {
+  async deleteChannel(): Promise<void> {
     if (!this.channel?.id) return;
 
     const confirmMessage = `Are you sure you want to delete channel "${this.channel.name}"?\n\nThis action cannot be undone and will permanently remove the channel from your IPTV system.`;
 
-    if (confirm(confirmMessage)) {
-      this.loading = true;
-      this.tvChannelService
-        .deleteChannel(this.channel.id)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe({
-          next: () => {
-            this.router.navigate(['/channels'], {
-              queryParams: {
-                message: `Channel "${this.channel?.name}" deleted successfully`,
-              },
-            });
-          },
-          error: (error) => {
-            console.error('Error deleting channel:', error);
-            this.loading = false;
-            alert(
-              `Failed to delete channel: ${error.message || 'Unknown error'}`
-            );
-          },
-        });
-    }
+    const ok = await this.confirm.open('Delete channel', confirmMessage, 'Delete', 'Cancel');
+    if (!ok) return;
+
+    this.loading = true;
+    this.tvChannelService
+      .deleteChannel(this.channel.id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          const name = this.channel?.name;
+          this.router.navigate(['/channels'], {
+            queryParams: {
+              message: `Channel "${name}" deleted successfully`,
+            },
+          });
+          this.toast.success(`Channel "${name}" deleted`);
+        },
+        error: (error) => {
+          console.error('Error deleting channel:', error);
+          this.loading = false;
+          this.toast.error(`Failed to delete channel: ${error.message || 'Unknown error'}`);
+        },
+      });
   }
 
   duplicateChannel(): void {
@@ -140,6 +149,7 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
         data: JSON.stringify(duplicatedChannel),
       },
     });
+    this.toast.info('Duplicated channel, ready to edit');
   }
 
   private getNextAvailableChannelNumber(): number {
@@ -153,6 +163,7 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
 
   refreshChannel(): void {
     this.loadChannel();
+    this.toast.success('Channel refreshed');
   }
 
   // Helper methods for template
@@ -181,8 +192,7 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
       navigator.clipboard
         .writeText(text)
         .then(() => {
-          // Show success message (you could implement a toast service)
-          console.log('Copied to clipboard:', text);
+          this.toast.success('Copied to clipboard');
         })
         .catch(() => {
           this.fallbackCopyToClipboard(text);
@@ -204,9 +214,10 @@ export class TvChannelDetailComponent implements OnInit, OnDestroy {
 
     try {
       document.execCommand('copy');
-      console.log('Copied to clipboard:', text);
+      this.toast.success('Copied to clipboard');
     } catch (err) {
       console.error('Failed to copy to clipboard:', err);
+      this.toast.error('Failed to copy');
     }
 
     document.body.removeChild(textArea);

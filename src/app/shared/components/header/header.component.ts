@@ -9,6 +9,8 @@ import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { JwtAuthService } from '../../../core/services/jwt-auth.service';
+import { ConfirmService } from '../../components/confirm/confirm.service';
+import { ToastService } from '../../components/toast/toast.service';
 
 export interface User {
   id?: number;
@@ -34,7 +36,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
 
-  constructor(private router: Router, private authService: JwtAuthService) {}
+  constructor(private router: Router, private authService: JwtAuthService, private confirm: ConfirmService, private toast: ToastService) {}
 
   ngOnInit(): void {
     // Subscribe to current user
@@ -72,13 +74,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.router.navigate(['/settings']);
   }
 
-  onLogout(): void {
+  async onLogout(): Promise<void> {
     this.showUserMenu = false;
 
-    if (confirm('Are you sure you want to logout?')) {
-      console.log('User logging out...');
-      this.authService.logout();
-    }
+    const ok = await this.confirm.open('Logout', 'Are you sure you want to logout?', 'Logout', 'Cancel');
+    if (!ok) return;
+
+    console.log('User logging out...');
+    this.authService.logout();
+    this.toast.info('You have been logged out');
   }
 
   private onDocumentClick(event: Event): void {

@@ -1,5 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { ToastService } from '../../../../shared/components/toast/toast.service';
+import { ConfirmService } from '../../../../shared/components/confirm/confirm.service';
 
 export interface Terminal {
   id: number;
@@ -162,7 +164,7 @@ export class TerminalsListComponent implements OnInit {
     'Bar',
   ];
 
-  constructor(private router: Router) {}
+  constructor(private router: Router, private toast: ToastService, private confirm: ConfirmService) {}
 
   ngOnInit(): void {
     this.applyFilters();
@@ -254,16 +256,19 @@ export class TerminalsListComponent implements OnInit {
     this.router.navigate(['/terminals', id, 'edit']);
   }
 
-  deleteTerminal(id: number): void {
-    if (
-      confirm(
-        'Are you sure you want to delete this terminal? This action cannot be undone.'
-      )
-    ) {
-      this.terminals = this.terminals.filter((t) => t.id !== id);
-      this.applyFilters();
-      // TODO: Call API to delete terminal
-    }
+  async deleteTerminal(id: number): Promise<void> {
+    const ok = await this.confirm.open(
+      'Delete terminal',
+      'Are you sure you want to delete this terminal? This action cannot be undone.',
+      'Delete',
+      'Cancel'
+    );
+    if (!ok) return;
+
+    this.terminals = this.terminals.filter((t) => t.id !== id);
+    this.applyFilters();
+    // TODO: Call API to delete terminal
+    this.toast.success('Terminal deleted');
   }
 
   changeTerminalStatus(id: number, newStatus: string): void {
@@ -273,6 +278,7 @@ export class TerminalsListComponent implements OnInit {
       terminal.lastSeen = new Date();
       this.applyFilters();
       // TODO: Call API to update terminal status
+      this.toast.success('Terminal status updated');
     }
   }
 
@@ -286,12 +292,12 @@ export class TerminalsListComponent implements OnInit {
     this.deviceTypeFilter = '';
     this.locationFilter = '';
     this.applyFilters();
+    this.toast.info('Filters cleared');
   }
 
   exportTerminals(): void {
-    // TODO: Implement export functionality
     console.log('Exporting terminals...', this.filteredTerminals);
-    alert('Export functionality will be implemented');
+    this.toast.info('Export functionality will be implemented');
   }
 
   refreshData(): void {
@@ -306,6 +312,7 @@ export class TerminalsListComponent implements OnInit {
         }
       });
       this.applyFilters();
+      this.toast.success('Data refreshed');
     }, 1000);
   }
 
@@ -326,26 +333,27 @@ export class TerminalsListComponent implements OnInit {
       // TODO: Implement ping functionality
       terminal.lastSeen = new Date();
       this.applyFilters();
-      alert(`Pinged ${terminal.terminalId} successfully`);
+      this.toast.success(`Pinged ${terminal.terminalId} successfully`);
     }
   }
 
-  rebootTerminal(id: number): void {
+  async rebootTerminal(id: number): Promise<void> {
     const terminal = this.terminals.find((t) => t.id === id);
-    if (
-      terminal &&
-      confirm(`Are you sure you want to reboot ${terminal.terminalId}?`)
-    ) {
-      // TODO: Implement reboot functionality
-      terminal.status = 'MAINTENANCE';
-      this.applyFilters();
+    if (!terminal) return;
 
-      // Simulate reboot process
-      setTimeout(() => {
-        terminal.status = 'ACTIVE';
-        terminal.lastSeen = new Date();
-        this.applyFilters();
-      }, 3000);
-    }
+    const ok = await this.confirm.open('Reboot terminal', `Are you sure you want to reboot ${terminal.terminalId}?`, 'Reboot', 'Cancel');
+    if (!ok) return;
+
+    // TODO: Implement reboot functionality
+    terminal.status = 'MAINTENANCE';
+    this.applyFilters();
+
+    // Simulate reboot process
+    setTimeout(() => {
+      terminal.status = 'ACTIVE';
+      terminal.lastSeen = new Date();
+      this.applyFilters();
+      this.toast.success(`${terminal.terminalId} rebooted`);
+    }, 3000);
   }
 }
