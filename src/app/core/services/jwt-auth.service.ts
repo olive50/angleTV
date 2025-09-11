@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { BehaviorSubject, Observable, throwError } from 'rxjs';
-import { catchError, map, tap } from 'rxjs/operators';
+import { catchError, map, tap, finalize } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { environment } from '../../../environments/environment';
 
@@ -90,13 +90,18 @@ export class JwtAuthService {
           console.log('Login successful:', response);
           this.handleAuthSuccess(response);
         }),
-        catchError((error) => {
-          console.error('Login failed:', error);
-          return this.handleAuthError(error);
+        catchError((error: HttpErrorResponse) => {
+          console.log('Auth service - Raw error:', error);
+          console.log('Auth service - Error status:', error.status);
+          console.log('Auth service - Error message:', error.message);
+          console.log('Auth service - Error name:', error.name);
+          
+          // DON'T transform the error - pass through the exact HttpErrorResponse
+          // This preserves all error information including status 0 for network errors
+          return throwError(() => error);
         }),
-        map((response) => {
+        finalize(() => {
           this.isLoadingSubject.next(false);
-          return response;
         })
       );
   }
@@ -205,28 +210,6 @@ export class JwtAuthService {
     this.isAuthenticatedSubject.next(true);
 
     console.log('Authentication successful for:', user.username);
-  }
-
-  /**
-   * Handle authentication errors
-   */
-  private handleAuthError(error: HttpErrorResponse): Observable<never> {
-    this.isLoadingSubject.next(false);
-
-    let errorMessage = 'An error occurred during authentication';
-
-    if (error.error && error.error.message) {
-      errorMessage = error.error.message;
-    } else if (error.status === 401) {
-      errorMessage = 'Invalid username or password';
-    } else if (error.status === 0) {
-      errorMessage =
-        'Unable to connect to server. Please check your connection.';
-    } else if (error.status >= 500) {
-      errorMessage = 'Server error. Please try again later.';
-    }
-
-    return throwError({ message: errorMessage, status: error.status });
   }
 
   /**

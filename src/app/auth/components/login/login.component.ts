@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
+import { HttpErrorResponse } from '@angular/common/http';
 import { JwtAuthService } from '../../../core/services/jwt-auth.service';
 
 @Component({
@@ -116,49 +117,132 @@ export class LoginComponent implements OnInit, OnDestroy {
           this.router.navigate([this.returnUrl]);
         },
         error: (error) => {
-          console.error('Login failed:', error);
-          this.handleLoginError(error);
+          console.log('=== SIMPLE ERROR TEST ===');
+          console.log('Error:', error);
+          console.log('Error type:', typeof error);
+          console.log('Error constructor:', error.constructor.name);
+          console.log('Error status:', error.status);
+          console.log('Error message:', error.message);
+          console.log('=============================');
+          
+          // Simple status check
+          if (error.status === 0) {
+            this.error = 'Server is offline. Please check if the backend is running.';
+          } else if (error.status === 401) {
+            this.error = error.error?.message || 'Invalid username or password';
+          } else {
+            this.error = `Connection error (Status: ${error.status || 'unknown'})`;
+          }
         },
       });
   }
 
   private handleLoginError(error: any): void {
+    console.log('=== FULL ERROR DEBUG ===');
+    console.log('Error object:', error);
+    console.log('Error status:', error.status);
+    console.log('Error statusText:', error.statusText);
+    console.log('Error body:', error.error);
+    console.log('Error message:', error.message);
+    console.log('Error error.message:', error.error?.message);
+    console.log('Type of error.error:', typeof error.error);
+    console.log('========================');
+    
     this.loginAttempts++;
+    
+    // Handle HTTP error responses properly
+    if (error instanceof HttpErrorResponse) {
+      switch (error.status) {
+        case 401:
+          // Authentication failed - extract message from backend
+          if (error.error && error.error.message) {
+            this.error = error.error.message;
+          } else {
+            this.error = 'Invalid username or password';
+          }
+          break;
 
-    if (error.message) {
-      this.error = error.message;
+        case 400:
+          // Bad request - validation errors
+          if (error.error && error.error.message) {
+            this.error = error.error.message;
+          } else if (error.error && error.error.validationErrors) {
+            // Handle validation errors from your GlobalExceptionHandler
+            const validationErrors = error.error.validationErrors;
+            const errorMessages = validationErrors.map((err: any) => err.message);
+            this.error = errorMessages.join(', ');
+          } else {
+            this.error = 'Please check your input and try again.';
+          }
+          break;
+
+        case 403:
+          this.error = 'Access denied. Please contact your administrator.';
+          break;
+
+        case 500:
+          if (error.error && error.error.message) {
+            this.error = error.error.message;
+          } else {
+            this.error = 'Server error. Please try again later or contact support.';
+          }
+          break;
+
+        case 0:
+          this.error = 'Network error. Please check your connection and try again.';
+          break;
+
+        default:
+          this.error = `Unexpected error (${error.status}). Please try again.`;
+      }
     } else {
-      this.error = 'Login failed. Please check your credentials and try again.';
+      // Fallback for any other error types
+      this.error = 'Invalid username or password';
     }
+    
+    console.log('Final error message set to:', this.error);
 
     // Block login attempts after max attempts
     if (this.loginAttempts >= this.maxAttempts) {
       this.blockLogin();
+      return;
     }
 
-    // Focus on username field for retry
-    setTimeout(() => {
-      const usernameField = document.getElementById('username');
-      if (usernameField) {
-        usernameField.focus();
-      }
-    }, 100);
+    // Focus on username field for retry (only if not blocked)
+    if (!this.isBlocked) {
+      setTimeout(() => {
+        const usernameField = document.getElementById('username');
+        if (usernameField) {
+          usernameField.focus();
+        }
+      }, 100);
+    }
   }
 
   private blockLogin(): void {
     this.isBlocked = true;
-    this.blockTimeRemaining = 3; // IF 300=5 minutes
-    this.error = `Too many failed attempts. Please wait ${this.blockTimeRemaining} seconds.`;
+    this.blockTimeRemaining = 30; // 30 seconds block time
+    this.error = `Too many failed attempts. Please wait ${this.blockTimeRemaining} seconds before trying again.`;
 
     const interval = setInterval(() => {
       this.blockTimeRemaining--;
-      this.error = `Too many failed attempts. Please wait ${this.blockTimeRemaining} seconds.`;
-
-      if (this.blockTimeRemaining <= 0) {
+      
+      if (this.blockTimeRemaining > 0) {
+        this.error = `Too many failed attempts. Please wait ${this.blockTimeRemaining} seconds before trying again.`;
+      } else {
+        // Reset everything
         this.isBlocked = false;
         this.loginAttempts = 0;
         this.error = null;
         clearInterval(interval);
+        
+        // Focus on username field after unblocking
+        setTimeout(() => {
+          const usernameField = document.getElementById('username');
+          if (usernameField) {
+            usernameField.focus();
+          }
+        }, 100);
       }
     }, 1000);
   }
@@ -204,8 +288,30 @@ export class LoginComponent implements OnInit, OnDestroy {
     return this.loginForm.valid && !this.isLoading && !this.isBlocked;
   }
 
+  // Helper method to get error class for styling
+  get errorClass(): string {
+    if (!this.error) return '';
+    
+    if (this.error.includes('Unable to connect') || 
+        this.error.includes('Connection timeout') || 
+        this.error.includes('Connection failed') ||
+        this.error.includes('Server is temporarily unavailable')) {
+      return 'error-network';
+    } else if (this.error.includes('Server error')) {
+      return 'error-server';
+    } else if (this.error.includes('Too many failed attempts')) {
+      return 'error-blocked';
+    } else {
+      return 'error-auth';
+    }
+  }
+
   // Quick login for demo purposes (remove in production)
   quickLogin(role: string): void {
+    if (this.isBlocked) {
+      return; // Don't allow quick login when blocked
+    }
+
     const credentials = {
       admin: { username: 'admin', password: 'admin123' },
       manager: { username: 'manager', password: 'admin123' },
@@ -216,6 +322,13 @@ export class LoginComponent implements OnInit, OnDestroy {
     const cred = credentials[role as keyof typeof credentials];
     if (cred) {
       this.loginForm.patchValue(cred);
+      // Clear any existing errors
+      this.error = null;
     }
+  }
+
+  // Method to clear errors (useful for template)
+  clearError(): void {
+    this.error = null;
   }
 }

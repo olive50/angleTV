@@ -14,12 +14,12 @@ import { TvChannelService } from '../../core/services/tv-channel.service';
 import { LanguageService } from '../../core/services/language.service';
 import { TvChannelCategoryService } from '../../core/services/tv-channel-category.service';
 
-// Shared Components (if any)
-// import { LoadingComponent } from '../../shared/components/loading/loading.component';
+//Shared Components (if any)
+import { LoadingComponent } from '../../shared/components/loading/loading.component';
 
-// Guards (if needed)
-// import { AuthGuard } from '../../core/guards/auth.guard';
-// import { RoleGuard } from '../../core/guards/role.guard';
+//Guards (if needed)
+import { AuthGuard } from '../../core/guards/auth.guard';
+import { RoleGuard } from '../../core/guards/role.guard';
 
 const routes: Routes = [
   {

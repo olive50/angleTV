@@ -104,9 +104,13 @@
         </div>
 
         <!-- Error Message -->
-        <div *ngIf="error" class="alert alert-error">
+        <!-- <div *ngIf="error" class="alert alert-error">
           <i class="fas fa-exclamation-circle"></i>
           <span>{{ error }}</span>
+        </div> -->
+        <div *ngIf="error" [class]="errorClass">
+          {{ error }}
+          <button type="button" class="btn-close" (click)="clearError()">×</button>
         </div>
 
         <!-- Login Button -->
