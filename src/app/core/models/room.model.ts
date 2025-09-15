@@ -63,7 +63,8 @@ export interface Room {
   roomType: RoomType;
   floorNumber: number;
   building: string;
-  maxOccupancy: number;
+ 
+  capacity: number;  
   pricePerNight: number;
   status: RoomStatus;
   description: string;
@@ -93,7 +94,7 @@ export interface RoomCreateRequest {
   roomType: RoomType;
   floorNumber: number;
   building: string;
-  maxOccupancy: number;
+  capacity: number;
   pricePerNight: number;
   description: string;
   amenities: string[];
@@ -129,17 +130,17 @@ export interface RoomStatistics {
   total: number;
   available: number;
   occupied: number;
-  reserved: number;
   maintenance: number;
-  outOfOrder: number;
-  cleaning: number;
-  occupancyRate: number;
-  averagePricePerNight: number;
-  revenueToday: number;
-  revenueThisMonth: number;
-  byType: { [key: string]: number };
-  byFloor: { [key: string]: number };
-  byStatus: { [key: string]: number };
+  reserved?: number;
+  outOfOrder?: number;
+  cleaning?: number;
+  occupancy?: number;
+  averagePricePerNight?: number;
+  revenueToday?: number;
+  revenueThisMonth?: number;
+  byType?: { [key: string]: number };
+  byFloor?: { [key: string]: number };
+  byStatus?: { [key: string]: number };
 }
 
 export interface RoomAvailability {

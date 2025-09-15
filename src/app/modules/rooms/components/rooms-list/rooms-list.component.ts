@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged } from 'rxjs';
-// import { RoomService } from '../../../core/services/room.service';
 import { 
   BedType,
   Room, 
@@ -12,36 +11,8 @@ import {
   ViewType
 } from 'src/app/core/models/room.model';
 import { RoomService } from 'src/app/core/services/RoomService ';
-
-// export interface Room {
-//   id: number;
-//   roomNumber: string;
-//   roomType: 'STANDARD' | 'DELUXE' | 'SUITE' | 'PRESIDENTIAL_SUITE' | 'FAMILY_ROOM' | 'STUDIO' | 'JUNIOR_SUITE' | 'PENTHOUSE';
-//   floorNumber: number;
-//   building: string;
-//   maxOccupancy: number;
-//   pricePerNight: number;
-//   status: 'AVAILABLE' | 'OCCUPIED' | 'MAINTENANCE' | 'OUT_OF_ORDER' | 'CLEANING' | 'RESERVED' | 'CHECKOUT_PENDING' | 'CHECKIN_READY';
-//   description: string;
-//   amenities: string[];
-//   currentGuest?: { 
-//     name: string; 
-//     checkOut: Date;
-//     id?: number;
-//     email?: string;
-//     phone?: string;
-//   };
-//   hasBalcony?: boolean;
-//   hasKitchen?: boolean;
-//   accessibility?: boolean;
-//   viewType?: string;
-//   bedType?: string;
-//   images?: string[];
-//   lastCleaned?: Date;
-//   lastMaintenance?: Date;
-//   createdAt?: Date;
-//   updatedAt?: Date;
-// }
+import { NotificationService } from 'src/app/core/services/notification.service';
+import { ToastService } from 'src/app/shared/components/toast/toast.service';
 
 @Component({
   selector: 'app-rooms-list',
@@ -85,7 +56,7 @@ export class RoomsListComponent implements OnInit, OnDestroy {
   sortBy = 'roomNumber';
   sortDirection: 'asc' | 'desc' = 'asc';
 
-  // // Configuration
+  // Configuration
   roomTypes = [
     { value: 'STANDARD', label: 'Standard Room' },
     { value: 'DELUXE', label: 'Deluxe Room' },
@@ -113,10 +84,13 @@ export class RoomsListComponent implements OnInit, OnDestroy {
 
   constructor(
     private router: Router,
-    private roomService: RoomService
+    private roomService: RoomService,
+    private notificationService: NotificationService,
+    private toastService: ToastService
   ) {
-    // Initialize with mock data for development
-    this.initializeMockData();
+    // Initialiser les tableaux pour éviter les erreurs
+    this.rooms = [];
+    this.filteredRooms = [];
     
     // Setup search debouncing
     this.searchSubject.pipe(
@@ -148,57 +122,9 @@ export class RoomsListComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  // Initialize with mock data for development
-  private initializeMockData(): void {
-    this.rooms = [
-      {
-        id: 1,
-        roomNumber: '101',
-        roomType:  RoomType.STANDARD,
-        floorNumber: 1,
-        building: 'Main Building',
-        maxOccupancy: 2,
-        pricePerNight: 89.99,
-        status: RoomStatus.OCCUPIED,
-        description: 'Standard room with city view',
-        amenities: ['Wi-Fi', 'TV', 'Air Conditioning', 'Mini Bar'],
-        hasBalcony: false,
-        hasKitchen: false,
-        accessibility: false,
-        viewType: ViewType.CITY,
-        bedType: BedType.QUEEN,
-        currentGuest: {
-          name: 'Ahmed Ben Ali',
-          checkOut: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
-          email: 'ahmed.benali@email.com',
-          phone: '+213 555 123 456'
-        },
-      },
-      
-    ];
-
-    this.statistics = {
-      total: this.rooms.length,
-      available: this.rooms.filter(r => r.status === 'AVAILABLE').length,
-      occupied: this.rooms.filter(r => r.status === 'OCCUPIED').length,
-      reserved: this.rooms.filter(r => r.status === 'RESERVED').length,
-      maintenance: this.rooms.filter(r => r.status === 'MAINTENANCE').length,
-      outOfOrder: this.rooms.filter(r => r.status === 'OUT_OF_ORDER').length,
-      cleaning: this.rooms.filter(r => r.status === 'CLEANING').length,
-      occupancyRate: (this.rooms.filter(r => r.status === 'OCCUPIED').length / this.rooms.length) * 100,
-      averagePricePerNight: this.rooms.reduce((sum, room) => sum + room.pricePerNight, 0) / this.rooms.length,
-      revenueToday: 2850.75,
-      revenueThisMonth: 45230.50,
-      byType: {},
-      byFloor: {},
-      byStatus: {}
-    };
-
-    this.applyFilters();
-  }
-
   // Data Loading Methods
   loadRooms(): void {
+    this.loading = true;
     const filters = this.buildFilters();
     
     this.roomService.getRooms(filters).pipe(
@@ -207,13 +133,120 @@ export class RoomsListComponent implements OnInit, OnDestroy {
       next: (rooms) => {
         this.rooms = rooms;
         this.applyFilters();
+        this.loading = false;
+        this.error = null;
+        
+        this.notificationService.addNotification({
+          type: 'success',
+          title: 'Rooms Loaded',
+          message: `Successfully loaded ${rooms.length} rooms`
+        });
       },
       error: (error) => {
         console.error('Failed to load rooms:', error);
-        // Use mock data on error for development
+        this.loading = false;
+        this.error = 'Failed to load rooms. Please try again.';
+        
+        // Initialize with mock data as fallback
         this.initializeMockData();
+        
+        this.notificationService.addNotification({
+          type: 'error',
+          title: 'Failed to Load Rooms',
+          message: 'Unable to load rooms from server. Using cached data.'
+        });
       }
     });
+  }
+
+  // Initialize with mock data for development/fallback
+  private initializeMockData(): void {
+    this.rooms = [
+      {
+        id: 1,
+        roomNumber: '101',
+        roomType: RoomType.STANDARD,
+        floorNumber: 1,
+        building: 'Main Building',
+        capacity: 2,
+        pricePerNight: 89.99,
+        status: RoomStatus.AVAILABLE,
+        description: 'Standard room with city view',
+        amenities: ['Wi-Fi', 'TV', 'Air Conditioning', 'Mini Bar'],
+        hasBalcony: false,
+        hasKitchen: false,
+        accessibility: false,
+        viewType: ViewType.CITY,
+        bedType: BedType.QUEEN,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 2,
+        roomNumber: '102',
+        roomType: RoomType.DELUXE,
+        floorNumber: 1,
+        building: 'Main Building',
+        capacity: 3,
+        pricePerNight: 129.99,
+        status: RoomStatus.OCCUPIED,
+        description: 'Deluxe room with balcony',
+        amenities: ['Wi-Fi', 'TV', 'Air Conditioning', 'Mini Bar', 'Balcony'],
+        hasBalcony: true,
+        hasKitchen: false,
+        accessibility: false,
+        viewType: ViewType.OCEAN,
+        bedType: BedType.KING,
+        currentGuest: {
+          name: 'Ahmed Ben Ali',
+          checkOut: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
+          email: 'ahmed.benali@email.com',
+          phone: '+213 555 123 456'
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      },
+      {
+        id: 3,
+        roomNumber: '201',
+        roomType: RoomType.SUITE,
+        floorNumber: 2,
+        building: 'Main Building',
+        capacity: 4,
+        pricePerNight: 199.99,
+        status: RoomStatus.MAINTENANCE,
+        description: 'Executive suite with living room',
+        amenities: ['Wi-Fi', 'TV', 'Air Conditioning', 'Mini Bar', 'Kitchen', 'Living Room'],
+        hasBalcony: true,
+        hasKitchen: true,
+        accessibility: true,
+        viewType: ViewType.CITY,
+        bedType: BedType.KING,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    ];
+
+    this.statistics = {
+      total: this.rooms.length,
+      available: this.rooms.filter(r => r.status === RoomStatus.AVAILABLE).length,
+      occupied: this.rooms.filter(r => r.status === RoomStatus.OCCUPIED).length,
+      reserved: this.rooms.filter(r => r.status === RoomStatus.RESERVED).length,
+      maintenance: this.rooms.filter(r => r.status === RoomStatus.MAINTENANCE).length,
+      outOfOrder: this.rooms.filter(r => r.status === RoomStatus.OUT_OF_ORDER).length,
+      cleaning: this.rooms.filter(r => r.status === RoomStatus.CLEANING).length,
+      occupancy: this.rooms.length > 0 ? (this.rooms.filter(r => r.status === RoomStatus.OCCUPIED).length / this.rooms.length) * 100 : 0,
+      averagePricePerNight: this.rooms.length > 0 ? this.rooms.reduce((sum, room) => sum + room.pricePerNight, 0) / this.rooms.length : 0,
+      revenueToday: 2850.75,
+      revenueThisMonth: 45230.50,
+      byType: {},
+      byFloor: {},
+      byStatus: {}
+    };
+
+    this.applyFilters();
+    this.loading = false;
+    this.error = null;
   }
 
   loadStatistics(): void {
@@ -225,6 +258,7 @@ export class RoomsListComponent implements OnInit, OnDestroy {
       },
       error: (error) => {
         console.error('Failed to load statistics:', error);
+        // Keep existing statistics or use default
       }
     });
   }
@@ -261,7 +295,7 @@ export class RoomsListComponent implements OnInit, OnDestroy {
       const matchesMaxPrice = !this.maxPriceFilter || room.pricePerNight <= this.maxPriceFilter;
       
       const matchesOccupancy = !this.occupancyFilter || 
-        (this.occupancyFilter === '4' ? room.maxOccupancy >= 4 : room.maxOccupancy.toString() === this.occupancyFilter);
+        (this.occupancyFilter === '4' ? room.capacity >= 4 : room.capacity.toString() === this.occupancyFilter);
       
       const matchesBalcony = !this.hasBalconyFilter || room.hasBalcony;
 
@@ -459,6 +493,9 @@ export class RoomsListComponent implements OnInit, OnDestroy {
 
   // Room Operations
   changeRoomStatus(id: number, newStatus: string): void {
+    const room = this.rooms.find(r => r.id === id);
+    const roomNumber = room?.roomNumber || id.toString();
+    
     this.roomService.changeRoomStatus(id, newStatus as any).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
@@ -469,9 +506,31 @@ export class RoomsListComponent implements OnInit, OnDestroy {
           this.applyFilters();
           this.loadStatistics();
         }
+        
+        this.notificationService.addNotification({
+          type: 'success',
+          title: 'Room Status Updated',
+          message: `Room ${roomNumber} status changed to ${this.getStatusLabel(newStatus)}`
+        });
+        
+        this.toastService.success(
+          `Room ${roomNumber} status changed to ${this.getStatusLabel(newStatus)}`,
+          'Status Updated'
+        );
       },
       error: (error) => {
         console.error('Failed to update room status:', error);
+        this.notificationService.addNotification({
+          type: 'error',
+          title: 'Failed to Update Status',
+          message: `Unable to update status for Room ${roomNumber}`
+        });
+        
+        this.toastService.error(
+          `Unable to update status for Room ${roomNumber}`,
+          'Update Failed'
+        );
+        
         // Fallback to local update for development
         const room = this.rooms.find(r => r.id === id);
         if (room) {
@@ -483,6 +542,9 @@ export class RoomsListComponent implements OnInit, OnDestroy {
   }
 
   deleteRoom(id: number): void {
+    const room = this.rooms.find(r => r.id === id);
+    const roomNumber = room?.roomNumber || id.toString();
+    
     if (confirm('Are you sure you want to delete this room?')) {
       this.roomService.deleteRoom(id).pipe(
         takeUntil(this.destroy$)
@@ -492,9 +554,26 @@ export class RoomsListComponent implements OnInit, OnDestroy {
           this.selectedRooms = this.selectedRooms.filter(roomId => roomId !== id);
           this.applyFilters();
           this.loadStatistics();
+          
+          this.notificationService.addNotification({
+            type: 'success',
+            title: 'Room Deleted',
+            message: `Room ${roomNumber} has been successfully deleted`
+          });
+          
+          this.toastService.success(
+            `Room ${roomNumber} has been successfully deleted`,
+            'Room Deleted'
+          );
         },
         error: (error) => {
           console.error('Failed to delete room:', error);
+          this.notificationService.addNotification({
+            type: 'error',
+            title: 'Failed to Delete Room',
+            message: `Unable to delete Room ${roomNumber}`
+          });
+          
           // Fallback to local deletion for development
           this.rooms = this.rooms.filter(r => r.id !== id);
           this.selectedRooms = this.selectedRooms.filter(roomId => roomId !== id);
@@ -521,12 +600,25 @@ export class RoomsListComponent implements OnInit, OnDestroy {
               room.status = status as any;
             }
           });
+          const selectedCount = this.selectedRooms.length;
           this.selectedRooms = [];
           this.applyFilters();
           this.loadStatistics();
+          
+          this.notificationService.addNotification({
+            type: 'success',
+            title: 'Bulk Status Update',
+            message: `Successfully updated ${selectedCount} rooms to ${this.getStatusLabel(status)}`
+          });
         },
         error: (error) => {
           console.error('Failed to bulk update room status:', error);
+          this.notificationService.addNotification({
+            type: 'error',
+            title: 'Bulk Update Failed',
+            message: `Failed to update status for ${this.selectedRooms.length} rooms`
+          });
+          
           // Fallback to local update for development
           this.selectedRooms.forEach(roomId => {
             const room = this.rooms.find(r => r.id === roomId);
@@ -546,6 +638,8 @@ export class RoomsListComponent implements OnInit, OnDestroy {
 
     const confirmMessage = `Are you sure you want to delete ${this.selectedRooms.length} room(s)? This action cannot be undone.`;
     if (confirm(confirmMessage)) {
+      const roomsToDelete = this.selectedRooms.length;
+      
       this.roomService.bulkDelete(this.selectedRooms).pipe(
         takeUntil(this.destroy$)
       ).subscribe({
@@ -554,9 +648,21 @@ export class RoomsListComponent implements OnInit, OnDestroy {
           this.selectedRooms = [];
           this.applyFilters();
           this.loadStatistics();
+          
+          this.notificationService.addNotification({
+            type: 'success',
+            title: 'Bulk Delete Completed',
+            message: `Successfully deleted ${roomsToDelete} rooms`
+          });
         },
         error: (error) => {
           console.error('Failed to bulk delete rooms:', error);
+          this.notificationService.addNotification({
+            type: 'error',
+            title: 'Bulk Delete Failed',
+            message: `Failed to delete ${roomsToDelete} rooms`
+          });
+          
           // Fallback to local deletion for development
           this.rooms = this.rooms.filter(r => !this.selectedRooms.includes(r.id));
           this.selectedRooms = [];
@@ -568,13 +674,22 @@ export class RoomsListComponent implements OnInit, OnDestroy {
 
   // Export Operations
   exportRooms(): void {
+    if (this.filteredRooms.length === 0) {
+      this.notificationService.addNotification({
+        type: 'warning',
+        title: 'No Data to Export',
+        message: 'There are no rooms to export with the current filters'
+      });
+      return;
+    }
+
     const exportData = this.filteredRooms.map(room => ({
       'Room Number': room.roomNumber,
       'Type': this.getRoomTypeLabel(room.roomType),
       'Status': this.getStatusLabel(room.status),
       'Floor': room.floorNumber,
       'Building': room.building,
-      'Max Occupancy': room.maxOccupancy,
+      'Max Occupancy': room.capacity,
       'Price/Night': room.pricePerNight,
       'Description': room.description,
       'Amenities': room.amenities.join(', '),
@@ -588,6 +703,12 @@ export class RoomsListComponent implements OnInit, OnDestroy {
     }));
 
     this.downloadCSV(exportData, 'rooms-export');
+    
+    this.notificationService.addNotification({
+      type: 'success',
+      title: 'Export Completed',
+      message: `Successfully exported ${exportData.length} rooms to CSV`
+    });
   }
 
   private downloadCSV(data: any[], filename: string): void {
@@ -622,105 +743,9 @@ export class RoomsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Quick Actions
-  checkInRoom(roomId: number): void {
-    this.changeRoomStatus(roomId, 'OCCUPIED');
-  }
-
-  checkOutRoom(roomId: number): void {
-    this.changeRoomStatus(roomId, 'CLEANING');
-  }
-
-  markForMaintenance(roomId: number): void {
-    this.changeRoomStatus(roomId, 'MAINTENANCE');
-  }
-
-  markAsAvailable(roomId: number): void {
-    this.changeRoomStatus(roomId, 'AVAILABLE');
-  }
-
-  // Advanced Features
-  scheduleCleanup(roomId: number): void {
-    // This would typically open a modal or navigate to a scheduling component
-    console.log('Schedule cleanup for room:', roomId);
-    this.router.navigate(['/rooms', roomId, 'schedule-cleanup']);
-  }
-
-  scheduleMaintenance(roomId: number): void {
-    // This would typically open a modal or navigate to a scheduling component
-    console.log('Schedule maintenance for room:', roomId);
-    this.router.navigate(['/rooms', roomId, 'schedule-maintenance']);
-  }
-
-  viewRoomHistory(roomId: number): void {
-    this.router.navigate(['/rooms', roomId, 'history']);
-  }
-
-  manageAmenities(roomId: number): void {
-    this.router.navigate(['/rooms', roomId, 'amenities']);
-  }
-
-  // Room Availability
-  checkAvailability(roomId: number): void {
-    const checkIn = new Date();
-    const checkOut = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
-    
-    this.roomService.checkAvailability(roomId, checkIn, checkOut).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (availability) => {
-        console.log('Room availability:', availability);
-        // Handle availability result
-      },
-      error: (error) => {
-        console.error('Failed to check availability:', error);
-      }
-    });
-  }
-
-  // Maintenance Management
-  viewMaintenanceHistory(roomId: number): void {
-    this.roomService.getRoomMaintenance(roomId).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (maintenance) => {
-        console.log('Maintenance history:', maintenance);
-        // Navigate to maintenance history component
-        this.router.navigate(['/rooms', roomId, 'maintenance']);
-      },
-      error: (error) => {
-        console.error('Failed to load maintenance history:', error);
-      }
-    });
-  }
-
-  // Reporting
-  generateReport(): void {
-    const reportData = {
-      timestamp: new Date().toISOString(),
-      totalRooms: this.rooms.length,
-      filteredRooms: this.filteredRooms.length,
-      statistics: this.statistics,
-      filters: this.buildFilters(),
-      rooms: this.filteredRooms
-    };
-
-    console.log('Generated report:', reportData);
-    // This could be extended to generate PDF or detailed Excel reports
-  }
-
   // Refresh
   refreshData(): void {
     this.loadRooms();
     this.loadStatistics();
-  }
-
-  // Auto-refresh setup (if needed)
-  setupAutoRefresh(intervalMinutes: number = 5): void {
-    setInterval(() => {
-      if (!this.loading) {
-        this.refreshData();
-      }
-    }, intervalMinutes * 60 * 1000);
   }
 }

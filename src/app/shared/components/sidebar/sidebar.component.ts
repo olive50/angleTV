@@ -76,12 +76,36 @@ export class SidebarComponent implements OnInit {
       icon: 'fas fa-box',
       route: '/packages',
     },
+   
+
     {
       id: 'languages',
       title: 'Languages',
       icon: 'fas fa-language',
-      route: '/languages',
+      children: [
+        {
+          id: 'languages-list',
+          title: 'Language List',
+          icon: 'fas fa-list',
+          route: '/languages',
+        },
+        {
+          id: 'translations',
+          title: 'Translation',
+          icon: 'fas fa-language',
+          route: '/languages/translations',
+        },
+       
+      ],
     },
+
+    {
+      id: 'Electronic Program guide',
+      title: 'EPG',
+      icon: 'fas fa-language',
+      route: '/epgs',
+    },
+
     {
       id: 'reports',
       title: 'Reports',

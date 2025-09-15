@@ -14,6 +14,9 @@ export const environment = {
     userKey: 'current_user',
     refreshTokenKey: 'refresh_token',
   },
+  // Add the backup API URL here
+  backupApiUrl: 'http://localhost:8081/api', // Example backup API URL
+  
   // Nouvelles configurations pour les vraies données
   api: {
     timeout: 30000,

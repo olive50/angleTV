@@ -76,7 +76,20 @@ export class RoomService {
       if (filters.maxOccupancy) params = params.set('maxOccupancy', filters.maxOccupancy.toString());
     }
 
-    return this.http.get<Room[]>(this.apiUrl, { params }).pipe(
+    return this.http.get<any>(this.apiUrl, { params }).pipe(
+      map(response => {
+        // Gérer les différents formats de réponse
+        if (Array.isArray(response)) {
+          return response;
+        } else if (response && response.content && Array.isArray(response.content)) {
+          return response.content;
+        } else if (response && response.data && Array.isArray(response.data)) {
+          return response.data;
+        } else {
+          console.warn('Unexpected response format:', response);
+          return [];
+        }
+      }),
       tap(rooms => {
         this.roomsSubject.next(rooms);
         this.roomsCache.set(cacheKey, { data: rooms, timestamp: Date.now() });
@@ -91,7 +104,7 @@ export class RoomService {
    */
   getRoomsPaged(
     page = 0,
-    size = 20,
+    size = 5,
     sortBy = 'roomNumber',
     sortDir = 'asc',
     filters?: RoomFilters
@@ -204,7 +217,7 @@ export class RoomService {
           maintenance: 0,
           outOfOrder: 0,
           cleaning: 0,
-          occupancyRate: 0,
+          occupancy: 0,
           averagePricePerNight: 0,
           revenueToday: 0,
           revenueThisMonth: 0,

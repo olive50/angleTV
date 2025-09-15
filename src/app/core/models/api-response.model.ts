@@ -27,4 +27,14 @@ export interface ApiResponse<T> {
     message?: string;
     timestamp: string;
   }
+  // Ajoutez cette interface dans votre fichier de modèles ou dans le service
+interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+  first: boolean;
+  last: boolean;
+}
   

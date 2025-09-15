@@ -4,16 +4,9 @@ import { RouterModule, Routes } from '@angular/router';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 import { RoomsListComponent } from './components/rooms-list/rooms-list.component';
-
 import { RoomDetailComponent } from './components/room-detail/room-detail.component';
 import { RoomFormComponent } from './room-form/room-form.component';
-
-// const routes: Routes = [
-//   { path: '', component: RoomsListComponent },
-//   { path: 'add', component: RoomFormComponent },
-//   { path: ':id', component: RoomDetailComponent },
-//   { path: ':id/edit', component: RoomFormComponent },
-// ];
+import { RoomStatusComponent } from './components/room-status/room-status.component';
 
 const routes: Routes = [
   {
@@ -22,6 +15,14 @@ const routes: Routes = [
     data: {
       title: 'Rooms',
       breadcrumb: 'Rooms',
+    },
+  },
+  {
+    path: 'status-management',
+    component: RoomStatusComponent,
+    data: {
+      title: 'Room Status Management',
+      breadcrumb: 'Status Management',
     },
   },
   {
@@ -52,9 +53,14 @@ const routes: Routes = [
   { path: '**', redirectTo: '', pathMatch: 'full' },
 ];
 
-
 @NgModule({
-  declarations: [RoomsListComponent, RoomFormComponent, RoomDetailComponent],
+  declarations: [
+    RoomsListComponent, 
+    RoomFormComponent, 
+    RoomDetailComponent,
+    RoomStatusComponent,
+    RoomStatusComponent  // Ajoutez le nouveau composant ici
+  ],
   imports: [
     CommonModule,
     ReactiveFormsModule,

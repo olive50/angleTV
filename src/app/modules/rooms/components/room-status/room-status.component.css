@@ -1,0 +1,566 @@
+/* Room Status Management Styles */
+.status-management-page {
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+  }
+  
+  /* Page Header */
+  .page-header {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .page-header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+  }
+  
+  .page-subtitle {
+    color: #6c757d;
+    margin: 0.25rem 0 0 0;
+    font-size: 1rem;
+  }
+  
+  /* Statistics Cards */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+  
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.25rem;
+    margin-right: 1rem;
+  }
+  
+  .stat-icon.bg-primary { background-color: #007bff; }
+  .stat-icon.bg-success { background-color: #28a745; }
+  .stat-icon.bg-warning { background-color: #ffc107; }
+  .stat-icon.bg-info { background-color: #17a2b8; }
+  .stat-icon.bg-danger { background-color: #dc3545; }
+  .stat-icon.bg-secondary { background-color: #6c757d; }
+  
+  .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2c3e50;
+    line-height: 1;
+  }
+  
+  .stat-label {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+  }
+  
+  /* Filters Section */
+  .filters-section {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Quick Actions Panel */
+  .quick-actions-panel {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  }
+  
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+  }
+  
+  .panel-header h5 {
+    color: white;
+    margin: 0;
+  }
+  
+  .selection-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .selection-actions .btn {
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+  }
+  
+  .selection-actions .btn:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.5);
+  }
+  
+  /* Status Actions Grid */
+  .status-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  
+  .status-action-card {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #2c3e50;
+  }
+  
+  .status-action-card:hover {
+    background: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  }
+  
+  .action-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+  
+  .action-content {
+    flex: 1;
+  }
+  
+  .action-title {
+    font-weight: 600;
+    margin: 0 0 0.25rem 0;
+    font-size: 0.95rem;
+  }
+  
+  .action-description {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin: 0;
+    line-height: 1.3;
+  }
+  
+  .action-indicator {
+    margin-left: 0.5rem;
+  }
+  
+  /* Loading State */
+  .loading-state {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem;
+    text-align: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Rooms List */
+  .rooms-list {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+  
+  .list-header {
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .list-header h5 {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 600;
+  }
+  
+  /* Empty State */
+  .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+  }
+  
+  .empty-state-icon {
+    font-size: 3rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
+  }
+  
+  /* Rooms Grid */
+  .rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+  }
+  
+  .room-status-card {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    background: white;
+  }
+  
+  .room-status-card:hover {
+    border-color: #007bff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.1);
+  }
+  
+  .room-status-card.selected {
+    border-color: #007bff;
+    background: #f8f9ff;
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.15);
+  }
+  
+  .card-header {
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .room-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .room-info .form-check {
+    margin: 0;
+  }
+  
+  .room-info .form-check-label {
+    margin: 0;
+    font-size: 1.1rem;
+    cursor: pointer;
+  }
+  
+  .room-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .card-body {
+    padding: 1.5rem;
+  }
+  
+  .room-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .detail-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    color: #6c757d;
+  }
+  
+  .detail-item i {
+    width: 16px;
+    color: #495057;
+  }
+  
+  .current-guest {
+    background: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-top: 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .card-footer {
+    padding: 1rem 1.5rem;
+    background: #f8f9fa;
+    border-top: 1px solid #e9ecef;
+  }
+  
+  .status-change-actions {
+    width: 100%;
+  }
+  
+  /* Badges */
+  .badge {
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+  }
+  
+  .badge-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .badge-warning {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+  }
+  
+  .badge-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+  }
+  
+  .badge-info {
+    background-color: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+  }
+  
+  .badge-secondary {
+    background-color: #e2e3e5;
+    color: #383d41;
+    border: 1px solid #d6d8db;
+  }
+  
+  .badge-primary {
+    background-color: #cce7ff;
+    color: #004085;
+    border: 1px solid #b3d7ff;
+  }
+  
+  /* Dropdown Improvements */
+  .dropdown-menu {
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    padding: 0.5rem 0;
+  }
+  
+  .dropdown-item {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .dropdown-item.disabled {
+    color: #6c757d;
+    cursor: not-allowed;
+    background-color: #f8f9fa;
+  }
+  
+  .dropdown-item i {
+    width: 20px;
+  }
+  
+  /* Form Controls */
+  .form-control, .form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .form-control:focus, .form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  
+  .form-check-input {
+    border-radius: 4px;
+  }
+  
+  .form-check-input:checked {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  /* Buttons */
+  .btn {
+    border-radius: 8px;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    transition: all 0.2s ease;
+  }
+  
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+  
+  .btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+  }
+  
+  .btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+  }
+  
+  .btn-outline-primary {
+    color: #007bff;
+    border-color: #007bff;
+  }
+  
+  .btn-outline-primary:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+  }
+  
+  .btn-outline-secondary {
+    color: #6c757d;
+    border-color: #6c757d;
+  }
+  
+  .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+  }
+  
+  /* Responsive Design */
+  @media (max-width: 768px) {
+    .status-management-page {
+      padding: 1rem;
+    }
+    
+    .page-header-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .stats-row {
+      grid-template-columns: 1fr;
+    }
+    
+    .status-actions-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .rooms-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .room-details {
+      grid-template-columns: 1fr;
+    }
+    
+    .panel-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .selection-actions {
+      width: 100%;
+      justify-content: stretch;
+    }
+    
+    .selection-actions .btn {
+      flex: 1;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+    }
+    
+    .room-info {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+  
+  /* Animation */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  .room-status-card, .stat-card, .status-action-card {
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  /* Custom Scrollbar */
+  .rooms-list::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .rooms-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  .rooms-list::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+  }
+  
+  .rooms-list::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+  }

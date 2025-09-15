@@ -9,13 +9,17 @@
           isEditMode ? "Update room information" : "Add a new room to the hotel"
         }}
       </p>
+      <div class="form-status" *ngIf="roomForm.dirty">
+        <span class="draft-indicator">Draft saved automatically</span>
+      </div>
     </div>
   </div>
 
-  <div class="form-container">
+  <div class="form-container" *ngIf="!loading; else loadingTemplate">
     <form [formGroup]="roomForm" (ngSubmit)="onSubmit()" class="room-form">
+      <!-- Basic Room Information -->
       <div class="form-section">
-        <h3>Room Details</h3>
+        <h3>Basic Information</h3>
 
         <div class="form-row">
           <div class="form-group">
@@ -25,8 +29,12 @@
               id="roomNumber"
               formControlName="roomNumber"
               class="form-control"
+              [class.error]="hasFieldError('roomNumber')"
               placeholder="e.g., 101"
             />
+            <div class="error-message" *ngIf="hasFieldError('roomNumber')">
+              {{ getFieldError('roomNumber') }}
+            </div>
           </div>
 
           <div class="form-group">
@@ -35,35 +43,51 @@
               id="roomType"
               formControlName="roomType"
               class="form-control"
+              [class.error]="hasFieldError('roomType')"
             >
               <option *ngFor="let type of roomTypes" [value]="type.value">
                 {{ type.label }}
               </option>
             </select>
+            <div class="error-message" *ngIf="hasFieldError('roomType')">
+              {{ getFieldError('roomType') }}
+            </div>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label for="floorNumber">Floor Number *</label>
-            <input
-              type="number"
+            <select
               id="floorNumber"
               formControlName="floorNumber"
               class="form-control"
-              min="1"
-            />
+              [class.error]="hasFieldError('floorNumber')"
+            >
+              <option *ngFor="let floor of floors" [value]="floor">
+                Floor {{ floor }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="hasFieldError('floorNumber')">
+              {{ getFieldError('floorNumber') }}
+            </div>
           </div>
 
           <div class="form-group">
             <label for="building">Building *</label>
-            <input
-              type="text"
+            <select
               id="building"
               formControlName="building"
               class="form-control"
-              placeholder="e.g., Main Building"
-            />
+              [class.error]="hasFieldError('building')"
+            >
+              <option *ngFor="let building of buildings" [value]="building">
+                {{ building }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="hasFieldError('building')">
+              {{ getFieldError('building') }}
+            </div>
           </div>
         </div>
 
@@ -75,21 +99,33 @@
               id="maxOccupancy"
               formControlName="maxOccupancy"
               class="form-control"
+              [class.error]="hasFieldError('maxOccupancy')"
               min="1"
+              max="10"
             />
+            <div class="error-message" *ngIf="hasFieldError('maxOccupancy')">
+              {{ getFieldError('maxOccupancy') }}
+            </div>
           </div>
 
           <div class="form-group">
             <label for="pricePerNight">Price Per Night *</label>
-            <input
-              type="number"
-              id="pricePerNight"
-              formControlName="pricePerNight"
-              class="form-control"
-              step="0.01"
-              min="0"
-              placeholder="0.00"
-            />
+            <div class="input-group">
+              <span class="input-group-text">$</span>
+              <input
+                type="number"
+                id="pricePerNight"
+                formControlName="pricePerNight"
+                class="form-control"
+                [class.error]="hasFieldError('pricePerNight')"
+                step="0.01"
+                min="0"
+                placeholder="0.00"
+              />
+            </div>
+            <div class="error-message" *ngIf="hasFieldError('pricePerNight')">
+              {{ getFieldError('pricePerNight') }}
+            </div>
           </div>
         </div>
 
@@ -99,9 +135,121 @@
             id="description"
             formControlName="description"
             class="form-control"
+            [class.error]="hasFieldError('description')"
             rows="3"
             placeholder="Room description..."
+            maxlength="500"
           ></textarea>
+          <div class="char-count">
+            {{ roomForm.get('description')?.value?.length || 0 }}/500 characters
+          </div>
+          <div class="error-message" *ngIf="hasFieldError('description')">
+            {{ getFieldError('description') }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Room Features -->
+      <div class="form-section">
+        <h3>Room Features</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="bedType">Bed Type</label>
+            <select
+              id="bedType"
+              formControlName="bedType"
+              class="form-control"
+            >
+              <option *ngFor="let bed of bedTypes" [value]="bed.value">
+                {{ bed.label }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="viewType">View Type</label>
+            <select
+              id="viewType"
+              formControlName="viewType"
+              class="form-control"
+            >
+              <option *ngFor="let view of viewTypes" [value]="view.value">
+                {{ view.label }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                formControlName="hasBalcony"
+                class="form-check-input"
+              />
+              <span class="checkmark"></span>
+              Has Balcony
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                formControlName="hasKitchen"
+                class="form-check-input"
+              />
+              <span class="checkmark"></span>
+              Has Kitchen
+            </label>
+          </div>
+
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                formControlName="accessibility"
+                class="form-check-input"
+              />
+              <span class="checkmark"></span>
+              Wheelchair Accessible
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Amenities -->
+      <div class="form-section">
+        <h3>Amenities</h3>
+        <div class="amenities-grid">
+          <div 
+            *ngFor="let amenity of commonAmenities" 
+            class="amenity-item"
+            (click)="toggleAmenity(amenity)"
+            [class.selected]="isAmenitySelected(amenity)"
+          >
+            <input
+              type="checkbox"
+              [checked]="isAmenitySelected(amenity)"
+              class="amenity-checkbox"
+              readonly
+            />
+            <span class="amenity-label">{{ amenity }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Room Images (Placeholder) -->
+      <div class="form-section">
+        <h3>Room Images</h3>
+        <div class="image-upload-area">
+          <div class="upload-placeholder" (click)="onImageUpload($event)">
+            <i class="upload-icon">📷</i>
+            <p>Click to upload room images</p>
+            <small>Feature coming soon</small>
+          </div>
         </div>
       </div>
 
@@ -115,10 +263,20 @@
           Cancel
         </button>
         <button
+          type="button"
+          class="btn btn-outline-primary"
+          (click)="saveDraft()"
+          [disabled]="submitting || roomForm.invalid"
+          *ngIf="!isEditMode"
+        >
+          Save as Draft
+        </button>
+        <button
           type="submit"
           class="btn btn-primary"
           [disabled]="roomForm.invalid || submitting"
         >
+          <span *ngIf="submitting" class="spinner"></span>
           {{
             submitting
               ? "Saving..."
@@ -130,4 +288,12 @@
       </div>
     </form>
   </div>
+
+  <!-- Loading Template -->
+  <ng-template #loadingTemplate>
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <p>Loading room data...</p>
+    </div>
+  </ng-template>
 </div>
