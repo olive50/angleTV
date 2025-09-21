@@ -133,7 +133,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     console.log('Error error.message:', error.error?.message);
     console.log('Type of error.error:', typeof error.error);
     console.log('========================');
-    
+
     // Do NOT count attempts or block when server is offline
     if (error instanceof HttpErrorResponse && error.status === 0) {
       this.error = 'Server is offline. Please check if the backend is running.';
@@ -141,7 +141,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     }
 
     this.loginAttempts++;
-    
+
     // Handle HTTP error responses properly
     if (error instanceof HttpErrorResponse) {
       switch (error.status) {
@@ -161,7 +161,9 @@ export class LoginComponent implements OnInit, OnDestroy {
           } else if (error.error && error.error.validationErrors) {
             // Handle validation errors from your GlobalExceptionHandler
             const validationErrors = error.error.validationErrors;
-            const errorMessages = validationErrors.map((err: any) => err.message);
+            const errorMessages = validationErrors.map(
+              (err: any) => err.message
+            );
             this.error = errorMessages.join(', ');
           } else {
             this.error = 'Please check your input and try again.';
@@ -174,20 +176,24 @@ export class LoginComponent implements OnInit, OnDestroy {
 
         case 500:
           // Map credential-like 500s to friendly message
-          const backendMessage = String(error?.error?.message || '').toLowerCase();
-          const looksLikeBadCreds = backendMessage.includes('bad credential') ||
-                                    backendMessage.includes('invalid credential') ||
-                                    backendMessage.includes('invalid username') ||
-                                    backendMessage.includes('invalid password') ||
-                                    backendMessage.includes('user not found') ||
-                                    backendMessage.includes('authentication failed') ||
-                                    backendMessage.includes('unauthorized');
+          const backendMessage = String(
+            error?.error?.message || ''
+          ).toLowerCase();
+          const looksLikeBadCreds =
+            backendMessage.includes('bad credential') ||
+            backendMessage.includes('invalid credential') ||
+            backendMessage.includes('invalid username') ||
+            backendMessage.includes('invalid password') ||
+            backendMessage.includes('user not found') ||
+            backendMessage.includes('authentication failed') ||
+            backendMessage.includes('unauthorized');
           if (looksLikeBadCreds) {
             this.error = 'Invalid username or password';
           } else if (error.error && error.error.message) {
             this.error = error.error.message;
           } else {
-            this.error = 'Server error. Please try again later or contact support.';
+            this.error =
+              'Server error. Please try again later or contact support.';
           }
           break;
 
@@ -198,7 +204,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       // Fallback for any other error types
       this.error = 'Invalid username or password';
     }
-    
+
     console.log('Final error message set to:', this.error);
 
     // Block login attempts after max attempts
@@ -225,7 +231,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     const interval = setInterval(() => {
       this.blockTimeRemaining--;
-      
+
       if (this.blockTimeRemaining > 0) {
         this.error = `Too many failed attempts. Please wait ${this.blockTimeRemaining} seconds before trying again.`;
       } else {
@@ -234,7 +240,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.loginAttempts = 0;
         this.error = null;
         clearInterval(interval);
-        
+
         // Focus on username field after unblocking
         setTimeout(() => {
           const usernameField = document.getElementById('username');
@@ -290,11 +296,13 @@ export class LoginComponent implements OnInit, OnDestroy {
   // Helper method to get error class for styling
   get errorClass(): string {
     if (!this.error) return '';
-    
-    if (this.error.includes('Unable to connect') || 
-        this.error.includes('Connection timeout') || 
-        this.error.includes('Connection failed') ||
-        this.error.includes('Server is temporarily unavailable')) {
+
+    if (
+      this.error.includes('Unable to connect') ||
+      this.error.includes('Connection timeout') ||
+      this.error.includes('Connection failed') ||
+      this.error.includes('Server is temporarily unavailable')
+    ) {
       return 'error-network';
     } else if (this.error.includes('Server error')) {
       return 'error-server';
@@ -316,6 +324,7 @@ export class LoginComponent implements OnInit, OnDestroy {
       manager: { username: 'manager', password: 'admin123' },
       receptionist: { username: 'receptionist', password: 'admin123' },
       technician: { username: 'technician', password: 'admin123' },
+      housekeepeer: { username: 'housekeepeer', password: 'admin123' },
     };
 
     const cred = credentials[role as keyof typeof credentials];

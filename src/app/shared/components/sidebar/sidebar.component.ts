@@ -1,3 +1,5 @@
+// src/app/shared/components/sidebar/sidebar.component.ts
+
 import { Component, Input, OnInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { MenuItem } from '../../../core/models/menu.model';
@@ -28,7 +30,20 @@ export class SidebarComponent implements OnInit {
       id: 'rooms',
       title: 'Rooms',
       icon: 'fas fa-bed',
-      route: '/rooms',
+      children: [
+        {
+          id: 'rooms-list',
+          title: 'Room List',
+          icon: 'fas fa-list',
+          route: '/rooms',
+        },
+        {
+          id: 'rooms-status',
+          title: 'Room Status',
+          icon: 'fas fa-chart-bar',
+          route: '/rooms/status-management',
+        },
+      ],
     },
     {
       id: 'terminals',
@@ -62,7 +77,6 @@ export class SidebarComponent implements OnInit {
         },
       ],
     },
-   
     {
       id: 'reservations',
       title: 'Reservations',
@@ -76,8 +90,6 @@ export class SidebarComponent implements OnInit {
       icon: 'fas fa-box',
       route: '/packages',
     },
-   
-
     {
       id: 'languages',
       title: 'Languages',
@@ -95,17 +107,14 @@ export class SidebarComponent implements OnInit {
           icon: 'fas fa-language',
           route: '/languages/translations',
         },
-       
       ],
     },
-
     {
-      id: 'Electronic Program guide',
+      id: 'epg',
       title: 'EPG',
-      icon: 'fas fa-language',
+      icon: 'fas fa-calendar-week',
       route: '/epgs',
     },
-
     {
       id: 'reports',
       title: 'Reports',
@@ -143,7 +152,6 @@ export class SidebarComponent implements OnInit {
 
   ngOnInit(): void {
     // Set active menu item based on current route
-
     this.router.events
       .pipe(
         filter(
@@ -161,7 +169,7 @@ export class SidebarComponent implements OnInit {
   toggleMenuItem(item: MenuItem): void {
     if (item.children) {
       item.isExpanded = !item.isExpanded;
-      // Collapse other expanded items
+      // Collapse other expanded items (optionnel - commentez si vous voulez plusieurs menus ouverts)
       this.menuItems.forEach((menuItem) => {
         if (menuItem.id !== item.id && menuItem.children) {
           menuItem.isExpanded = false;
@@ -175,15 +183,36 @@ export class SidebarComponent implements OnInit {
   private setActiveMenuItem(url: string): void {
     this.menuItems.forEach((item) => {
       item.isActive = false;
+
       if (item.children) {
+        let hasActiveChild = false;
         item.children.forEach((child) => {
-          child.isActive = child.route === url;
-          if (child.isActive) {
+          // Check exact match and route starts with patterns
+          const isChildActive = !!(
+            child.route === url ||
+            (child.route && url.startsWith(child.route) && url !== '/')
+          );
+          child.isActive = isChildActive;
+
+          if (isChildActive) {
+            hasActiveChild = true;
             item.isExpanded = true;
           }
         });
+
+        // Set parent as active if any child is active
+        item.isActive = hasActiveChild;
+
+        // Collapse submenu if no child is active
+        if (!hasActiveChild) {
+          item.isExpanded = false;
+        }
       } else {
-        item.isActive = item.route === url;
+        // For items without children, check exact match or route starts with
+        item.isActive = !!(
+          item.route === url ||
+          (item.route && url.startsWith(item.route) && url !== '/')
+        );
       }
     });
   }

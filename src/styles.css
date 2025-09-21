@@ -5,6 +5,7 @@
 :root {
   /* Primary Colors - TVBoot Theme */
   /* --primary-color: #2563eb; */
+  /* --primary-color: #c1f09d; grren tvboot*/
   --primary-color: #eb611c;
   --primary-dark: #1d4ed8;
   --primary-light: #3b82f6;
@@ -1494,6 +1495,12 @@ body {
 }
 
 /* Toast & Confirm base utilities */
-.toast-container { pointer-events: none; }
-.toast { pointer-events: auto; }
-.confirm-overlay { backdrop-filter: blur(2px); }
+.toast-container {
+  pointer-events: none;
+}
+.toast {
+  pointer-events: auto;
+}
+.confirm-overlay {
+  backdrop-filter: blur(2px);
+}
