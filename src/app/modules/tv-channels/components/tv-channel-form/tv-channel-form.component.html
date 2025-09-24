@@ -1,19 +1,48 @@
-<!-- UPDATED tv-channel-form.component.html -->
 <div class="channel-form-container">
+  <!-- Duplication Alert Banner -->
+  <div
+    *ngIf="isDuplicateMode"
+    class="alert alert-info mb-4"
+    style="border-left: 4px solid #3b82f6"
+  >
+    <div class="d-flex align-items-center">
+      <i class="fas fa-copy me-3" style="font-size: 1.2em; color: #3b82f6"></i>
+      <div>
+        <strong>Duplicating Channel:</strong>
+        <span
+          >You are creating a copy of an existing channel. Please review and
+          modify the details below before saving.</span
+        >
+      </div>
+    </div>
+  </div>
+
   <div class="page-header">
     <div class="page-header-content">
       <h1 class="page-title">
-        {{ isEditMode ? "Edit Channel" : "Add New Channel" }}
+        <i class="fas {{ pageIcon }} me-2"></i>
+        {{ pageTitle }}
       </h1>
-      <p class="page-subtitle">
-        {{
-          isEditMode
-            ? "Update channel information and settings"
-            : "Configure a new TV channel for your IPTV system"
-        }}
-      </p>
     </div>
+
+    <!-- Add breadcrumb for better navigation -->
     <div class="page-actions">
+      <nav aria-label="breadcrumb" *ngIf="isDuplicateMode || isEditMode">
+        <ul class="breadcrumb mb-0">
+          <li class="breadcrumb-item">
+            <a [routerLink]="['/channels']" class="text-decoration-none">
+              <i class="fas fa-tv me-1"></i>
+              Channels
+            </a>
+          </li>
+          <li class="breadcrumb-item active" aria-current="page">
+            <span *ngIf="isEditMode && !isDuplicateMode">Edit Channel</span>
+            <span *ngIf="isDuplicateMode"> Duplicate Channel</span>
+            <span *ngIf="!isEditMode && !isDuplicateMode"> Add Channel</span>
+          </li>
+        </ul>
+      </nav>
+
       <button
         class="btn btn-secondary"
         (click)="onCancel()"
@@ -29,7 +58,13 @@
   <div *ngIf="loading" class="loading-overlay">
     <div class="loading-spinner">
       <i class="fas fa-spinner fa-spin"></i>
-      <p>Loading channel data...</p>
+      <p>
+        {{
+          isDuplicateMode
+            ? "Loading channel for duplication..."
+            : "Loading channel data..."
+        }}
+      </p>
     </div>
   </div>
 
@@ -40,6 +75,9 @@
         <h3 class="section-title">
           <i class="fas fa-tv"></i>
           Basic Information
+          <small *ngIf="isDuplicateMode" class="text-muted ms-2"
+            >(Modified for new channel)</small
+          >
         </h3>
 
         <div class="form-row">
@@ -51,12 +89,19 @@
               formControlName="channelNumber"
               class="form-control"
               [class.error]="isFieldInvalid('channelNumber')"
+              [class.modified]="isDuplicateMode"
               placeholder="e.g., 101"
               min="1"
               max="9999"
             />
             <div class="input-help">
-              <small>Unique number for this channel (1-9999)</small>
+              <small>
+                {{
+                  isDuplicateMode
+                    ? "Suggested new channel number (please verify)"
+                    : "Unique number for this channel (1-9999)"
+                }}
+              </small>
             </div>
             <div *ngIf="isFieldInvalid('channelNumber')" class="error-message">
               {{ getFieldError("channelNumber") }}
@@ -71,34 +116,22 @@
               formControlName="name"
               class="form-control"
               [class.error]="isFieldInvalid('name')"
+              [class.modified]="isDuplicateMode"
               placeholder="e.g., CNN International"
               maxlength="100"
             />
             <div class="input-help">
-              <small>Display name for the channel (2-100 characters)</small>
+              <small>
+                {{
+                  isDuplicateMode
+                    ? 'Modified name with "(Copy)" suffix'
+                    : "Display name for the channel (2-100 characters)"
+                }}
+              </small>
             </div>
             <div *ngIf="isFieldInvalid('name')" class="error-message">
               {{ getFieldError("name") }}
             </div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="description">Description</label>
-          <textarea
-            id="description"
-            formControlName="description"
-            class="form-control"
-            [class.error]="isFieldInvalid('description')"
-            rows="3"
-            placeholder="Brief description of the channel content..."
-            maxlength="500"
-          ></textarea>
-          <div class="input-help">
-            <small>Optional description (max 500 characters)</small>
-          </div>
-          <div *ngIf="isFieldInvalid('description')" class="error-message">
-            {{ getFieldError("description") }}
           </div>
         </div>
 
@@ -117,7 +150,11 @@
               </option>
             </select>
             <div class="input-help">
-              <small>Channel category for organization</small>
+              <small>{{
+                isDuplicateMode
+                  ? "Inherited from original channel"
+                  : "Channel category for organization"
+              }}</small>
             </div>
             <div *ngIf="isFieldInvalid('categoryId')" class="error-message">
               {{ getFieldError("categoryId") }}
@@ -138,11 +175,38 @@
               </option>
             </select>
             <div class="input-help">
-              <small>Primary language of the channel</small>
+              <small>{{
+                isDuplicateMode
+                  ? "Inherited from original channel"
+                  : "Primary language of the channel"
+              }}</small>
             </div>
             <div *ngIf="isFieldInvalid('languageId')" class="error-message">
               {{ getFieldError("languageId") }}
             </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea
+            id="description"
+            formControlName="description"
+            class="form-control"
+            [class.error]="isFieldInvalid('description')"
+            rows="3"
+            placeholder="Brief description of the channel content..."
+            maxlength="500"
+          ></textarea>
+          <div class="input-help">
+            <small>{{
+              isDuplicateMode
+                ? "Inherited description (you can modify it)"
+                : "Optional description (max 500 characters)"
+            }}</small>
+          </div>
+          <div *ngIf="isFieldInvalid('description')" class="error-message">
+            {{ getFieldError("description") }}
           </div>
         </div>
       </div>
@@ -152,6 +216,9 @@
         <h3 class="section-title">
           <i class="fas fa-network-wired"></i>
           Network Configuration
+          <small *ngIf="isDuplicateMode" class="text-muted ms-2"
+            >(Port automatically incremented)</small
+          >
         </h3>
 
         <div class="form-row">
@@ -168,7 +235,11 @@
               pattern="^((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
             />
             <div class="input-help">
-              <small>Stream server IP address (IPv4 format)</small>
+              <small>{{
+                isDuplicateMode
+                  ? "Inherited IP address (verify if correct)"
+                  : "Stream server IP address (IPv4 format)"
+              }}</small>
             </div>
             <div *ngIf="isFieldInvalid('ip')" class="error-message">
               {{ getFieldError("ip") }}
@@ -184,12 +255,19 @@
               class="form-control"
               [class.error]="isFieldInvalid('port')"
               [class.success]="connectionTestResult?.success"
+              [class.modified]="isDuplicateMode"
               placeholder="8001"
               min="1"
               max="65535"
             />
             <div class="input-help">
-              <small>Stream server port (1-65535)</small>
+              <small>
+                {{
+                  isDuplicateMode
+                    ? "Port incremented by +1 from original"
+                    : "Stream server port (1-65535)"
+                }}
+              </small>
             </div>
             <div *ngIf="isFieldInvalid('port')" class="error-message">
               {{ getFieldError("port") }}
@@ -197,50 +275,40 @@
           </div>
         </div>
 
-        <!-- Connection Test -->
-        <div class="connection-test-section">
-          <div class="connection-test-header">
-            <h4>Connection Test</h4>
-            <button
-              type="button"
-              class="btn btn-secondary btn-sm"
-              (click)="onTestConnection()"
-              [disabled]="
-                testingConnection ||
-                channelForm.get('ip')?.invalid ||
-                channelForm.get('port')?.invalid
-              "
-            >
-              <i
-                class="fas fa-satellite-dish"
-                [class.fa-spin]="testingConnection"
-              ></i>
-              {{ testingConnection ? "Testing..." : "Test Connection" }}
-            </button>
-          </div>
-
-          <div *ngIf="connectionTestResult" class="connection-result">
-            <div
-              class="alert"
-              [class.alert-success]="connectionTestResult.success"
-              [class.alert-error]="!connectionTestResult.success"
-            >
-              <i
-                class="fas"
-                [class.fa-check-circle]="connectionTestResult.success"
-                [class.fa-times-circle]="!connectionTestResult.success"
-              ></i>
-              {{ connectionTestResult.message }}
+        <!-- Stream URL -->
+        <div class="form-row">
+          <div class="form-group">
+            <label for="streamUrl" class="required">Stream URL</label>
+            <input
+              type="text"
+              id="streamUrl"
+              formControlName="streamUrl"
+              class="form-control"
+              [class.error]="isFieldInvalid('streamUrl')"
+              placeholder="udp://@239.1.1.101:1234"
+            />
+            <div class="input-help">
+              <small>{{
+                isDuplicateMode
+                  ? "Inherited stream URL (update if needed)"
+                  : "Complete stream URL or backup stream configuration"
+              }}</small>
+            </div>
+            <div *ngIf="isFieldInvalid('streamUrl')" class="error-message">
+              {{ getFieldError("streamUrl") }}
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Logo and Branding Section - UPDATED -->
+      <!-- Logo and Branding Section -->
       <div class="form-section">
         <h3 class="section-title">
           <i class="fas fa-image"></i>
           Logo and Branding
+          <small *ngIf="isDuplicateMode" class="text-muted ms-2"
+            >(Logo inherited, but you can change it)</small
+          >
         </h3>
 
         <div class="logo-section">
@@ -324,7 +392,11 @@
                 </button>
               </div>
               <div class="input-help">
-                <small>Optional logo image URL (PNG, JPG, SVG supported)</small>
+                <small>{{
+                  isDuplicateMode
+                    ? "Logo URL inherited from original channel"
+                    : "Optional logo image URL (PNG, JPG, SVG supported)"
+                }}</small>
               </div>
               <div *ngIf="isFieldInvalid('logoUrl')" class="error-message">
                 {{ getFieldError("logoUrl") }}
@@ -343,34 +415,61 @@
                 class="logo-image"
                 (error)="onLogoPreviewError()"
               />
-              <div *ngIf="!logoPreviewUrl && !existingLogoUrl" class="preview-placeholder">
+              <div
+                *ngIf="!logoPreviewUrl && !existingLogoUrl"
+                class="preview-placeholder"
+              >
                 <i class="fas fa-image"></i>
                 <span>No logo</span>
               </div>
             </div>
-            <div *ngIf="existingLogoUrl && !logoFile && !logoUrl?.value" class="preview-info">
-              <small><i class="fas fa-info-circle"></i> Current logo from server</small>
+            <div *ngIf="isDuplicateMode && logoPreviewUrl" class="preview-info">
+              <small
+                ><i class="fas fa-info-circle"></i> Logo inherited from original
+                channel</small
+              >
+            </div>
+            <div
+              *ngIf="
+                existingLogoUrl &&
+                !logoFile &&
+                !logoUrl?.value &&
+                !isDuplicateMode
+              "
+              class="preview-info"
+            >
+              <small
+                ><i class="fas fa-info-circle"></i> Current logo from
+                server</small
+              >
             </div>
           </div>
         </div>
       </div>
 
       <!-- Form Actions -->
-      <div class="form-actions">
-        <button
-          type="button"
-          class="btn btn-secondary"
-          (click)="onCancel()"
-          [disabled]="submitting"
-        >
-          <i class="fas fa-times"></i>
-          Cancel
-        </button>
+      <div
+        class="form-actions d-flex justify-content-between align-items-center mt-4 pt-4 border-top"
+      >
+        <div class="form-info text-muted small" *ngIf="isDuplicateMode">
+          <i class="fas fa-info-circle me-1"></i>
+          Creating a new channel based on existing channel data
+        </div>
 
-        <div class="action-group">
+        <div class="action-buttons ms-auto">
           <button
             type="button"
-            class="btn btn-info"
+            class="btn btn-secondary me-3"
+            (click)="onCancel()"
+            [disabled]="submitting"
+          >
+            <i class="fas fa-times me-2"></i>
+            Cancel
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-info me-3"
             (click)="onTestConnection()"
             [disabled]="
               submitting ||
@@ -380,7 +479,7 @@
             "
           >
             <i
-              class="fas fa-satellite-dish"
+              class="fas fa-satellite-dish me-2"
               [class.fa-spin]="testingConnection"
             ></i>
             {{ testingConnection ? "Testing..." : "Test Connection" }}
@@ -388,22 +487,29 @@
 
           <button
             type="submit"
-            class="btn btn-primary"
-            [disabled]="channelForm.invalid || submitting || testingConnection || !!logoFileError"
+            class="btn btn-lg"
+            [class.btn-primary]="!isDuplicateMode"
+            [class.btn-info]="isDuplicateMode"
+            [disabled]="
+              channelForm.invalid ||
+              submitting ||
+              testingConnection ||
+              !!logoFileError
+            "
           >
+            <!-- Loading spinner when submitting -->
+            <i *ngIf="submitting" class="fas fa-spinner fa-spin me-2"></i>
+
+            <!-- Icon based on mode when not submitting -->
             <i
-              class="fas"
-              [class.fa-save]="!submitting"
-              [class.fa-spinner]="submitting"
-              [class.fa-spin]="submitting"
+              *ngIf="!submitting"
+              class="fas me-2"
+              [class.fa-copy]="isDuplicateMode"
+              [class.fa-save]="isEditMode && !isDuplicateMode"
+              [class.fa-plus]="!isEditMode && !isDuplicateMode"
             ></i>
-            {{
-              submitting
-                ? "Saving..."
-                : isEditMode
-                ? "Update Channel"
-                : "Create Channel"
-            }}
+
+            {{ submitButtonText }}
           </button>
         </div>
       </div>
@@ -412,11 +518,16 @@
 
   <!-- Form Summary (for review before submit) -->
   <div class="form-summary" *ngIf="!loading && channelForm.valid">
-    <h4>Channel Summary</h4>
+    <h4>
+      Channel Summary
+      <span *ngIf="isDuplicateMode" class="badge bg-info ms-2">Duplicate</span>
+    </h4>
     <div class="summary-content">
       <div class="summary-row">
         <span class="label">Channel:</span>
-        <span class="value">{{ channelNumber?.value }} - {{ name?.value }}</span>
+        <span class="value"
+          >{{ channelNumber?.value }} - {{ name?.value }}</span
+        >
       </div>
       <div class="summary-row" *ngIf="categoryId?.value">
         <span class="label">Category:</span>
@@ -434,7 +545,7 @@
         <span class="label">Logo:</span>
         <span class="value">
           <i class="fas fa-check text-success"></i>
-          {{ logoFile ? 'File selected' : 'URL provided' }}
+          {{ logoFile ? "File selected" : "URL provided" }}
         </span>
       </div>
       <div class="summary-row" *ngIf="connectionTestResult">

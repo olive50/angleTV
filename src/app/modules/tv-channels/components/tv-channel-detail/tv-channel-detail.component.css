@@ -58,16 +58,6 @@
   justify-content: center;
 }
 
-/* Header Section */
-.page-header {
-  background: var(--white);
-  border-radius: var(--border-radius-lg);
-  padding: 32px;
-  box-shadow: var(--shadow);
-  border: 1px solid var(--gray-200);
-  margin-bottom: 24px;
-}
-
 .channel-title-section {
   display: flex;
   align-items: center;

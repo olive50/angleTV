@@ -136,7 +136,7 @@ export class LoginComponent implements OnInit, OnDestroy {
 
     // Do NOT count attempts or block when server is offline
     if (error instanceof HttpErrorResponse && error.status === 0) {
-      this.error = 'Server is offline. Please check if the backend is running.';
+      this.error = 'Server is offline.';
       return;
     }
 

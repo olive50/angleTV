@@ -25,6 +25,7 @@ export class SidebarComponent implements OnInit {
       title: 'TV Channels',
       icon: 'fas fa-tv',
       route: '/channels',
+      badge: { text: '74', color: 'success' },
     },
     {
       id: 'rooms',
@@ -77,13 +78,7 @@ export class SidebarComponent implements OnInit {
         },
       ],
     },
-    {
-      id: 'reservations',
-      title: 'Reservations',
-      icon: 'fas fa-calendar-alt',
-      route: '/reservations',
-      badge: { text: '5', color: 'warning' },
-    },
+
     {
       id: 'packages',
       title: 'Channel Packages',
@@ -114,6 +109,12 @@ export class SidebarComponent implements OnInit {
       title: 'EPG',
       icon: 'fas fa-calendar-week',
       route: '/epgs',
+    },
+    {
+      id: 'signage',
+      title: 'Signage',
+      icon: 'fas fa-tv-alt',
+      route: '/signage',
     },
     {
       id: 'reports',

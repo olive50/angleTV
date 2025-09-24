@@ -88,20 +88,6 @@ const routes: Routes = [
         },
       },
 
-      // Reservations - All authenticated users except technicians
-      {
-        path: 'reservations',
-        loadChildren: () =>
-          import('./modules/reservations/reservations.module').then(
-            (m) => m.ReservationsModule
-          ),
-        canActivate: [RoleGuard],
-        data: {
-          title: 'Reservations',
-          roles: ['ADMIN', 'MANAGER', 'RECEPTIONIST'],
-        },
-      },
-
       // Packages - Admins and Managers only
       {
         path: 'packages',
@@ -127,6 +113,20 @@ const routes: Routes = [
         data: {
           title: 'Languages',
           roles: ['ADMIN', 'MANAGER'],
+        },
+      },
+
+      // Digital signage - All authenticated users except technicians
+      {
+        path: 'signalge',
+        loadChildren: () =>
+          import('./modules/signage/signage.module').then(
+            (m) => m.SignageModule
+          ),
+        canActivate: [RoleGuard],
+        data: {
+          title: 'Signage',
+          roles: ['ADMIN', 'MANAGER', 'RECEPTIONIST'],
         },
       },
 

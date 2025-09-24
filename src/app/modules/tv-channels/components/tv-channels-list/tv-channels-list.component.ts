@@ -96,7 +96,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     private router: Router,
     private route: ActivatedRoute,
     private toast: ToastService,
-    private confirm: ConfirmService,
+    private confirm: ConfirmService
   ) {
     this.setupSearchDebounce();
     this.setupAutoRefresh();
@@ -480,7 +480,8 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
       channelIds.length
     );
 
-    this.confirm.open('Confirm bulk action', confirmMessage, 'Proceed', 'Cancel')
+    this.confirm
+      .open('Confirm bulk action', confirmMessage, 'Proceed', 'Cancel')
       .then((ok) => {
         if (!ok) return;
         switch (operation) {
@@ -539,11 +540,17 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
           this.selectedChannels.clear();
           this.bulkOperationsEnabled = false;
           this.loadChannels();
-          this.toast.success(`Deleted ${channelIds.length} channel${channelIds.length > 1 ? 's' : ''}`);
+          this.toast.success(
+            `Deleted ${channelIds.length} channel${
+              channelIds.length > 1 ? 's' : ''
+            }`
+          );
         },
         error: (error) => {
           console.error('Bulk delete failed:', error);
-          this.toast.error(`Failed to delete channels: ${error.message || 'Unknown error'}`);
+          this.toast.error(
+            `Failed to delete channels: ${error.message || 'Unknown error'}`
+          );
         },
       });
   }
@@ -583,14 +590,21 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
   }
 
   duplicateChannel(channel: TvChannel): void {
-    if (!channel.id) return;
+    if (!channel.id) {
+      this.toast.error('Cannot duplicate channel: Invalid channel data');
+      return;
+    }
 
+    // Navigate to add form with duplication parameters
     this.router.navigate(['/channels/add'], {
       queryParams: {
         duplicate: 'true',
         sourceId: channel.id,
       },
     });
+
+    // Optional: Show a toast message
+    this.toast.info(`Preparing to duplicate "${channel.name}"`);
   }
 
   // Channel Operations
@@ -618,7 +632,9 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Error deleting channel:', error);
-          this.toast.error(`Failed to delete channel: ${error.message || 'Unknown error'}`);
+          this.toast.error(
+            `Failed to delete channel: ${error.message || 'Unknown error'}`
+          );
         },
       });
   }
@@ -636,7 +652,9 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Connection test failed:', error);
-          this.toast.error(`Connection test failed: ${error.message || 'Unknown error'}`);
+          this.toast.error(
+            `Connection test failed: ${error.message || 'Unknown error'}`
+          );
         },
       });
   }
@@ -717,7 +735,9 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
         },
         error: (error) => {
           console.error('Import failed:', error);
-          this.toast.error('Import failed. Please check the file format and try again.');
+          this.toast.error(
+            'Import failed. Please check the file format and try again.'
+          );
         },
       });
 
@@ -737,9 +757,8 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
     const language = this.languages.find((l) => l.id === languageId);
     return language ? `${language.name} ` : '';
   }
-
   getChannelStatus(channel: TvChannel): 'active' | 'inactive' | 'error' {
-    // Implement your status logic here
+    // Updated to use 'active' property instead of 'isActive'
     return channel.isActive !== false ? 'active' : 'inactive';
   }
 

@@ -10,6 +10,7 @@ export interface TvChannel {
   ip: string;
   port: number;
   logoUrl?: string | null;
+  streamUrl?: string | null;
   logoPath?: string | null;
   category?: TvChannelCategory;
   language?: Language;
@@ -49,6 +50,7 @@ export interface TvChannelCreateRequest {
   ip: string;
   port: number;
   logoUrl?: string;
+  streamUrl?: string;
   categoryId: number;
   languageId: number;
   isActive?: boolean;
@@ -72,22 +74,11 @@ export interface TvChannelUpdateRequest {
   description?: string;
   ip?: string;
   port?: number;
+  streamUrl?: string;
   logoUrl?: string;
-  categoryId?: number;
-  languageId?: number;
-  isActive?: boolean;
-  streamType?: StreamType;
-  encodingFormat?: EncodingFormat;
-  bitrate?: number;
-  resolution?: string;
-  aspectRatio?: string;
-  audioCodec?: string;
-  videoCodec?: string;
-  epgUrl?: string;
-  hasEpg?: boolean;
-  isEncrypted?: boolean;
-  requiresAuth?: boolean;
-  allowedCountries?: string[];
+  categoryId?: number; // ✅ Optional - only sent if changed
+  languageId?: number; // ✅ Optional - only sent if changed
+  active?: boolean;
 }
 
 // Enums for additional channel properties

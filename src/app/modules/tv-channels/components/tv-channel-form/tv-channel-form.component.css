@@ -357,7 +357,6 @@
   color: var(--success-color);
 }
 
-<style>
 /* Additional styles for logo upload */
 .logo-upload-tabs {
   display: flex;
@@ -666,4 +665,37 @@
     border: 1px solid #ccc;
     background: transparent;
   }
+}
+
+.alert-info {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: rgba(59, 130, 246, 0.2);
+  color: #1e40af;
+}
+
+.btn-info {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+  color: white;
+}
+
+.btn-info:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.form-control.modified {
+  border-left: 3px solid #3b82f6;
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.form-actions {
+  background-color: #f9fafb;
+  margin: 0 -1.5rem -1.5rem -1.5rem;
+  padding: 1.5rem;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+.badge.bg-info {
+  background-color: #3b82f6 !important;
 }

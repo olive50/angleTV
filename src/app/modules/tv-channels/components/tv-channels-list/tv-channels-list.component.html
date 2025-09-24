@@ -15,11 +15,32 @@
   <div class="page-header">
     <div class="page-header-content">
       <h1 class="page-title">TV Channels Management</h1>
-      <p class="page-subtitle">
-        Manage and configure television channels for your IPTV system
-      </p>
     </div>
     <div class="page-actions">
+      <div class="advanced-filter-row">
+        <div class="filter-group">
+          <label>Import/Export:</label>
+          <input
+            type="file"
+            accept=".csv,.xlsx,.xls"
+            (change)="onImportChannels($event)"
+            class="file-input"
+            id="importFile"
+            style="display: none"
+          />
+          <button
+            class="btn btn-sm btn-secondary"
+            onclick="document.getElementById('importFile').click()"
+          >
+            <i class="fas fa-upload"></i>
+            Import
+          </button>
+          <button class="btn btn-sm btn-secondary" (click)="exportChannels()">
+            <i class="fas fa-download"></i>
+            Export CSV
+          </button>
+        </div>
+      </div>
       <div class="action-group">
         <!-- Auto Refresh Toggle -->
         <button
@@ -108,7 +129,7 @@
           <i class="fas fa-tags"></i>
         </div>
       </div>
-      <div class="stats-card-value">Cat :{{ categories.length }}</div>
+      <div class="stats-card-value">{{ categories.length }}</div>
       <div class="stats-card-trend">
         <span>Channel categories</span>
       </div>
@@ -142,116 +163,61 @@
 
   <!-- Filters Section -->
   <div class="filters-section">
-    <div class="filters-header">
-      <div class="filters-main">
-        <div class="search-group">
-          <div class="search-input-container">
-            <i class="fas fa-search search-icon"></i>
-            <input
-              type="text"
-              [value]="searchTerm"
-              (input)="onSearchChange($any($event.target).value)"
-              placeholder="Search channels by name, number, IP address..."
-              class="search-input"
-            />
-          </div>
-        </div>
-
-        <div class="filter-group">
-          <select
-            [(ngModel)]="selectedCategoryId"
-            (change)="onFilterChange()"
-            class="filter-select"
-          >
-            <option [value]="null">All Categories</option>
-            <option *ngFor="let category of categories" [value]="category.id">
-              {{ category.name }}
-            </option>
-          </select>
-
-          <!-- <select
-            [(ngModel)]="selectedLanguageId"
-            (change)="onFilterChange()"
-            class="filter-select"
-          >
-            <option [value]="null">All Languages</option>
-            <option *ngFor="let language of languages" [value]="language.id">
-              {{ language.name }} ({{ language.iso6392 }})
-            </option>
-          </select> -->
-
-          <select
-          [(ngModel)]="selectedLanguageId"
-          (change)="onFilterChange()"
-          class="filter-select"
-         >
-          <option [value]="null">All Languages</option>
-          @if (languages && languages.length) {
-            @for (language of languages; track language.id) {
-              <option [value]="language.id">
-                {{ language.name }} ({{ language.iso6392 }})
-              </option>
-            }
-          } @else {
-            <option [value]="null" disabled>No languages available</option>
-          }
-        </select>
-
-          <select
-            [(ngModel)]="activeFilter"
-            (change)="onFilterChange()"
-            class="filter-select"
-          >
-            <option [value]="null">All Status</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
-          </select>
-
-          <button class="btn btn-secondary" (click)="clearFilters()">
-            <i class="fas fa-times"></i>
-            Clear
-          </button>
-        </div>
-      </div>
-
-      <div class="filters-actions">
-        <button
-          class="btn btn-secondary btn-sm"
-          (click)="toggleAdvancedFilters()"
-          [class.active]="showAdvancedFilters"
-        >
-          <i class="fas fa-filter"></i>
-          Advanced
-        </button>
+    <div class="search-group">
+      <div class="search-input-container">
+        <i class="fas fa-search search-icon"></i>
+        <input
+          type="text"
+          [value]="searchTerm"
+          (input)="onSearchChange($any($event.target).value)"
+          placeholder="Search channels by name, number, IP address..."
+          class="search-input"
+        />
       </div>
     </div>
 
-    <!-- Advanced Filters -->
-    <div class="advanced-filters" *ngIf="showAdvancedFilters">
-      <div class="advanced-filter-row">
-        <div class="filter-group">
-          <label>Import/Export:</label>
-          <input
-            type="file"
-            accept=".csv,.xlsx,.xls"
-            (change)="onImportChannels($event)"
-            class="file-input"
-            id="importFile"
-            style="display: none"
-          />
-          <button
-            class="btn btn-sm btn-secondary"
-            onclick="document.getElementById('importFile').click()"
-          >
-            <i class="fas fa-upload"></i>
-            Import
-          </button>
-          <button class="btn btn-sm btn-secondary" (click)="exportChannels()">
-            <i class="fas fa-download"></i>
-            Export CSV
-          </button>
-        </div>
-      </div>
+    <div class="filter-group">
+      <select
+        [(ngModel)]="selectedCategoryId"
+        (change)="onFilterChange()"
+        class="filter-select"
+      >
+        <option [value]="null">All Categories</option>
+        <option *ngFor="let category of categories" [value]="category.id">
+          {{ category.name }}
+        </option>
+      </select>
+
+      <select
+        [(ngModel)]="selectedLanguageId"
+        (change)="onFilterChange()"
+        class="filter-select"
+      >
+        <option [value]="null">All Languages</option>
+        @if (languages && languages.length) { @for (language of languages; track
+        language.id) {
+        <option [value]="language.id">
+          {{ language.name }} ({{ language.iso6392 }})
+        </option>
+        } } @else {
+        <option [value]="null" disabled>No languages available</option>
+        }
+      </select>
+
+      <select
+        [(ngModel)]="activeFilter"
+        (change)="onFilterChange()"
+        class="filter-select"
+      >
+        <option [value]="null">All Status</option>
+        <option value="active">Active Only</option>
+        <option value="inactive">Inactive Only</option>
+      </select>
+
+      <button class="btn btn-secondary" (click)="clearFilters()">
+        <i class="fas fa-times"></i>
+        Clear filter
+      </button>
     </div>
   </div>
 
@@ -362,6 +328,7 @@
                 ></i>
               </button>
             </th>
+
             <th>
               <button class="sort-btn" (click)="onSortChange('name')">
                 Name
@@ -429,7 +396,9 @@
                 *ngIf="channel.language"
                 class="status-badge status-secondary"
               >
-                {{ channel.language.name }} ({{ channel.language.iso6391 }})
+                {{ channel.language.name }} ({{
+                  channel.language.nativeName || channel.language.iso6391
+                }})
               </span>
               <span *ngIf="!channel.language" class="text-secondary">
                 No language
@@ -641,7 +610,7 @@
               {{ channel.category.name }}
             </span>
             <span *ngIf="channel.language" class="tag tag-language">
-              {{ channel.language.iso6392 }}
+              {{ channel.language.nativeName || channel.language.iso6391 }}
             </span>
           </div>
 
@@ -815,5 +784,5 @@
   </div>
 </div>
 <div class="log">
-  <pre>{{ languages | json }}</pre>
+  <!-- <pre>{{ languages | json }}</pre> -->
 </div>

@@ -361,8 +361,12 @@ label {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Responsive Design */
@@ -370,37 +374,33 @@ label {
   .room-form-container {
     padding: 10px;
   }
-  
-  .page-header {
-    padding: 1.5rem;
-  }
-  
+
   .page-header-content {
     flex-direction: column;
     gap: 1rem;
   }
-  
+
   .page-title {
     font-size: 2rem;
   }
-  
+
   .form-container {
     padding: 1.5rem;
   }
-  
+
   .form-row {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .amenities-grid {
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
-  
+
   .form-actions {
     flex-direction: column;
   }
-  
+
   .btn {
     justify-content: center;
   }
