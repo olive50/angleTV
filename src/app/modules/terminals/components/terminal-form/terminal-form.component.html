@@ -1,4 +1,5 @@
 <div class="terminal-form-container">
+  <!-- Page Header -->
   <div class="page-header">
     <div class="page-header-content">
       <h1 class="page-title">
@@ -8,166 +9,240 @@
         {{
           isEditMode
             ? "Update terminal information"
-            : "Register a new IPTV terminal"
+            : "Register a new IPTV terminal device"
         }}
       </p>
     </div>
   </div>
 
-  <div class="form-container">
-    <form
-      [formGroup]="terminalForm"
-      (ngSubmit)="onSubmit()"
-      class="terminal-form"
-    >
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-danger alert-dismissible mb-4">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Error:</strong> {{ error }}
+    <button type="button" class="btn-close" (click)="error = null"></button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="loading-content">
+      <i class="fas fa-spinner fa-spin loading-icon"></i>
+      <h3 class="loading-title">Loading terminal...</h3>
+    </div>
+  </div>
+
+  <!-- Form Container -->
+  <div class="form-container" *ngIf="!loading">
+    <form [formGroup]="terminalForm" (ngSubmit)="onSubmit()" novalidate>
+      <!-- Terminal Details Section -->
       <div class="form-section">
-        <h3>Terminal Details</h3>
+        <h3 class="section-title">
+          <i class="fas fa-desktop"></i>
+          Terminal Details
+        </h3>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="terminalId">Terminal ID *</label>
+            <label for="terminalCode" class="form-label">Terminal Code *</label>
             <input
               type="text"
-              id="terminalId"
-              formControlName="terminalId"
+              id="terminalCode"
+              formControlName="terminalCode"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('terminalCode')"
               placeholder="e.g., STB001"
             />
+            <div
+              *ngIf="isFieldInvalid('terminalCode')"
+              class="invalid-feedback"
+            >
+              {{ getFieldError("terminalCode") }}
+            </div>
           </div>
 
           <div class="form-group">
-            <label for="deviceType">Device Type *</label>
+            <label for="deviceType" class="form-label">Device Type *</label>
             <select
               id="deviceType"
               formControlName="deviceType"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('deviceType')"
             >
               <option *ngFor="let type of deviceTypes" [value]="type.value">
                 {{ type.label }}
               </option>
             </select>
+            <div *ngIf="isFieldInvalid('deviceType')" class="invalid-feedback">
+              {{ getFieldError("deviceType") }}
+            </div>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="brand">Brand *</label>
+            <label for="brand" class="form-label">Brand *</label>
             <input
               type="text"
               id="brand"
               formControlName="brand"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('brand')"
               placeholder="e.g., Samsung"
             />
+            <div *ngIf="isFieldInvalid('brand')" class="invalid-feedback">
+              {{ getFieldError("brand") }}
+            </div>
           </div>
 
           <div class="form-group">
-            <label for="model">Model *</label>
+            <label for="model" class="form-label">Model *</label>
             <input
               type="text"
               id="model"
               formControlName="model"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('model')"
               placeholder="e.g., SMT-C7140"
             />
+            <div *ngIf="isFieldInvalid('model')" class="invalid-feedback">
+              {{ getFieldError("model") }}
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- Network Configuration Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-network-wired"></i>
+          Network Configuration
+        </h3>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="macAddress">MAC Address *</label>
+            <label for="macAddress" class="form-label">MAC Address *</label>
             <input
               type="text"
               id="macAddress"
               formControlName="macAddress"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('macAddress')"
               placeholder="00:1A:2B:3C:4D:5E"
               style="font-family: monospace"
             />
-            <div
-              *ngIf="
-                terminalForm.get('macAddress')?.invalid &&
-                terminalForm.get('macAddress')?.touched
-              "
-              class="error-message"
-            >
-              <small
-                >Please enter a valid MAC address (e.g.,
-                00:1A:2B:3C:4D:5E)</small
-              >
+            <div *ngIf="isFieldInvalid('macAddress')" class="invalid-feedback">
+              {{ getFieldError("macAddress") }}
             </div>
+            <small class="form-text text-muted"
+              >Format: XX:XX:XX:XX:XX:XX</small
+            >
           </div>
 
           <div class="form-group">
-            <label for="ipAddress">IP Address *</label>
+            <label for="ipAddress" class="form-label">IP Address *</label>
             <input
               type="text"
               id="ipAddress"
               formControlName="ipAddress"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('ipAddress')"
               placeholder="192.168.1.101"
               style="font-family: monospace"
             />
-            <div
-              *ngIf="
-                terminalForm.get('ipAddress')?.invalid &&
-                terminalForm.get('ipAddress')?.touched
-              "
-              class="error-message"
-            >
-              <small>Please enter a valid IP address</small>
+            <div *ngIf="isFieldInvalid('ipAddress')" class="invalid-feedback">
+              {{ getFieldError("ipAddress") }}
             </div>
+            <small class="form-text text-muted">IPv4 address</small>
           </div>
         </div>
+      </div>
+
+      <!-- Location Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-map-marker-alt"></i>
+          Location & Assignment
+        </h3>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="location">Location *</label>
+            <label for="location" class="form-label">Location *</label>
             <input
               type="text"
               id="location"
               formControlName="location"
               class="form-control"
-              placeholder="e.g., Room 101, Lobby"
+              [class.is-invalid]="isFieldInvalid('location')"
+              placeholder="e.g., Room 101, Lobby, Conference Room A"
             />
+            <div *ngIf="isFieldInvalid('location')" class="invalid-feedback">
+              {{ getFieldError("location") }}
+            </div>
           </div>
 
           <div class="form-group">
-            <label for="roomId">Room (Optional)</label>
+            <label for="roomId" class="form-label">Assigned Room</label>
             <select id="roomId" formControlName="roomId" class="form-control">
-              <option value="">No Room</option>
+              <option value="">No specific room</option>
               <option *ngFor="let room of availableRooms" [value]="room.id">
                 Room {{ room.roomNumber }}
               </option>
             </select>
+            <small class="form-text text-muted"
+              >Optional: Link to specific room</small
+            >
           </div>
         </div>
+      </div>
+
+      <!-- Technical Details Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <i class="fas fa-cog"></i>
+          Technical Details
+        </h3>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="serialNumber">Serial Number</label>
+            <label for="serialNumber" class="form-label">Serial Number</label>
             <input
               type="text"
               id="serialNumber"
               formControlName="serialNumber"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('serialNumber')"
               placeholder="SN001234567"
             />
+            <div
+              *ngIf="isFieldInvalid('serialNumber')"
+              class="invalid-feedback"
+            >
+              {{ getFieldError("serialNumber") }}
+            </div>
           </div>
 
           <div class="form-group">
-            <label for="firmwareVersion">Firmware Version</label>
+            <label for="firmwareVersion" class="form-label"
+              >Firmware Version</label
+            >
             <input
               type="text"
               id="firmwareVersion"
               formControlName="firmwareVersion"
               class="form-control"
+              [class.is-invalid]="isFieldInvalid('firmwareVersion')"
               placeholder="2.1.5"
             />
+            <div
+              *ngIf="isFieldInvalid('firmwareVersion')"
+              class="invalid-feedback"
+            >
+              {{ getFieldError("firmwareVersion") }}
+            </div>
           </div>
         </div>
       </div>
 
+      <!-- Form Actions -->
       <div class="form-actions">
         <button
           type="button"
@@ -175,13 +250,22 @@
           (click)="onCancel()"
           [disabled]="submitting"
         >
+          <i class="fas fa-times"></i>
           Cancel
         </button>
+
         <button
           type="submit"
           class="btn btn-primary"
           [disabled]="terminalForm.invalid || submitting"
         >
+          <i
+            class="fas"
+            [class.fa-spinner]="submitting"
+            [class.fa-spin]="submitting"
+            [class.fa-save]="!submitting && !isEditMode"
+            [class.fa-edit]="!submitting && isEditMode"
+          ></i>
           {{
             submitting
               ? "Saving..."

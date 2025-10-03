@@ -1,10 +1,41 @@
 <div class="guests-page">
+  <!-- Page Header -->
   <div class="page-header">
     <div class="page-header-content">
       <h1 class="page-title">Guest Management</h1>
       <p class="page-subtitle">Manage hotel guests and reservations</p>
+      <div class="page-stats" *ngIf="statistics">
+        <div class="stat-item">
+          <span class="stat-number">{{ statistics.totalGuests }}</span>
+          <span class="stat-label">Total Guests</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">{{ statistics.vipGuests }}</span>
+          <span class="stat-label">VIP Guests</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-number">{{ statistics.recentGuests }}</span>
+          <span class="stat-label">Recent (30 days)</span>
+        </div>
+      </div>
     </div>
     <div class="page-actions">
+      <button class="btn btn-outline" (click)="toggleFilters()">
+        <i class="fas fa-filter"></i>
+        {{ showFilters ? "Hide" : "Show" }} Filters
+      </button>
+      <button class="btn btn-secondary" (click)="refreshGuestList()">
+        <i class="fas fa-sync-alt"></i>
+        Refresh
+      </button>
+      <button
+        class="btn btn-info"
+        (click)="exportGuestList()"
+        *ngIf="hasGuests"
+      >
+        <i class="fas fa-download"></i>
+        Export
+      </button>
       <button class="btn btn-primary btn-lg" (click)="addGuest()">
         <i class="fas fa-plus"></i>
         Add Guest
@@ -13,140 +44,289 @@
   </div>
 
   <!-- Filters Section -->
-  <div class="filters-section">
-    <div class="filters-row">
+  <div class="filters-section" [class.expanded]="showFilters">
+    <div class="filters-container">
+      <!-- Search Bar -->
       <div class="search-group">
         <div class="search-input-container">
           <i class="fas fa-search search-icon"></i>
           <input
             type="text"
-            [(ngModel)]="searchTerm"
-            (input)="onSearch()"
-            placeholder="Search guests..."
+            [formControl]="searchControl"
+            placeholder="Search guests by name, email, ID..."
             class="search-input"
           />
+          <button
+            *ngIf="searchControl.value"
+            class="clear-search-btn"
+            (click)="searchControl.setValue('')"
+          >
+            <i class="fas fa-times"></i>
+          </button>
         </div>
       </div>
 
-      <div class="filter-group">
-        <select
-          [(ngModel)]="statusFilter"
-          (change)="onFilterChange()"
-          class="filter-select"
-        >
-          <option value="">All Status</option>
-          <option *ngFor="let status of statuses" [value]="status.value">
-            {{ status.label }}
-          </option>
-        </select>
+      <!-- Filter Controls -->
+      <div class="filter-row" [class.visible]="showFilters">
+        <div class="filter-group">
+          <label class="filter-label">Nationality</label>
+          <input
+            type="text"
+            [formControl]="nationalityFilter"
+            placeholder="Filter by nationality"
+            class="filter-input"
+          />
+        </div>
 
-        <select
-          [(ngModel)]="vipFilter"
-          (change)="onFilterChange()"
-          class="filter-select"
-        >
-          <option value="">All Guests</option>
-          <option value="true">VIP Only</option>
-          <option value="false">Regular Only</option>
-        </select>
+        <div class="filter-group">
+          <label class="filter-label">Gender</label>
+          <select [formControl]="genderFilter" class="filter-select">
+            <option value="">All Genders</option>
+            <option
+              *ngFor="let gender of filterOptions.genders"
+              [value]="gender.value"
+            >
+              {{ gender.label }}
+            </option>
+          </select>
+        </div>
 
-        <select
-          [(ngModel)]="loyaltyFilter"
-          (change)="onFilterChange()"
-          class="filter-select"
-        >
-          <option value="">All Loyalty Levels</option>
-          <option *ngFor="let level of loyaltyLevels" [value]="level.value">
-            {{ level.label }}
-          </option>
-        </select>
+        <div class="filter-group">
+          <label class="filter-label">VIP Status</label>
+          <select [formControl]="vipFilter" class="filter-select">
+            <option value="">All Guests</option>
+            <option value="true">VIP Only</option>
+            <option value="false">Regular Only</option>
+          </select>
+        </div>
 
-        <button class="btn btn-secondary" (click)="clearFilters()">
-          <i class="fas fa-times"></i>
-          Clear
-        </button>
+        <div class="filter-group">
+          <label class="filter-label">Loyalty Level</label>
+          <select [formControl]="loyaltyFilter" class="filter-select">
+            <option value="">All Levels</option>
+            <option
+              *ngFor="let level of filterOptions.loyaltyLevels"
+              [value]="level.value"
+            >
+              {{ level.label }}
+            </option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Room ID</label>
+          <input
+            type="number"
+            [formControl]="roomFilter"
+            placeholder="Filter by room ID"
+            class="filter-input"
+          />
+        </div>
+
+        <div class="filter-actions">
+          <button class="btn btn-secondary" (click)="clearFilters()">
+            <i class="fas fa-times"></i>
+            Clear All
+          </button>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Bulk Actions -->
+  <div class="bulk-actions" *ngIf="selectedGuests.size > 0">
+    <div class="bulk-info">
+      <span class="selected-count"
+        >{{ selectedGuests.size }} guest(s) selected</span
+      >
+    </div>
+    <div class="bulk-buttons">
+      <button class="btn btn-danger" (click)="bulkDeleteSelected()">
+        <i class="fas fa-trash"></i>
+        Delete Selected
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-container" *ngIf="loading$ | async">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Loading guests...</span>
     </div>
   </div>
 
   <!-- Guests Table -->
   <div class="table-container">
     <div class="table-header">
-      <h3 class="table-title">Guests ({{ filteredGuests.length }})</h3>
+      <div class="table-title-section">
+        <h3 class="table-title">Guests ({{ totalGuests }})</h3>
+        <div class="table-actions">
+          <div class="page-size-selector">
+            <label>Show:</label>
+            <select
+              [value]="pageSize"
+              (change)="onPageSizeChange(+$any($event.target).value)"
+              class="page-size-select"
+            >
+              <option *ngFor="let size of pageSizeOptions" [value]="size">
+                {{ size }}
+              </option>
+            </select>
+            <span>per page</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="table-content">
-      <table class="table" *ngIf="filteredGuests.length > 0">
+      <table class="table" *ngIf="hasGuests">
         <thead>
           <tr>
-            <th>Guest Info</th>
-            <th>Contact</th>
-            <th>Status</th>
+            <th class="checkbox-column">
+              <input
+                type="checkbox"
+                [checked]="
+                  selectedGuests.size === guests.length && guests.length > 0
+                "
+                [indeterminate]="
+                  selectedGuests.size > 0 && selectedGuests.size < guests.length
+                "
+                (change)="selectAllGuests()"
+              />
+            </th>
+            <th class="sortable" (click)="onSort('firstName')">
+              Guest Info
+              <i [class]="getSortIcon('firstName')"></i>
+            </th>
+            <th class="sortable" (click)="onSort('email')">
+              Contact
+              <i [class]="getSortIcon('email')"></i>
+            </th>
+            <th class="sortable" (click)="onSort('nationality')">
+              Details
+              <i [class]="getSortIcon('nationality')"></i>
+            </th>
+            <th class="sortable" (click)="onSort('vipStatus')">
+              Status
+              <i [class]="getSortIcon('vipStatus')"></i>
+            </th>
             <th>Room</th>
-            <th>Loyalty</th>
-            <th>Actions</th>
+            <th class="sortable" (click)="onSort('loyaltyLevel')">
+              Loyalty
+              <i [class]="getSortIcon('loyaltyLevel')"></i>
+            </th>
+            <th class="sortable" (click)="onSort('createdAt')">
+              Created
+              <i [class]="getSortIcon('createdAt')"></i>
+            </th>
+            <th class="actions-column">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let guest of filteredGuests" class="table-row">
+          <tr
+            *ngFor="let guest of guests; trackBy: trackByGuestId"
+            class="table-row"
+            [class.selected]="isGuestSelected(guest.id)"
+          >
+            <td class="checkbox-column">
+              <input
+                type="checkbox"
+                [checked]="isGuestSelected(guest.id)"
+                (change)="toggleGuestSelection(guest.id)"
+              />
+            </td>
             <td>
               <div class="guest-info">
                 <div class="guest-name">
-                  {{ guest.firstName }} {{ guest.lastName }}
+                  {{ getGuestFullName(guest) }}
                 </div>
-                <div class="guest-id">ID: {{ guest.guestId }}</div>
-                <div class="guest-nationality">{{ guest.nationality }}</div>
+                <div class="guest-id">ID: {{ guest.pmsGuestId }}</div>
+                <div class="guest-gender" *ngIf="guest.gender">
+                  <i class="fas fa-user"></i> {{ guest.gender }}
+                </div>
               </div>
             </td>
             <td>
               <div class="contact-info">
-                <div class="email">{{ guest.email }}</div>
-                <div class="phone">{{ guest.phone }}</div>
+                <div class="email" *ngIf="guest.email">
+                  <i class="fas fa-envelope"></i> {{ guest.email }}
+                </div>
+                <div class="phone" *ngIf="guest.phone">
+                  <i class="fas fa-phone"></i> {{ guest.phone }}
+                </div>
               </div>
             </td>
             <td>
-              <span
-                class="status-badge"
-                [ngClass]="'status-' + getStatusClass(guest.reservationStatus)"
-              >
-                {{ guest.reservationStatus.replace("_", " ") }}
-              </span>
-              <div *ngIf="guest.vipStatus" class="vip-indicator">
-                <i class="fas fa-crown" style="color: gold"></i> VIP
+              <div class="guest-details">
+                <div class="nationality" *ngIf="guest.nationality">
+                  <i class="fas fa-flag"></i> {{ guest.nationality }}
+                </div>
+                <div class="birth-date" *ngIf="guest.dateOfBirth">
+                  <i class="fas fa-birthday-cake"></i>
+                  {{ formatDate(guest.dateOfBirth) }}
+                </div>
+                <div class="language" *ngIf="guest.language">
+                  <i class="fas fa-language"></i> {{ guest.language.name }}
+                </div>
               </div>
             </td>
             <td>
-              <div class="room-info" *ngIf="guest.currentRoom">
-                <span class="room-number"
-                  >Room {{ guest.currentRoom.roomNumber }}</span
+              <div class="status-info">
+                <div class="vip-status" *ngIf="guest.vipStatus">
+                  <span class="status-badge vip">
+                    <i class="fas fa-crown"></i> VIP
+                  </span>
+                </div>
+                <button
+                  class="btn btn-sm toggle-vip"
+                  [class.btn-warning]="!guest.vipStatus"
+                  [class.btn-success]="guest.vipStatus"
+                  (click)="toggleVipStatus(guest)"
+                  [title]="guest.vipStatus ? 'Remove VIP status' : 'Make VIP'"
                 >
-                <div class="checkin-info" *ngIf="guest.checkInDate">
-                  <small
-                    >Check-in:
-                    {{ guest.checkInDate | date : "shortDate" }}</small
-                  >
-                </div>
-                <div class="checkout-info" *ngIf="guest.checkOutDate">
-                  <small
-                    >Check-out:
-                    {{ guest.checkOutDate | date : "shortDate" }}</small
-                  >
-                </div>
+                  <i class="fas fa-crown"></i>
+                  {{ guest.vipStatus ? "VIP" : "Regular" }}
+                </button>
               </div>
-              <span *ngIf="!guest.currentRoom" class="no-room"
-                >No room assigned</span
-              >
+            </td>
+            <td>
+              <div class="room-info">
+                <div *ngIf="guest.room; else noRoom">
+                  <span class="room-number"
+                    >Room {{ guest.room.roomNumber }}</span
+                  >
+                  <div class="room-details">
+                    <small
+                      >{{ guest.room.roomType }} - Floor
+                      {{ guest.room.floorNumber }}</small
+                    >
+                  </div>
+                </div>
+                <ng-template #noRoom>
+                  <span class="no-room">No room assigned</span>
+                </ng-template>
+              </div>
             </td>
             <td>
               <span
-                class="status-badge loyalty-{{
-                  guest.loyaltyLevel.toLowerCase()
-                }}"
+                class="status-badge loyalty"
+                [class]="'loyalty-' + getLoyaltyClass(guest.loyaltyLevel)"
               >
                 {{ guest.loyaltyLevel }}
               </span>
             </td>
             <td>
+              <div class="date-info">
+                <div class="created-date">
+                  {{ formatDate(guest.createdAt) }}
+                </div>
+                <div class="created-time">
+                  <small>{{ formatDateTime(guest.createdAt) }}</small>
+                </div>
+              </div>
+            </td>
+            <td class="actions-column">
               <div class="action-buttons">
                 <button
                   class="btn btn-sm btn-secondary action-btn"
@@ -163,20 +343,11 @@
                   <i class="fas fa-edit"></i>
                 </button>
                 <button
-                  *ngIf="guest.reservationStatus === 'CONFIRMED'"
-                  class="btn btn-sm btn-success action-btn"
-                  (click)="checkInGuest(guest.id)"
-                  title="Check In"
+                  class="btn btn-sm btn-danger action-btn"
+                  (click)="deleteGuest(guest)"
+                  title="Delete Guest"
                 >
-                  <i class="fas fa-sign-in-alt"></i>
-                </button>
-                <button
-                  *ngIf="guest.reservationStatus === 'CHECKED_IN'"
-                  class="btn btn-sm btn-warning action-btn"
-                  (click)="checkOutGuest(guest.id)"
-                  title="Check Out"
-                >
-                  <i class="fas fa-sign-out-alt"></i>
+                  <i class="fas fa-trash"></i>
                 </button>
               </div>
             </td>
@@ -184,18 +355,79 @@
         </tbody>
       </table>
 
-      <div *ngIf="filteredGuests.length === 0" class="empty-state">
+      <!-- Empty State -->
+      <div *ngIf="!hasGuests && !(loading$ | async)" class="empty-state">
         <div class="empty-state-content">
           <i class="fas fa-users empty-state-icon"></i>
           <h3 class="empty-state-title">No guests found</h3>
           <p class="empty-state-description">
-            No guests match your current search criteria.
+            {{
+              hasActiveFilters()
+                ? "No guests match your current search criteria."
+                : "No guests have been added yet."
+            }}
           </p>
-          <button class="btn btn-primary" (click)="addGuest()">
-            <i class="fas fa-plus"></i>
-            Add Guest
-          </button>
+          <div class="empty-state-actions">
+            <button class="btn btn-primary" (click)="addGuest()">
+              <i class="fas fa-plus"></i>
+              Add Guest
+            </button>
+            <button
+              *ngIf="hasActiveFilters()"
+              class="btn btn-secondary"
+              (click)="clearFilters()"
+            >
+              <i class="fas fa-times"></i>
+              Clear Filters
+            </button>
+          </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="hasGuests && paginatedResponse">
+      <div class="pagination-info">
+        <span>
+          Showing {{ (currentPageDisplay - 1) * pageSize + 1 }} to
+          {{ Math.min(currentPageDisplay * pageSize, totalGuests) }} of
+          {{ totalGuests }} guests
+        </span>
+      </div>
+
+      <div class="pagination-controls">
+        <button
+          class="btn btn-sm btn-secondary"
+          [disabled]="!hasPreviousPage"
+          (click)="onPageChange(currentPage - 1)"
+        >
+          <i class="fas fa-chevron-left"></i>
+          Previous
+        </button>
+
+        <div class="page-numbers">
+          <ng-container *ngFor="let page of getPaginationPages()">
+            <button
+              *ngIf="page !== '...'"
+              class="btn btn-sm page-btn"
+              [class.btn-primary]="page === currentPageDisplay"
+              [class.btn-secondary]="page !== currentPageDisplay"
+              (click)="onPageChange(+page - 1)"
+            >
+              {{ page }}
+            </button>
+            <span *ngIf="page === '...'" class="pagination-ellipsis">...</span>
+          </ng-container>
+        </div>
+
+        <button
+          class="btn btn-sm btn-secondary"
+          [disabled]="!hasNextPage"
+          (click)="onPageChange(currentPage + 1)"
+        >
+          Next
+          <i class="fas fa-chevron-right"></i>
+        </button>
       </div>
     </div>
   </div>

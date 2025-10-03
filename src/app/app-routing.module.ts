@@ -90,10 +90,10 @@ const routes: Routes = [
 
       // Packages - Admins and Managers only
       {
-        path: 'packages',
+        path: 'company',
         loadChildren: () =>
-          import('./modules/packages/packages.module').then(
-            (m) => m.PackagesModule
+          import('./modules/company/company.module').then(
+            (m) => m.CompanyModule
           ),
         canActivate: [RoleGuard],
         data: {

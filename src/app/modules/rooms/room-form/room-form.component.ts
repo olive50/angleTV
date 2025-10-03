@@ -4,8 +4,14 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ToastService } from '../../../shared/components/toast/toast.service';
-import { RoomService } from '../../../core/services/RoomService ';
-import { Room, RoomType, RoomStatus, BedType, ViewType } from '../../../core/models/room.model';
+import { RoomService } from '../../../core/services/room.service';
+import {
+  Room,
+  RoomType,
+  RoomStatus,
+  BedType,
+  ViewType,
+} from '../../../core/models/room.model';
 
 @Component({
   selector: 'app-room-form',
@@ -14,7 +20,7 @@ import { Room, RoomType, RoomStatus, BedType, ViewType } from '../../../core/mod
 })
 export class RoomFormComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
-  
+
   roomForm: FormGroup;
   isEditMode = false;
   roomId: number | null = null;
@@ -54,13 +60,36 @@ export class RoomFormComponent implements OnInit, OnDestroy {
   ];
 
   floors = Array.from({ length: 20 }, (_, i) => i + 1);
-  buildings = ['Main Building', 'North Wing', 'South Wing', 'East Tower', 'West Tower'];
+  buildings = [
+    'Main Building',
+    'North Wing',
+    'South Wing',
+    'East Tower',
+    'West Tower',
+  ];
 
   commonAmenities = [
-    'Wi-Fi', 'TV', 'Air Conditioning', 'Mini Bar', 'Safe', 'Telephone',
-    'Room Service', 'Laundry Service', 'Iron', 'Hair Dryer', 'Coffee Machine',
-    'Refrigerator', 'Microwave', 'Balcony', 'Kitchen', 'Dining Area',
-    'Living Room', 'Work Desk', 'Sofa', 'Armchair', 'Wardrobe'
+    'Wi-Fi',
+    'TV',
+    'Air Conditioning',
+    'Mini Bar',
+    'Safe',
+    'Telephone',
+    'Room Service',
+    'Laundry Service',
+    'Iron',
+    'Hair Dryer',
+    'Coffee Machine',
+    'Refrigerator',
+    'Microwave',
+    'Balcony',
+    'Kitchen',
+    'Dining Area',
+    'Living Room',
+    'Work Desk',
+    'Sofa',
+    'Armchair',
+    'Wardrobe',
   ];
 
   constructor(
@@ -89,9 +118,15 @@ export class RoomFormComponent implements OnInit, OnDestroy {
     return this.formBuilder.group({
       roomNumber: ['', [Validators.required, Validators.pattern(/^[0-9]+$/)]],
       roomType: [RoomType.STANDARD, [Validators.required]],
-      floorNumber: [1, [Validators.required, Validators.min(1), Validators.max(20)]],
+      floorNumber: [
+        1,
+        [Validators.required, Validators.min(1), Validators.max(20)],
+      ],
       building: ['Main Building', [Validators.required]],
-      maxOccupancy: [2, [Validators.required, Validators.min(1), Validators.max(10)]],
+      maxOccupancy: [
+        2,
+        [Validators.required, Validators.min(1), Validators.max(10)],
+      ],
       pricePerNight: ['', [Validators.required, Validators.min(0)]],
       description: ['', [Validators.maxLength(500)]],
       amenities: [[]],
@@ -103,7 +138,7 @@ export class RoomFormComponent implements OnInit, OnDestroy {
       images: [[]],
       status: [RoomStatus.AVAILABLE],
       lastCleaned: [null],
-      lastMaintenance: [null]
+      lastMaintenance: [null],
     });
   }
 
@@ -118,39 +153,33 @@ export class RoomFormComponent implements OnInit, OnDestroy {
 
   loadRoomForEdit(): void {
     this.loading = true;
-    this.roomService.getRoomById(this.roomId!).pipe(
-      takeUntil(this.destroy$)
-    ).subscribe({
-      next: (room) => {
-        this.roomForm.patchValue({
-          roomNumber: room.roomNumber,
-          roomType: room.roomType,
-          floorNumber: room.floorNumber,
-          building: room.building,
-          maxOccupancy: room.capacity,
-          pricePerNight: room.pricePerNight,
-          description: room.description,
-          amenities: room.amenities || [],
-          hasBalcony: room.hasBalcony || false,
-          hasKitchen: room.hasKitchen || false,
-          accessibility: room.accessibility || false,
-          viewType: room.viewType || ViewType.CITY,
-          bedType: room.bedType || BedType.QUEEN,
-          images: room.images || [],
-          status: room.status,
-          lastCleaned: room.lastCleaned,
-          lastMaintenance: room.lastMaintenance
-        });
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('Failed to load room:', error);
-        this.toastService.error('Failed to load room data', 'Error');
-        this.loading = false;
-        // Fallback to mock data for development
-        this.loadMockRoomData();
-      }
-    });
+    this.roomService
+      .getRoomById(this.roomId!)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (room) => {
+          this.roomForm.patchValue({
+            roomNumber: room.roomNumber,
+            roomType: room.roomType,
+            floorNumber: room.floorNumber,
+            building: room.building,
+            maxOccupancy: room.capacity,
+            pricePerNight: room.pricePerNight,
+            description: room.description,
+
+            images: room.images || [],
+            status: room.status,
+          });
+          this.loading = false;
+        },
+        error: (error) => {
+          console.error('Failed to load room:', error);
+          this.toastService.error('Failed to load room data', 'Error');
+          this.loading = false;
+          // Fallback to mock data for development
+          this.loadMockRoomData();
+        },
+      });
   }
 
   private loadMockRoomData(): void {
@@ -171,7 +200,7 @@ export class RoomFormComponent implements OnInit, OnDestroy {
       images: [],
       status: RoomStatus.AVAILABLE,
       lastCleaned: null,
-      lastMaintenance: null
+      lastMaintenance: null,
     });
   }
 
@@ -181,26 +210,26 @@ export class RoomFormComponent implements OnInit, OnDestroy {
   //   this.submitting = true;
   //   const roomData = this.prepareRoomData();
   //   const action = this.isEditMode ? 'updated' : 'created';
-    
-  //   const operation = this.isEditMode 
+
+  //   const operation = this.isEditMode
   //     ? this.roomService.updateRoom(this.roomId!, roomData)
   //     : this.roomService.createRoom(roomData);
 
   //   operation.pipe(takeUntil(this.destroy$)).subscribe({
   //     next: (room) => {
   //       console.log('Room saved:', room);
-        
+
   //       this.notificationService.addNotification({
   //         type: 'success',
   //         title: `Room ${action.charAt(0).toUpperCase() + action.slice(1)}`,
   //         message: `Room ${roomData.roomNumber} has been successfully ${action}`
   //       });
-        
+
   //       this.toastService.success(
   //         `Room ${roomData.roomNumber} has been successfully ${action}`,
   //         `Room ${action.charAt(0).toUpperCase() + action.slice(1)}`
   //       );
-        
+
   //       this.clearDraft();
   //       this.router.navigate(['/rooms']);
   //     },
@@ -211,74 +240,70 @@ export class RoomFormComponent implements OnInit, OnDestroy {
   //         title: 'Save Failed',
   //         message: `Failed to ${action.slice(0, -1)} room ${roomData.roomNumber}`
   //       });
-        
+
   //       this.toastService.error(
   //         `Failed to ${action.slice(0, -1)} room ${roomData.roomNumber}`,
   //         'Save Failed'
   //       );
-        
+
   //       this.submitting = false;
   //     }
   //   });
   // }
-// ... existing imports and component code
+  // ... existing imports and component code
 
-onSubmit(): void {
-  if (this.roomForm.invalid || this.submitting) return;
+  onSubmit(): void {
+    if (this.roomForm.invalid || this.submitting) return;
 
-  this.submitting = true;
-  const roomData = this.prepareRoomData();
-  const action = this.isEditMode ? 'updated' : 'created';
-  
-  const operation = this.isEditMode 
-    ? this.roomService.updateRoom(this.roomId!, roomData)
-    : this.roomService.createRoom(roomData);
+    this.submitting = true;
+    const roomData = this.prepareRoomData();
+    const action = this.isEditMode ? 'updated' : 'created';
 
-  operation.pipe(takeUntil(this.destroy$)).subscribe({
-    next: (room) => {
-      console.log('Room saved:', room);
-      
-      this.notificationService.addNotification({
-        type: 'success',
-        title: `Room ${action.charAt(0).toUpperCase() + action.slice(1)}`,
-        message: `Room ${roomData.roomNumber} has been successfully ${action}`
-      });
-      
-      this.toastService.success(
-        `Room ${roomData.roomNumber} has been successfully ${action}`,
-        `Room ${action.charAt(0).toUpperCase() + action.slice(1)}`
-      );
-      
-      this.clearDraft();
-      this.router.navigate(['/rooms']);
-    },
-    error: (error) => {
-      console.error('Failed to save room:', error);
+    const operation = this.isEditMode
+      ? this.roomService.updateRoom(this.roomId!, roomData)
+      : this.roomService.createRoom(roomData);
 
-      // Extract the specific error message from the API response
-      let errorMessage = 'Failed to save room. Please try again.';
-      if (error && error.error && error.error.message) {
-        errorMessage = error.error.message;
-      } else if (error && error.message) {
-        errorMessage = error.message;
-      }
-      
-      this.notificationService.addNotification({
-        type: 'error',
-        title: 'Save Failed',
-        message: errorMessage
-      });
-      
-      this.toastService.error(
-        errorMessage,
-        'Save Failed'
-      );
-      
-      this.submitting = false;
-    }
-  });
-}
+    operation.pipe(takeUntil(this.destroy$)).subscribe({
+      next: (room) => {
+        console.log('Room saved:', room);
 
+        this.notificationService.addNotification({
+          type: 'success',
+          title: `Room ${action.charAt(0).toUpperCase() + action.slice(1)}`,
+          message: `Room ${roomData.roomNumber} has been successfully ${action}`,
+        });
+
+        this.toastService.success(
+          `Room ${roomData.roomNumber} has been successfully ${action}`,
+          `Room ${action.charAt(0).toUpperCase() + action.slice(1)}`
+        );
+
+        this.clearDraft();
+        this.router.navigate(['/rooms']);
+      },
+      error: (error) => {
+        console.error('Failed to save room:', error);
+
+        // Extract the specific error message from the API response
+        let errorMessage = 'Failed to save room. Please try again.';
+        if (error && error.error && error.error.message) {
+          errorMessage = error.error.message;
+        } else if (error && error.message) {
+          errorMessage = error.message;
+        }
+
+        this.notificationService.addNotification({
+          type: 'error',
+          title: 'Save Failed',
+          message: errorMessage,
+        });
+
+        this.toastService.error(errorMessage, 'Save Failed');
+
+        this.submitting = false;
+      },
+    });
+  }
 
   private prepareRoomData(): Room {
     const formData = this.roomForm.value;
@@ -292,48 +317,42 @@ onSubmit(): void {
       pricePerNight: parseFloat(formData.pricePerNight),
       status: formData.status,
       description: formData.description,
-      amenities: formData.amenities || [],
-      hasBalcony: formData.hasBalcony || false,
-      hasKitchen: formData.hasKitchen || false,
-      accessibility: formData.accessibility || false,
-      viewType: formData.viewType,
-      bedType: formData.bedType,
+
       images: formData.images || [],
-      lastCleaned: formData.lastCleaned,
-      lastMaintenance: formData.lastMaintenance,
+
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
   }
 
   onCancel(): void {
     if (this.roomForm.dirty) {
-      const confirmCancel = confirm('You have unsaved changes. Are you sure you want to cancel?');
+      const confirmCancel = confirm(
+        'You have unsaved changes. Are you sure you want to cancel?'
+      );
       if (!confirmCancel) {
         return;
       }
-      
+
       this.notificationService.addNotification({
         type: 'info',
         title: 'Form Cancelled',
-        message: 'Room form changes were discarded'
+        message: 'Room form changes were discarded',
       });
-      
+
       this.toastService.info(
         'Room form changes were discarded',
         'Form Cancelled'
       );
     }
-    
+
     this.clearDraft();
     this.router.navigate(['/rooms']);
   }
 
   // Auto-save and Draft functionality
   private setupAutoSave(): void {
-    this.roomForm.valueChanges.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe(() => {
+    this.roomForm.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(() => {
       if (this.roomForm.dirty && !this.submitting) {
         this.saveDraft();
       }
@@ -343,29 +362,38 @@ onSubmit(): void {
   saveDraft(): void {
     const draftKey = this.getDraftKey();
     const formData = this.roomForm.value;
-    localStorage.setItem(draftKey, JSON.stringify({
-      data: formData,
-      timestamp: new Date().toISOString(),
-      isEditMode: this.isEditMode,
-      roomId: this.roomId
-    }));
+    localStorage.setItem(
+      draftKey,
+      JSON.stringify({
+        data: formData,
+        timestamp: new Date().toISOString(),
+        isEditMode: this.isEditMode,
+        roomId: this.roomId,
+      })
+    );
   }
 
   private loadDraftIfExists(): void {
     const draftKey = this.getDraftKey();
     const draft = localStorage.getItem(draftKey);
-    
+
     if (draft && !this.isEditMode) {
       try {
         const draftData = JSON.parse(draft);
-        const draftAge = new Date().getTime() - new Date(draftData.timestamp).getTime();
-        
+        const draftAge =
+          new Date().getTime() - new Date(draftData.timestamp).getTime();
+
         // Only load draft if it's less than 24 hours old
         if (draftAge < 24 * 60 * 60 * 1000) {
-          const confirmLoad = confirm('A draft of this form was found. Would you like to restore it?');
+          const confirmLoad = confirm(
+            'A draft of this form was found. Would you like to restore it?'
+          );
           if (confirmLoad) {
             this.roomForm.patchValue(draftData.data);
-            this.toastService.info('Draft restored successfully', 'Draft Loaded');
+            this.toastService.info(
+              'Draft restored successfully',
+              'Draft Loaded'
+            );
           }
         }
       } catch (error) {
@@ -380,8 +408,8 @@ onSubmit(): void {
   }
 
   private getDraftKey(): string {
-    return this.isEditMode 
-      ? `room-form-draft-edit-${this.roomId}` 
+    return this.isEditMode
+      ? `room-form-draft-edit-${this.roomId}`
       : 'room-form-draft-new';
   }
 
@@ -391,8 +419,10 @@ onSubmit(): void {
     if (field?.errors && field.touched) {
       if (field.errors['required']) return `${fieldName} is required`;
       if (field.errors['pattern']) return `${fieldName} format is invalid`;
-      if (field.errors['min']) return `${fieldName} must be at least ${field.errors['min'].min}`;
-      if (field.errors['max']) return `${fieldName} must be at most ${field.errors['max'].max}`;
+      if (field.errors['min'])
+        return `${fieldName} must be at least ${field.errors['min'].min}`;
+      if (field.errors['max'])
+        return `${fieldName} must be at most ${field.errors['max'].max}`;
       if (field.errors['maxlength']) return `${fieldName} is too long`;
     }
     return '';
@@ -407,13 +437,13 @@ onSubmit(): void {
   toggleAmenity(amenity: string): void {
     const amenities = this.roomForm.get('amenities')?.value || [];
     const index = amenities.indexOf(amenity);
-    
+
     if (index > -1) {
       amenities.splice(index, 1);
     } else {
       amenities.push(amenity);
     }
-    
+
     this.roomForm.get('amenities')?.setValue([...amenities]);
   }
 
@@ -426,7 +456,10 @@ onSubmit(): void {
   onImageUpload(event: any): void {
     // TODO: Implement image upload functionality
     console.log('Image upload not yet implemented');
-    this.toastService.info('Image upload feature coming soon', 'Feature Preview');
+    this.toastService.info(
+      'Image upload feature coming soon',
+      'Feature Preview'
+    );
   }
 
   removeImage(index: number): void {

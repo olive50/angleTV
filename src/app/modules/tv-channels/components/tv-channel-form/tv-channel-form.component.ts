@@ -307,6 +307,11 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
         [Validators.required, Validators.min(1), Validators.max(9999)],
         [this.channelNumberValidator.bind(this)],
       ],
+      sortOrder: [
+        '',
+        [Validators.required, Validators.min(1), Validators.max(9999)],
+        [this.sortOrderValidator.bind(this)],
+      ],
       name: [
         '',
         [
@@ -377,15 +382,11 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
             { id: 1, name: 'News', description: 'News channels' },
             { id: 2, name: 'Sports', description: 'Sports channels' },
             { id: 3, name: 'Documentary', description: 'Documentary channels' },
-            {
-              id: 4,
-              name: 'Entertainment',
-              description: 'Entertainment channels',
-            },
           ])
         )
       ),
-      this.languageService.getAdminLanguages().pipe(
+      this.languageService.getAdminLanguagesSimple().pipe(
+        // ✅ Utilisez la méthode Simple
         catchError(() =>
           of([
             {
@@ -394,80 +395,8 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
               nativeName: 'English',
               iso6391: 'en',
               iso6392: 'eng',
-              localeCode: 'en-US',
-              charset: 'UTF-8',
-              flagUrl: 'https://flags.example.com/us.svg',
-              flagPath: '/assets/flags/us.svg',
-              flagSource: 'https://flags.example.com/us.svg',
-              isRtl: false,
-              isActive: true,
-              isDefault: true,
               isAdminEnabled: true,
               isGuestEnabled: true,
-              displayOrder: 1,
-              fontFamily: 'Arial, sans-serif',
-              currencyCode: 'USD',
-              currencySymbol: '$',
-              dateFormat: 'MM/dd/yyyy',
-              timeFormat: 'hh:mm a',
-              numberFormat: '#,##0.00',
-              decimalSeparator: '.',
-              thousandsSeparator: ',',
-              uiTranslationProgress: 100,
-              channelTranslationProgress: 95,
-              epgTranslationEnabled: true,
-              welcomeMessage: 'Welcome to our hotel entertainment system!',
-              supportedPlatforms: ['WEBOS', 'WEB', 'ANDROID', 'IOS', 'TIZEN'],
-              overallTranslationProgress: 97,
-              isFullyTranslated: false,
-              isReadyForDisplay: true,
-              isAvailableForAdmin: true,
-              isAvailableForGuests: true,
-              createdAt: '2025-09-07T10:59:53',
-              updatedAt: '2025-09-07T10:59:53',
-              createdBy: 'system',
-              lastModifiedBy: 'system',
-            },
-            {
-              id: 2,
-              name: 'French',
-              nativeName: 'Français',
-              iso6391: 'fr',
-              iso6392: 'fra',
-              localeCode: 'fr-FR',
-              charset: 'UTF-8',
-              flagUrl: 'https://flags.example.com/fr.svg',
-              flagPath: '/assets/flags/fr.svg',
-              flagSource: 'https://flags.example.com/fr.svg',
-              isRtl: false,
-              isActive: true,
-              isDefault: false,
-              isAdminEnabled: true,
-              isGuestEnabled: true,
-              displayOrder: 3,
-              fontFamily: 'Arial, sans-serif',
-              currencyCode: 'EUR',
-              currencySymbol: '€',
-              dateFormat: 'dd/MM/yyyy',
-              timeFormat: 'HH:mm',
-              numberFormat: '# ##0,00',
-              decimalSeparator: ',',
-              thousandsSeparator: ' ',
-              uiTranslationProgress: 100,
-              channelTranslationProgress: 88,
-              epgTranslationEnabled: true,
-              welcomeMessage:
-                'Bienvenue dans notre système de divertissement hôtelier!',
-              supportedPlatforms: ['WEBOS', 'WEB', 'ANDROID', 'IOS', 'TIZEN'],
-              overallTranslationProgress: 94,
-              isFullyTranslated: false,
-              isReadyForDisplay: true,
-              isAvailableForAdmin: true,
-              isAvailableForGuests: true,
-              createdAt: '2025-09-07T10:59:53',
-              updatedAt: '2025-09-07T10:59:53',
-              createdBy: 'system',
-              lastModifiedBy: 'system',
             },
           ])
         )
@@ -477,7 +406,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       .subscribe({
         next: ([categories, languages]) => {
           this.categories = categories;
-          this.languages = languages;
+          this.languages = languages; // ✅ Maintenant c'est un tableau direct
           this.loading = false;
         },
         error: (error) => {
@@ -552,6 +481,7 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
       // ✅ CREATE/DUPLICATE MODE: Include all fields
       channelData = {
         channelNumber: parseInt(formValue.channelNumber),
+        sortOrder: parseInt(formValue.sortOrder),
         name: formValue.name.trim(),
         description: formValue.description?.trim() || undefined,
         ip: formValue.ip.trim(),
@@ -848,6 +778,25 @@ export class TvChannelFormComponent implements OnInit, OnDestroy {
   }
 
   private channelNumberValidator(
+    control: AbstractControl
+  ): Observable<{ [key: string]: any } | null> {
+    if (!control.value) {
+      return of(null);
+    }
+
+    const channelNumber = parseInt(control.value);
+    if (isNaN(channelNumber)) {
+      return of({ invalidChannelNumber: true });
+    }
+
+    // Skip validation for current channel in edit mode (but not duplicate mode)
+    if (this.isEditMode && this.channelId && !this.isDuplicateMode) {
+      return of(null);
+    }
+
+    return of(null).pipe(debounceTime(300));
+  }
+  private sortOrderValidator(
     control: AbstractControl
   ): Observable<{ [key: string]: any } | null> {
     if (!control.value) {

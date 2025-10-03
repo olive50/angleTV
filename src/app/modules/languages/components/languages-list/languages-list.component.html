@@ -14,6 +14,13 @@
     </div>
   </div>
 
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-danger">
+    <i class="fas fa-exclamation-circle"></i>
+    {{ error }}
+    <button class="btn-close" (click)="error = null">×</button>
+  </div>
+
   <div class="filters-section">
     <div class="filters-row">
       <div class="search-group">
@@ -34,7 +41,7 @@
           (change)="onFilterChange()"
           class="filter-select"
         >
-          <option value="">All Languages</option>
+          <option [value]="null">All Languages</option>
           <option value="true">Active Only</option>
           <option value="false">Inactive Only</option>
         </select>
@@ -46,9 +53,15 @@
     </div>
   </div>
 
-  <div class="table-container">
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-spinner">
+    <i class="fas fa-spinner fa-spin"></i>
+    Loading languages...
+  </div>
+
+  <div class="table-container" *ngIf="!loading">
     <div class="table-header">
-      <h3 class="table-title">Languages ({{ filteredLanguages.length }})</h3>
+      <h3 class="table-title">Languages ({{ totalElements }})</h3>
     </div>
 
     <div class="table-content">
@@ -56,9 +69,12 @@
         <thead>
           <tr>
             <th>Language</th>
-            <th>Code</th>
-            <th>Channels</th>
-            <th>Status</th>
+            <th>Native Name</th>
+            <th>Code (ISO)</th>
+            <th>Charset</th>
+            <th>Admin</th>
+            <th>Guest</th>
+            <th>RTL</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -66,26 +82,63 @@
           <tr *ngFor="let language of filteredLanguages" class="table-row">
             <td>
               <div class="language-info">
-                <span class="language-flag">{{ language.flag }}</span>
+                <span class="language-flag" *ngIf="language.flagUrl">
+                  <img
+                    [src]="language.flagUrl"
+                    [alt]=""
+                    style="width: 24px; height: 16px; object-fit: cover"
+                  />
+                </span>
                 <span class="language-name">{{ language.name }}</span>
               </div>
             </td>
             <td>
-              <span class="language-code">{{ language.name }}</span>
+              <span>{{ language.nativeName || "-" }}</span>
             </td>
             <td>
-              <span class="channel-count"
-                >{{ language.channelCount }} channels</span
-              >
+              <span class="language-code">
+                {{
+                  language.iso6391?.toUpperCase() ||
+                    language.iso6392?.toUpperCase() ||
+                    "N/A"
+                }}
+              </span>
+            </td>
+            <td>
+              <span class="badge badge-secondary">{{
+                language.charset || "UTF-8"
+              }}</span>
             </td>
             <td>
               <span
                 class="status-badge"
                 [ngClass]="
-                  language.isActive ? 'status-success' : 'status-secondary'
+                  language.isAdminEnabled
+                    ? 'status-success'
+                    : 'status-secondary'
                 "
               >
-                {{ language.isActive ? "Active" : "Inactive" }}
+                {{ language.isAdminEnabled ? "Enabled" : "Disabled" }}
+              </span>
+            </td>
+            <td>
+              <span
+                class="status-badge"
+                [ngClass]="
+                  language.isGuestEnabled
+                    ? 'status-success'
+                    : 'status-secondary'
+                "
+              >
+                {{ language.isGuestEnabled ? "Enabled" : "Disabled" }}
+              </span>
+            </td>
+            <td>
+              <span
+                class="badge"
+                [ngClass]="language.isRtl ? 'badge-warning' : 'badge-secondary'"
+              >
+                {{ language.isRtl ? "Yes" : "No" }}
               </span>
             </td>
             <td>
@@ -110,7 +163,11 @@
         </tbody>
       </table>
 
-      <div *ngIf="filteredLanguages.length === 0" class="empty-state">
+      <!-- Empty State -->
+      <div
+        *ngIf="filteredLanguages.length === 0 && !loading"
+        class="empty-state"
+      >
         <div class="empty-state-content">
           <i class="fas fa-language empty-state-icon"></i>
           <h3 class="empty-state-title">No languages found</h3>
@@ -124,5 +181,45 @@
         </div>
       </div>
     </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="totalPages > 1">
+      <div class="pagination-info">
+        Showing {{ currentPage * pageSize + 1 }} to {{ getMaxDisplayed() }} of
+        {{ totalElements }} languages
+      </div>
+      <div class="pagination-controls">
+        <button
+          class="btn btn-sm btn-secondary"
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+        >
+          <i class="fas fa-chevron-left"></i>
+          Previous
+        </button>
+
+        <div class="pagination-pages">
+          <button
+            *ngFor="let page of [].constructor(totalPages); let i = index"
+            class="btn btn-sm"
+            [ngClass]="i === currentPage ? 'btn-primary' : 'btn-secondary'"
+            (click)="goToPage(i)"
+            [disabled]="i === currentPage"
+          >
+            {{ i + 1 }}
+          </button>
+        </div>
+
+        <button
+          class="btn btn-sm btn-secondary"
+          (click)="nextPage()"
+          [disabled]="currentPage === totalPages - 1"
+        >
+          Next
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    <pre>{{ languages | json }}</pre>
   </div>
 </div>

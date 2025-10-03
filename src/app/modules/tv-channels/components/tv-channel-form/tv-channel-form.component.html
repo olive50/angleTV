@@ -80,7 +80,7 @@
           >
         </h3>
 
-        <div class="form-row">
+        <div class="form-row-tv">
           <div class="form-group">
             <label for="channelNumber" class="required">Channel Number</label>
             <input
@@ -105,6 +105,33 @@
             </div>
             <div *ngIf="isFieldInvalid('channelNumber')" class="error-message">
               {{ getFieldError("channelNumber") }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="sortOrder" class="required">Sort order</label>
+            <input
+              type="number"
+              id="sortOrder"
+              formControlName="sortOrder"
+              class="form-control"
+              [class.error]="isFieldInvalid('sortOrder')"
+              [class.modified]="isDuplicateMode"
+              placeholder="e.g., 101"
+              min="1"
+              max="9999"
+            />
+            <div class="input-help">
+              <small>
+                {{
+                  isDuplicateMode
+                    ? "Suggested new sort order (please verify)"
+                    : "Unique sort order for this channel (1-9999)"
+                }}
+              </small>
+            </div>
+            <div *ngIf="isFieldInvalid('sortOrder')" class="error-message">
+              {{ getFieldError("sortOrder") }}
             </div>
           </div>
 

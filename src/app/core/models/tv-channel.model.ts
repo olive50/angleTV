@@ -5,6 +5,7 @@ import { TvChannelCategory } from './tv-channel-category.model';
 export interface TvChannel {
   id?: number;
   channelNumber: number;
+  sortOrder?: number;
   name: string;
   description?: string;
   ip: string;
@@ -45,11 +46,13 @@ export interface TvChannel {
 
 export interface TvChannelCreateRequest {
   channelNumber: number;
+  sortOrder?: number;
   name: string;
   description?: string;
   ip: string;
   port: number;
   logoUrl?: string;
+
   streamUrl?: string;
   categoryId: number;
   languageId: number;
@@ -70,6 +73,7 @@ export interface TvChannelCreateRequest {
 
 export interface TvChannelUpdateRequest {
   channelNumber?: number;
+  sortOrder?: number;
   name?: string;
   description?: string;
   ip?: string;

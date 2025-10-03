@@ -1,134 +1,62 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
+import {
+  Subject,
+  debounceTime,
+  distinctUntilChanged,
+  takeUntil,
+  finalize,
+} from 'rxjs';
 import { ToastService } from '../../../../shared/components/toast/toast.service';
 import { ConfirmService } from '../../../../shared/components/confirm/confirm.service';
-
-export interface Terminal {
-  id: number;
-  terminalId: string;
-  deviceType:
-    | 'SET_TOP_BOX'
-    | 'SMART_TV'
-    | 'DESKTOP_PC'
-    | 'TABLET'
-    | 'MOBILE'
-    | 'DISPLAY_SCREEN';
-  brand: string;
-  model: string;
-  macAddress: string;
-  ipAddress: string;
-  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'OFFLINE' | 'FAULTY';
-  location: string;
-  room?: { id: number; roomNumber: string };
-  lastSeen: Date;
-  firmwareVersion?: string;
-  serialNumber?: string;
-}
+import {
+  PaginationData,
+  Terminal,
+  TerminalSearchCriteria,
+  TerminalStats,
+  DeviceType,
+  TerminalStatus,
+} from 'src/app/core/models/terminal.model';
+import { TerminalService } from 'src/app/core/services/Terminal.service';
 
 @Component({
   selector: 'app-terminals-list',
   templateUrl: './terminals-list.component.html',
   styleUrls: ['./terminals-list.component.css'],
 })
-export class TerminalsListComponent implements OnInit {
-  terminals: Terminal[] = [
-    {
-      id: 1,
-      terminalId: 'STB001',
-      deviceType: 'SET_TOP_BOX',
-      brand: 'Samsung',
-      model: 'SMT-C7140',
-      macAddress: '00:1A:2B:3C:4D:5E',
-      ipAddress: '192.168.1.101',
-      status: 'ACTIVE',
-      location: 'Room 101',
-      room: { id: 1, roomNumber: '101' },
-      lastSeen: new Date(),
-      firmwareVersion: '2.1.5',
-      serialNumber: 'SN001234567',
-    },
-    {
-      id: 2,
-      terminalId: 'STB002',
-      deviceType: 'SET_TOP_BOX',
-      brand: 'LG',
-      model: 'ST600S',
-      macAddress: '00:1A:2B:3C:4D:5F',
-      ipAddress: '192.168.1.102',
-      status: 'ACTIVE',
-      location: 'Room 102',
-      room: { id: 2, roomNumber: '102' },
-      lastSeen: new Date(Date.now() - 5 * 60 * 1000),
-      firmwareVersion: '1.9.2',
-      serialNumber: 'SN001234568',
-    },
-    {
-      id: 3,
-      terminalId: 'TV001',
-      deviceType: 'SMART_TV',
-      brand: 'Sony',
-      model: 'KD-55X80K',
-      macAddress: '00:1A:2B:3C:4D:60',
-      ipAddress: '192.168.1.201',
-      status: 'OFFLINE',
-      location: 'Room 201',
-      room: { id: 3, roomNumber: '201' },
-      lastSeen: new Date(Date.now() - 30 * 60 * 1000),
-      firmwareVersion: '8.0.1',
-      serialNumber: 'TV001234569',
-    },
-    {
-      id: 4,
-      terminalId: 'TAB001',
-      deviceType: 'TABLET',
-      brand: 'iPad',
-      model: 'Pro 12.9',
-      macAddress: '00:1A:2B:3C:4D:61',
-      ipAddress: '192.168.1.151',
-      status: 'ACTIVE',
-      location: 'Lobby',
-      lastSeen: new Date(Date.now() - 2 * 60 * 1000),
-      firmwareVersion: '16.5.1',
-      serialNumber: 'TB001234570',
-    },
-    {
-      id: 5,
-      terminalId: 'STB003',
-      deviceType: 'SET_TOP_BOX',
-      brand: 'Huawei',
-      model: 'EC6108V9',
-      macAddress: '00:1A:2B:3C:4D:62',
-      ipAddress: '192.168.1.103',
-      status: 'MAINTENANCE',
-      location: 'Room 103',
-      room: { id: 4, roomNumber: '103' },
-      lastSeen: new Date(Date.now() - 60 * 60 * 1000),
-      firmwareVersion: '3.2.1',
-      serialNumber: 'SN001234571',
-    },
-    {
-      id: 6,
-      terminalId: 'DSP001',
-      deviceType: 'DISPLAY_SCREEN',
-      brand: 'Samsung',
-      model: 'QM85R',
-      macAddress: '00:1A:2B:3C:4D:63',
-      ipAddress: '192.168.1.210',
-      status: 'ACTIVE',
-      location: 'Conference Room A',
-      lastSeen: new Date(Date.now() - 10 * 60 * 1000),
-      firmwareVersion: '1.4.3',
-      serialNumber: 'DS001234572',
-    },
-  ];
+export class TerminalsListComponent implements OnInit, OnDestroy {
+  private destroy$ = new Subject<void>();
+  private searchSubject = new Subject<string>();
 
-  filteredTerminals = [...this.terminals];
+  // Data properties
+  terminals: Terminal[] = [];
+  terminalStats: TerminalStats | null = null;
+  pagination: PaginationData = {
+    page: 0,
+    size: 20,
+    total: 0,
+    totalPages: 0,
+    hasNext: false,
+    hasPrevious: false,
+  };
+
+  // UI state
+  loading = false;
+  refreshing = false;
+  error: string | null = null;
+
+  // Filter properties
   searchTerm = '';
   statusFilter = '';
   deviceTypeFilter = '';
   locationFilter = '';
-  loading = false;
+  roomFilter = '';
 
+  // Sorting
+  sortField = 'terminalCode';
+  sortDirection = 'asc';
+
+  // Options
   deviceTypes = [
     { value: 'SET_TOP_BOX', label: 'Set Top Box', icon: 'fas fa-tv' },
     { value: 'SMART_TV', label: 'Smart TV', icon: 'fas fa-television' },
@@ -150,62 +78,354 @@ export class TerminalsListComponent implements OnInit {
     { value: 'FAULTY', label: 'Faulty', class: 'danger' },
   ];
 
-  locations = [
-    'Room 101',
-    'Room 102',
-    'Room 103',
-    'Room 201',
-    'Room 202',
-    'Room 203',
-    'Lobby',
-    'Conference Room A',
-    'Conference Room B',
-    'Restaurant',
-    'Bar',
-  ];
+  locations: string[] = [];
+  rooms: { id: number; roomNumber: string }[] = [];
 
-  constructor(private router: Router, private toast: ToastService, private confirm: ConfirmService) {}
+  // Pagination
+  pageSizeOptions = [10, 20, 50, 100];
+  Math = Math;
+
+  constructor(
+    private router: Router,
+    private toast: ToastService,
+    private confirm: ConfirmService,
+    private terminalService: TerminalService
+  ) {}
 
   ngOnInit(): void {
-    this.applyFilters();
+    this.initializeSearchDebounce();
+    this.loadTerminals();
+    this.loadTerminalStats();
+    this.subscribeToTerminalUpdates();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private initializeSearchDebounce(): void {
+    this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.pagination.page = 0;
+        this.loadTerminals();
+      });
+  }
+
+  private subscribeToTerminalUpdates(): void {
+    this.terminalService.terminals$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((terminals) => {
+        this.updateFilterOptions(terminals);
+      });
+
+    this.terminalService.stats$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((stats) => {
+        this.terminalStats = stats;
+      });
+  }
+
+  private updateFilterOptions(terminals: any[]): void {
+    this.locations = [...new Set(terminals.map((t) => t.location))].sort();
+
+    const uniqueRooms = terminals
+      .filter((t) => t.room)
+      .map((t) => t.room!)
+      .filter(
+        (room, index, array) =>
+          array.findIndex((r) => r.id === room.id) === index
+      );
+    this.rooms = uniqueRooms.sort((a, b) =>
+      a.roomNumber.localeCompare(b.roomNumber)
+    );
+  }
+
+  loadTerminals(): void {
+    if (this.loading) return;
+
+    this.loading = true;
+    this.error = null;
+
+    const criteria: TerminalSearchCriteria = {
+      search: this.searchTerm || undefined,
+      status: this.statusFilter || undefined,
+      deviceType: this.deviceTypeFilter || undefined,
+      location: this.locationFilter || undefined,
+      roomId: this.roomFilter ? parseInt(this.roomFilter) : undefined,
+    };
+
+    this.terminalService
+      .getTerminalsPaged(
+        this.pagination.page,
+        this.pagination.size,
+        this.sortField,
+        this.sortDirection,
+        criteria
+      )
+      .pipe(
+        finalize(() => (this.loading = false)),
+        takeUntil(this.destroy$)
+      )
+      .subscribe({
+        next: (response) => {
+          this.terminals = response.terminals as Terminal[];
+          this.pagination = response.pagination;
+          this.updateFilterOptions(this.terminals);
+        },
+        error: (error) => {
+          this.error = error.message;
+          this.toast.error('Failed to load terminals: ' + error.message);
+          console.error('Error loading terminals:', error);
+        },
+      });
+  }
+
+  loadTerminalStats(): void {
+    this.terminalService
+      .getTerminalStatistics()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (stats) => {
+          this.terminalStats = stats;
+        },
+        error: (error) => {
+          console.error('Error loading terminal stats:', error);
+        },
+      });
   }
 
   onSearch(): void {
-    this.applyFilters();
+    this.searchSubject.next(this.searchTerm);
   }
 
   onFilterChange(): void {
-    this.applyFilters();
+    this.pagination.page = 0;
+    this.loadTerminals();
   }
 
-  applyFilters(): void {
-    this.filteredTerminals = this.terminals.filter((terminal) => {
-      const matchesSearch =
-        !this.searchTerm ||
-        terminal.terminalId
-          .toLowerCase()
-          .includes(this.searchTerm.toLowerCase()) ||
-        terminal.brand.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        terminal.model.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        terminal.location
-          .toLowerCase()
-          .includes(this.searchTerm.toLowerCase()) ||
-        terminal.macAddress
-          .toLowerCase()
-          .includes(this.searchTerm.toLowerCase()) ||
-        terminal.ipAddress.includes(this.searchTerm);
+  onSortChange(field: string): void {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
+    this.pagination.page = 0;
+    this.loadTerminals();
+  }
 
-      const matchesStatus =
-        !this.statusFilter || terminal.status === this.statusFilter;
-      const matchesDeviceType =
-        !this.deviceTypeFilter || terminal.deviceType === this.deviceTypeFilter;
-      const matchesLocation =
-        !this.locationFilter || terminal.location.includes(this.locationFilter);
+  clearFilters(): void {
+    this.searchTerm = '';
+    this.statusFilter = '';
+    this.deviceTypeFilter = '';
+    this.locationFilter = '';
+    this.roomFilter = '';
+    this.pagination.page = 0;
+    this.loadTerminals();
+    this.toast.info('Filters cleared');
+  }
 
-      return (
-        matchesSearch && matchesStatus && matchesDeviceType && matchesLocation
-      );
-    });
+  onPageChange(page: number): void {
+    this.pagination.page = page;
+    this.loadTerminals();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pagination.size = size;
+    this.pagination.page = 0;
+    this.loadTerminals();
+  }
+
+  viewTerminal(id: number): void {
+    this.router.navigate(['/terminals', id]);
+  }
+
+  editTerminal(id: number): void {
+    this.router.navigate(['/terminals', id, 'edit']);
+  }
+
+  addTerminal(): void {
+    this.router.navigate(['/terminals/add']);
+  }
+
+  async deleteTerminal(id: number): Promise<void> {
+    const terminal = this.terminals.find((t) => t.id === id);
+    if (!terminal) return;
+
+    const confirmed = await this.confirm.open(
+      'Delete Terminal',
+      `Are you sure you want to delete terminal "${terminal.terminalCode}"? This action cannot be undone.`,
+      'Delete',
+      'Cancel'
+    );
+
+    if (!confirmed) return;
+
+    this.terminalService
+      .deleteTerminal(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toast.success(
+            `Terminal "${terminal.terminalCode}" deleted successfully`
+          );
+          this.loadTerminals();
+          this.loadTerminalStats();
+        },
+        error: (error) => {
+          this.toast.error('Failed to delete terminal: ' + error.message);
+          console.error('Error deleting terminal:', error);
+        },
+      });
+  }
+
+  async rebootTerminal(id: number): Promise<void> {
+    const terminal = this.terminals.find((t) => t.id === id);
+    if (!terminal) return;
+
+    const confirmed = await this.confirm.open(
+      'Reboot Terminal',
+      `Are you sure you want to reboot "${terminal.terminalCode}"? This will temporarily interrupt service.`,
+      'Reboot',
+      'Cancel'
+    );
+
+    if (!confirmed) return;
+
+    this.terminalService
+      .rebootTerminal(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toast.success(
+            `Terminal "${terminal.terminalCode}" reboot initiated`
+          );
+          setTimeout(() => {
+            this.loadTerminals();
+          }, 1000);
+        },
+        error: (error) => {
+          this.toast.error('Failed to reboot terminal: ' + error.message);
+          console.error('Error rebooting terminal:', error);
+        },
+      });
+  }
+
+  pingTerminal(id: number): void {
+    const terminal = this.terminals.find((t) => t.id === id);
+    if (!terminal) return;
+
+    this.terminalService
+      .testTerminalConnectivity(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (result) => {
+          if (result.success) {
+            this.toast.success(
+              `Terminal "${terminal.terminalCode}" is reachable`
+            );
+          } else {
+            this.toast.warning(
+              `Terminal "${terminal.terminalCode}" is not responding: ${result.message}`
+            );
+          }
+          this.loadTerminals();
+        },
+        error: (error) => {
+          this.toast.error('Failed to ping terminal: ' + error.message);
+          console.error('Error pinging terminal:', error);
+        },
+      });
+  }
+
+  authorizeDevice(id: number): void {
+    const terminal = this.terminals.find((t) => t.id === id);
+    if (!terminal) return;
+
+    this.terminalService
+      .authorizeDevice(id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.toast.success(
+            `Device "${terminal.terminalCode}" authorized successfully`
+          );
+          this.loadTerminals();
+        },
+        error: (error) => {
+          this.toast.error('Failed to authorize device: ' + error.message);
+          console.error('Error authorizing device:', error);
+        },
+      });
+  }
+
+  refreshData(): void {
+    this.refreshing = true;
+
+    Promise.all([
+      this.terminalService.getAllTerminals().toPromise(),
+      this.terminalService.getTerminalStatistics().toPromise(),
+    ])
+      .then(() => {
+        this.loadTerminals();
+        this.toast.success('Data refreshed successfully');
+      })
+      .catch((error) => {
+        this.toast.error('Failed to refresh data: ' + error.message);
+        console.error('Error refreshing data:', error);
+      })
+      .finally(() => {
+        this.refreshing = false;
+      });
+  }
+
+  exportTerminals(): void {
+    const headers = [
+      'Terminal Code',
+      'Device Type',
+      'Brand',
+      'Model',
+      'MAC Address',
+      'IP Address',
+      'Status',
+      'Location',
+      'Room',
+      'Last Seen',
+      'Firmware Version',
+      'Serial Number',
+    ];
+
+    const csvContent = [
+      headers.join(','),
+      ...this.terminals.map((terminal) =>
+        [
+          terminal.terminalCode || '',
+          this.getDeviceTypeLabel(terminal.deviceType),
+          terminal.brand || '',
+          terminal.model || '',
+          terminal.macAddress || '',
+          terminal.ipAddress || '',
+          terminal.status || '',
+          terminal.location || '',
+          terminal.room?.roomNumber || '',
+          new Date(terminal.lastSeen).toLocaleString(),
+          terminal.firmwareVersion || '',
+          terminal.serialNumber || '',
+        ].join(',')
+      ),
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `terminals-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+
+    this.toast.success('Terminals exported successfully');
   }
 
   getStatusClass(status: string): string {
@@ -213,19 +433,22 @@ export class TerminalsListComponent implements OnInit {
     return statusObj ? statusObj.class : 'secondary';
   }
 
-  getDeviceTypeLabel(deviceType: string): string {
+  getDeviceTypeLabel(deviceType?: DeviceType): string {
+    if (!deviceType) return 'Unknown';
     const deviceObj = this.deviceTypes.find((d) => d.value === deviceType);
-    return deviceObj ? deviceObj.label : deviceType;
+    return deviceObj ? deviceObj.label : deviceType.toString();
   }
 
-  getDeviceIcon(deviceType: string): string {
+  getDeviceIcon(deviceType?: DeviceType): string {
+    if (!deviceType) return 'fas fa-question-circle';
     const deviceObj = this.deviceTypes.find((d) => d.value === deviceType);
     return deviceObj ? deviceObj.icon : 'fas fa-desktop';
   }
 
-  getLastSeenText(lastSeen: Date): string {
+  getLastSeenText(lastSeen: string): string {
+    const lastSeenDate = new Date(lastSeen);
     const now = new Date();
-    const diffMs = now.getTime() - lastSeen.getTime();
+    const diffMs = now.getTime() - lastSeenDate.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
 
     if (diffMins < 1) return 'Just now';
@@ -238,9 +461,10 @@ export class TerminalsListComponent implements OnInit {
     return `${diffDays}d ago`;
   }
 
-  getLastSeenClass(lastSeen: Date): string {
+  getLastSeenClass(lastSeen: string): string {
+    const lastSeenDate = new Date(lastSeen);
     const now = new Date();
-    const diffMs = now.getTime() - lastSeen.getTime();
+    const diffMs = now.getTime() - lastSeenDate.getTime();
     const diffMins = Math.floor(diffMs / (1000 * 60));
 
     if (diffMins < 5) return 'text-success';
@@ -248,112 +472,74 @@ export class TerminalsListComponent implements OnInit {
     return 'text-danger';
   }
 
-  viewTerminal(id: number): void {
-    this.router.navigate(['/terminals', id]);
-  }
-
-  editTerminal(id: number): void {
-    this.router.navigate(['/terminals', id, 'edit']);
-  }
-
-  async deleteTerminal(id: number): Promise<void> {
-    const ok = await this.confirm.open(
-      'Delete terminal',
-      'Are you sure you want to delete this terminal? This action cannot be undone.',
-      'Delete',
-      'Cancel'
+  getTerminalStats(): TerminalStats {
+    return (
+      this.terminalStats || {
+        total: 0,
+        active: 0,
+        inactive: 0,
+        offline: 0,
+        maintenance: 0,
+        faulty: 0,
+        byDeviceType: {},
+        byLocation: {},
+      }
     );
-    if (!ok) return;
-
-    this.terminals = this.terminals.filter((t) => t.id !== id);
-    this.applyFilters();
-    // TODO: Call API to delete terminal
-    this.toast.success('Terminal deleted');
   }
 
-  changeTerminalStatus(id: number, newStatus: string): void {
-    const terminal = this.terminals.find((t) => t.id === id);
-    if (terminal) {
-      terminal.status = newStatus as any;
-      terminal.lastSeen = new Date();
-      this.applyFilters();
-      // TODO: Call API to update terminal status
-      this.toast.success('Terminal status updated');
+  getSortIcon(field: string): string {
+    if (this.sortField !== field) return 'fas fa-sort';
+    return this.sortDirection === 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down';
+  }
+
+  isTerminalActionDisabled(terminal: Terminal, action: string): boolean {
+    switch (action) {
+      case 'ping':
+      case 'reboot':
+        return (
+          terminal.status === TerminalStatus.OFFLINE ||
+          terminal.status === TerminalStatus.FAULTY
+        );
+      case 'authorize':
+        return terminal.status === TerminalStatus.MAINTENANCE;
+      default:
+        return false;
     }
   }
 
-  addTerminal(): void {
-    this.router.navigate(['/terminals/add']);
+  getUptimeDisplay(uptime?: number): string {
+    if (uptime === undefined || uptime === null) return 'N/A';
+    return `${uptime.toFixed(1)}%`;
   }
 
-  clearFilters(): void {
-    this.searchTerm = '';
-    this.statusFilter = '';
-    this.deviceTypeFilter = '';
-    this.locationFilter = '';
-    this.applyFilters();
-    this.toast.info('Filters cleared');
+  getUptimeClass(uptime?: number): string {
+    if (uptime === undefined || uptime === null) return '';
+    if (uptime >= 99) return 'text-success';
+    if (uptime >= 95) return 'text-warning';
+    return 'text-danger';
   }
 
-  exportTerminals(): void {
-    console.log('Exporting terminals...', this.filteredTerminals);
-    this.toast.info('Export functionality will be implemented');
-  }
+  getVisiblePages(): number[] {
+    const totalPages = this.pagination.totalPages;
+    const currentPage = this.pagination.page;
+    const maxVisible = 5;
 
-  refreshData(): void {
-    this.loading = true;
-    // TODO: Call API to refresh data
-    setTimeout(() => {
-      this.loading = false;
-      // Update lastSeen for active terminals
-      this.terminals.forEach((terminal) => {
-        if (terminal.status === 'ACTIVE') {
-          terminal.lastSeen = new Date();
-        }
-      });
-      this.applyFilters();
-      this.toast.success('Data refreshed');
-    }, 1000);
-  }
-
-  getTerminalStats() {
-    return {
-      total: this.terminals.length,
-      active: this.terminals.filter((t) => t.status === 'ACTIVE').length,
-      offline: this.terminals.filter((t) => t.status === 'OFFLINE').length,
-      maintenance: this.terminals.filter((t) => t.status === 'MAINTENANCE')
-        .length,
-      faulty: this.terminals.filter((t) => t.status === 'FAULTY').length,
-    };
-  }
-
-  pingTerminal(id: number): void {
-    const terminal = this.terminals.find((t) => t.id === id);
-    if (terminal) {
-      // TODO: Implement ping functionality
-      terminal.lastSeen = new Date();
-      this.applyFilters();
-      this.toast.success(`Pinged ${terminal.terminalId} successfully`);
+    if (totalPages <= maxVisible) {
+      return Array.from({ length: totalPages }, (_, i) => i);
     }
+
+    const half = Math.floor(maxVisible / 2);
+    let start = Math.max(0, currentPage - half);
+    let end = Math.min(totalPages - 1, start + maxVisible - 1);
+
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(0, end - maxVisible + 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
   }
 
-  async rebootTerminal(id: number): Promise<void> {
-    const terminal = this.terminals.find((t) => t.id === id);
-    if (!terminal) return;
-
-    const ok = await this.confirm.open('Reboot terminal', `Are you sure you want to reboot ${terminal.terminalId}?`, 'Reboot', 'Cancel');
-    if (!ok) return;
-
-    // TODO: Implement reboot functionality
-    terminal.status = 'MAINTENANCE';
-    this.applyFilters();
-
-    // Simulate reboot process
-    setTimeout(() => {
-      terminal.status = 'ACTIVE';
-      terminal.lastSeen = new Date();
-      this.applyFilters();
-      this.toast.success(`${terminal.terminalId} rebooted`);
-    }, 3000);
+  min(a: number, b: number): number {
+    return Math.min(a, b);
   }
 }

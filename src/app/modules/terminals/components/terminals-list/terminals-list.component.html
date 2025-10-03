@@ -1,30 +1,38 @@
 <div class="terminals-page">
+  <!-- Page Header -->
   <div class="page-header">
     <div class="page-header-content">
       <h1 class="page-title">Terminal Management</h1>
       <p class="page-subtitle">
-        Manage and monitor all IPTV devices across the hotel
+        Manage and monitor all IPTV devices across the hotel network
       </p>
     </div>
     <div class="page-actions">
       <button
         class="btn btn-secondary"
         (click)="refreshData()"
-        [disabled]="loading"
+        [disabled]="refreshing"
       >
         <i
           class="fas"
-          [class.fa-sync-alt]="!loading"
-          [class.fa-spinner]="loading"
-          [class.fa-spin]="loading"
+          [class.fa-sync-alt]="!refreshing"
+          [class.fa-spinner]="refreshing"
+          [class.fa-spin]="refreshing"
         ></i>
-        {{ loading ? "Refreshing..." : "Refresh" }}
+        {{ refreshing ? "Refreshing..." : "Refresh" }}
       </button>
       <button class="btn btn-primary btn-lg" (click)="addTerminal()">
         <i class="fas fa-plus"></i>
         Add Terminal
       </button>
     </div>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-danger alert-dismissible">
+    <i class="fas fa-exclamation-triangle"></i>
+    <strong>Error:</strong> {{ error }}
+    <button type="button" class="btn-close" (click)="error = null"></button>
   </div>
 
   <!-- Stats Cards -->
@@ -38,7 +46,7 @@
       </div>
       <div class="stats-card-value">{{ getTerminalStats().total }}</div>
       <div class="stats-card-trend trend-up">
-        <i class="fas fa-arrow-up"></i>
+        <i class="fas fa-info-circle"></i>
         <span>All devices</span>
       </div>
     </div>
@@ -93,6 +101,25 @@
         <span>Scheduled</span>
       </div>
     </div>
+
+    <div class="stats-card" *ngIf="getTerminalStats().averageUptime">
+      <div class="stats-card-header">
+        <h3 class="stats-card-title">Avg Uptime</h3>
+        <div class="stats-card-icon info">
+          <i class="fas fa-chart-line"></i>
+        </div>
+      </div>
+      <div class="stats-card-value">
+        {{ getUptimeDisplay(getTerminalStats().averageUptime) }}
+      </div>
+      <div
+        class="stats-card-trend"
+        [class]="getUptimeClass(getTerminalStats().averageUptime)"
+      >
+        <i class="fas fa-percentage"></i>
+        <span>System uptime</span>
+      </div>
+    </div>
   </div>
 
   <!-- Filters Section -->
@@ -145,6 +172,17 @@
           </option>
         </select>
 
+        <select
+          [(ngModel)]="roomFilter"
+          (change)="onFilterChange()"
+          class="filter-select"
+        >
+          <option value="">All Rooms</option>
+          <option *ngFor="let room of rooms" [value]="room.id">
+            Room {{ room.roomNumber }}
+          </option>
+        </select>
+
         <button class="btn btn-secondary" (click)="clearFilters()">
           <i class="fas fa-times"></i>
           Clear
@@ -156,8 +194,24 @@
   <!-- Terminals Table -->
   <div class="table-container">
     <div class="table-header">
-      <h3 class="table-title">Terminals ({{ filteredTerminals.length }})</h3>
+      <h3 class="table-title">
+        Terminals ({{ pagination.total }})
+        <span *ngIf="pagination.total !== terminals.length" class="text-muted">
+          - Showing {{ terminals.length }} of {{ pagination.total }}
+        </span>
+      </h3>
       <div class="table-actions">
+        <div class="pagination-controls">
+          <select
+            [(ngModel)]="pagination.size"
+            (change)="onPageSizeChange(pagination.size)"
+            class="form-select form-select-sm"
+          >
+            <option *ngFor="let size of pageSizeOptions" [value]="size">
+              {{ size }} per page
+            </option>
+          </select>
+        </div>
         <button class="btn btn-secondary btn-sm" (click)="exportTerminals()">
           <i class="fas fa-download"></i>
           Export
@@ -165,24 +219,78 @@
       </div>
     </div>
 
+    <!-- Loading State -->
+    <div *ngIf="loading" class="loading-state">
+      <div class="loading-content">
+        <i class="fas fa-spinner fa-spin loading-icon"></i>
+        <h3 class="loading-title">Loading terminals...</h3>
+        <p class="loading-description">
+          Please wait while we fetch the latest terminal data.
+        </p>
+      </div>
+    </div>
+
+    <!-- Table Content -->
     <div class="table-content" *ngIf="!loading">
-      <table class="table">
+      <table class="table" *ngIf="terminals.length > 0">
         <thead>
           <tr>
-            <th>Terminal Info</th>
-            <th>Device</th>
-            <th>Network</th>
-            <th>Location</th>
-            <th>Status</th>
-            <th>Last Seen</th>
+            <th
+              class="sortable"
+              (click)="onSortChange('terminalCode')"
+              [class.sorted]="sortField === 'terminalCode'"
+            >
+              Terminal Info
+              <i [class]="getSortIcon('terminalCode')"></i>
+            </th>
+            <th
+              class="sortable"
+              (click)="onSortChange('deviceType')"
+              [class.sorted]="sortField === 'deviceType'"
+            >
+              Device
+              <i [class]="getSortIcon('deviceType')"></i>
+            </th>
+            <th
+              class="sortable"
+              (click)="onSortChange('ipAddress')"
+              [class.sorted]="sortField === 'ipAddress'"
+            >
+              Network
+              <i [class]="getSortIcon('ipAddress')"></i>
+            </th>
+            <th
+              class="sortable"
+              (click)="onSortChange('location')"
+              [class.sorted]="sortField === 'location'"
+            >
+              Location
+              <i [class]="getSortIcon('location')"></i>
+            </th>
+            <th
+              class="sortable"
+              (click)="onSortChange('status')"
+              [class.sorted]="sortField === 'status'"
+            >
+              Status
+              <i [class]="getSortIcon('status')"></i>
+            </th>
+            <th
+              class="sortable"
+              (click)="onSortChange('lastSeen')"
+              [class.sorted]="sortField === 'lastSeen'"
+            >
+              Last Seen
+              <i [class]="getSortIcon('lastSeen')"></i>
+            </th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let terminal of filteredTerminals" class="table-row">
+          <tr *ngFor="let terminal of terminals" class="table-row">
             <td>
               <div class="terminal-id">
-                <strong>{{ terminal.terminalId }}</strong>
+                <strong>{{ terminal.terminalCode }}</strong>
                 <div class="terminal-mac">{{ terminal.macAddress }}</div>
                 <div class="terminal-mac" *ngIf="terminal.serialNumber">
                   SN: {{ terminal.serialNumber }}
@@ -212,6 +320,23 @@
                   <i class="fas fa-globe"></i>
                   {{ terminal.ipAddress }}
                 </div>
+                <div
+                  class="online-status"
+                  *ngIf="terminal.isOnline !== undefined"
+                >
+                  <i
+                    class="fas fa-circle"
+                    [class.text-success]="terminal.isOnline"
+                    [class.text-danger]="!terminal.isOnline"
+                  ></i>
+                  {{ terminal.isOnline ? "Online" : "Offline" }}
+                </div>
+                <div class="uptime-info" *ngIf="terminal.uptime !== undefined">
+                  <i class="fas fa-chart-line"></i>
+                  <span [class]="getUptimeClass(terminal.uptime)">
+                    {{ getUptimeDisplay(terminal.uptime) }}
+                  </span>
+                </div>
               </div>
             </td>
             <td>
@@ -221,6 +346,7 @@
                   {{ terminal.location }}
                 </span>
                 <div class="room-number" *ngIf="terminal.room">
+                  <i class="fas fa-door-open"></i>
                   Room {{ terminal.room.roomNumber }}
                 </div>
               </div>
@@ -263,8 +389,8 @@
                 <button
                   class="btn btn-sm btn-info action-btn"
                   (click)="pingTerminal(terminal.id)"
-                  title="Ping Terminal"
-                  [disabled]="terminal.status === 'OFFLINE'"
+                  title="Test Connectivity"
+                  [disabled]="isTerminalActionDisabled(terminal, 'ping')"
                 >
                   <i class="fas fa-satellite-dish"></i>
                 </button>
@@ -272,9 +398,17 @@
                   class="btn btn-sm btn-warning action-btn"
                   (click)="rebootTerminal(terminal.id)"
                   title="Reboot Terminal"
-                  [disabled]="terminal.status === 'OFFLINE'"
+                  [disabled]="isTerminalActionDisabled(terminal, 'reboot')"
                 >
                   <i class="fas fa-redo"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-success action-btn"
+                  (click)="authorizeDevice(terminal.id)"
+                  title="Authorize Device"
+                  [disabled]="isTerminalActionDisabled(terminal, 'authorize')"
+                >
+                  <i class="fas fa-key"></i>
                 </button>
                 <button
                   class="btn btn-sm btn-primary action-btn"
@@ -297,7 +431,7 @@
       </table>
 
       <!-- Empty State -->
-      <div *ngIf="filteredTerminals.length === 0" class="empty-state">
+      <div *ngIf="terminals.length === 0" class="empty-state">
         <div class="empty-state-content">
           <i class="fas fa-desktop empty-state-icon"></i>
           <h3 class="empty-state-title">No terminals found</h3>
@@ -305,11 +439,13 @@
             No terminals match your current search criteria. Try adjusting your
             filters or search terms.
           </p>
-          <div style="display: flex; gap: 12px; justify-content: center">
+          <div class="empty-state-actions">
             <button class="btn btn-secondary" (click)="clearFilters()">
+              <i class="fas fa-filter"></i>
               Clear Filters
             </button>
             <button class="btn btn-primary" (click)="addTerminal()">
+              <i class="fas fa-plus"></i>
               Add Terminal
             </button>
           </div>
@@ -317,15 +453,69 @@
       </div>
     </div>
 
-    <!-- Loading State -->
-    <div *ngIf="loading" class="empty-state">
-      <div class="empty-state-content">
-        <i class="fas fa-spinner fa-spin empty-state-icon"></i>
-        <h3 class="empty-state-title">Loading terminals...</h3>
-        <p class="empty-state-description">
-          Please wait while we fetch the latest terminal data.
-        </p>
+    <!-- Pagination -->
+    <div
+      class="pagination-container"
+      *ngIf="!loading && terminals.length > 0 && pagination.totalPages > 1"
+    >
+      <div class="pagination-info">
+        Showing {{ pagination.page * pagination.size + 1 }} to
+        {{ min((pagination.page + 1) * pagination.size, pagination.total) }}
+        of {{ pagination.total }} terminals
       </div>
+
+      <nav class="pagination-nav">
+        <ul class="pagination">
+          <li class="page-item" [class.disabled]="!pagination.hasPrevious">
+            <button
+              class="page-link"
+              (click)="onPageChange(0)"
+              [disabled]="!pagination.hasPrevious"
+            >
+              <i class="fas fa-angle-double-left"></i>
+            </button>
+          </li>
+          <li class="page-item" [class.disabled]="!pagination.hasPrevious">
+            <button
+              class="page-link"
+              (click)="onPageChange(pagination.page - 1)"
+              [disabled]="!pagination.hasPrevious"
+            >
+              <i class="fas fa-angle-left"></i>
+            </button>
+          </li>
+
+          <!-- Page numbers -->
+          <li
+            class="page-item"
+            *ngFor="let page of getVisiblePages()"
+            [class.active]="page === pagination.page"
+          >
+            <button class="page-link" (click)="onPageChange(page)">
+              {{ page + 1 }}
+            </button>
+          </li>
+
+          <li class="page-item" [class.disabled]="!pagination.hasNext">
+            <button
+              class="page-link"
+              (click)="onPageChange(pagination.page + 1)"
+              [disabled]="!pagination.hasNext"
+            >
+              <i class="fas fa-angle-right"></i>
+            </button>
+          </li>
+          <li class="page-item" [class.disabled]="!pagination.hasNext">
+            <button
+              class="page-link"
+              (click)="onPageChange(pagination.totalPages - 1)"
+              [disabled]="!pagination.hasNext"
+            >
+              <i class="fas fa-angle-double-right"></i>
+            </button>
+          </li>
+        </ul>
+      </nav>
     </div>
   </div>
 </div>

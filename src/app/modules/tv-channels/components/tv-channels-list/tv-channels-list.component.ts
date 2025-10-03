@@ -180,7 +180,7 @@ export class TvChannelsListComponent implements OnInit, OnDestroy {
           ]);
         })
       ),
-      this.languageService.getAdminLanguages().pipe(
+      this.languageService.getAdminLanguagesSimple().pipe(
         catchError((error) => {
           console.warn('Failed to load languages:', error);
           this.toast.warning('Could not load languages, using defaults');

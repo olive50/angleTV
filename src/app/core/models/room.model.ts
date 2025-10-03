@@ -8,7 +8,7 @@ export enum RoomType {
   FAMILY_ROOM = 'FAMILY_ROOM',
   STUDIO = 'STUDIO',
   JUNIOR_SUITE = 'JUNIOR_SUITE',
-  PENTHOUSE = 'PENTHOUSE'
+  PENTHOUSE = 'PENTHOUSE',
 }
 
 export enum RoomStatus {
@@ -19,7 +19,7 @@ export enum RoomStatus {
   OUT_OF_ORDER = 'OUT_OF_ORDER',
   CLEANING = 'CLEANING',
   CHECKOUT_PENDING = 'CHECKOUT_PENDING',
-  CHECKIN_READY = 'CHECKIN_READY'
+  CHECKIN_READY = 'CHECKIN_READY',
 }
 
 export enum ViewType {
@@ -29,7 +29,7 @@ export enum ViewType {
   MOUNTAIN = 'MOUNTAIN',
   POOL = 'POOL',
   COURTYARD = 'COURTYARD',
-  INTERIOR = 'INTERIOR'
+  INTERIOR = 'INTERIOR',
 }
 
 export enum BedType {
@@ -39,7 +39,7 @@ export enum BedType {
   KING = 'KING',
   TWIN = 'TWIN',
   SOFA_BED = 'SOFA_BED',
-  BUNK_BED = 'BUNK_BED'
+  BUNK_BED = 'BUNK_BED',
 }
 
 export enum MaintenanceType {
@@ -47,14 +47,14 @@ export enum MaintenanceType {
   REPAIR = 'REPAIR',
   INSPECTION = 'INSPECTION',
   UPGRADE = 'UPGRADE',
-  PREVENTIVE = 'PREVENTIVE'
+  PREVENTIVE = 'PREVENTIVE',
 }
 
 export enum MaintenanceStatus {
   SCHEDULED = 'SCHEDULED',
   IN_PROGRESS = 'IN_PROGRESS',
   COMPLETED = 'COMPLETED',
-  CANCELLED = 'CANCELLED'
+  CANCELLED = 'CANCELLED',
 }
 
 export interface Room {
@@ -63,20 +63,14 @@ export interface Room {
   roomType: RoomType;
   floorNumber: number;
   building: string;
- 
-  capacity: number;  
+
+  capacity: number;
   pricePerNight: number;
   status: RoomStatus;
   description: string;
-  amenities: string[];
-  hasBalcony?: boolean;
-  hasKitchen?: boolean;
-  accessibility?: boolean;
-  viewType?: ViewType;
-  bedType?: BedType;
+
   images?: string[];
-  lastCleaned?: Date;
-  lastMaintenance?: Date;
+
   createdAt?: Date;
   updatedAt?: Date;
   currentGuest?: {
@@ -97,12 +91,6 @@ export interface RoomCreateRequest {
   capacity: number;
   pricePerNight: number;
   description: string;
-  amenities: string[];
-  hasBalcony?: boolean;
-  hasKitchen?: boolean;
-  accessibility?: boolean;
-  viewType?: ViewType;
-  bedType?: BedType;
   images?: string[];
 }
 
@@ -118,12 +106,8 @@ export interface RoomFilters {
   building?: string;
   minPrice?: number;
   maxPrice?: number;
-  hasBalcony?: boolean;
-  hasKitchen?: boolean;
-  accessibility?: boolean;
-  viewType?: ViewType;
-  bedType?: BedType;
-  maxOccupancy?: number;
+
+  capacity?: number;
 }
 
 export interface RoomStatistics {

@@ -22,10 +22,55 @@ export class SidebarComponent implements OnInit {
     },
     {
       id: 'tv-channels',
-      title: 'TV Channels',
+      title: 'Media',
       icon: 'fas fa-tv',
-      route: '/channels',
+      route: '/channels', // Add default route for TV Channels
       badge: { text: '74', color: 'success' },
+      children: [
+        {
+          id: 'channels-list',
+          title: 'TV Channels',
+          icon: 'fas fa-list',
+          route: '/channels',
+        },
+        {
+          id: 'radio',
+          title: 'Radio',
+          icon: 'fas fa-broadcast-tower',  // ✅ Corrigé: fa-radio n'existe pas
+          route: '/media/radio',
+        },
+        {
+          id: 'vod',
+          title: 'VOD',
+          icon: 'fas fa-play-circle',  // ✅ Corrigé: fa-vod n'existe pas
+          route: '/media/vod',
+        },
+        {
+          id: 'movies',
+          title: 'Movies',
+          icon: 'fas fa-film',  // ✅ Corrigé: fa-movie n'existe pas
+          route: '/media/movies',  // ⚠️ Corrigé: route était '/media/radio'
+        },
+        {
+          id: 'game',
+          title: 'Games',
+          icon: 'fas fa-gamepad',  // ✅ Corrigé: fa-game n'existe pas
+          route: '/media/games',
+        },
+        {
+          id: 'audiobook',
+          title: 'Audio Books',
+          icon: 'fas fa-book-open',  // ✅ Corrigé: fa-audio n'existe pas
+          route: '/media/audiobooks',  // ⚠️ Corrigé: route était '/media/radio'
+        },
+        {
+          id: 'series',
+          title: 'Series',
+          icon: 'fas fa-video',  // ✅ Corrigé: fa-series n'existe pas
+          route: '/media/series',  // ⚠️ Corrigé: route était '/media/game'
+        },
+     
+      ],
     },
     {
       id: 'rooms',
@@ -76,14 +121,19 @@ export class SidebarComponent implements OnInit {
           icon: 'fas fa-sign-out-alt',
           route: '/guests/checkout',
         },
+        {
+          id: 'guests-move',
+          title: 'Move',
+          icon: 'fas fa-sign-out-alt',
+          route: '/guests/move',
+        },
       ],
     },
-
     {
-      id: 'packages',
-      title: 'Channel Packages',
-      icon: 'fas fa-box',
-      route: '/packages',
+      id: 'hotel',
+      title: 'Hotel',
+      icon: 'fas fa-building',
+      route: '/company',
     },
     {
       id: 'languages',
@@ -169,14 +219,22 @@ export class SidebarComponent implements OnInit {
 
   toggleMenuItem(item: MenuItem): void {
     if (item.children) {
+      // Toggle expansion
       item.isExpanded = !item.isExpanded;
-      // Collapse other expanded items (optionnel - commentez si vous voulez plusieurs menus ouverts)
+
+      // Collapse other expanded items (optional)
       this.menuItems.forEach((menuItem) => {
         if (menuItem.id !== item.id && menuItem.children) {
           menuItem.isExpanded = false;
         }
       });
+
+      // Navigate to default route if item has one AND is being expanded
+      if (item.isExpanded && item.route) {
+        this.router.navigate([item.route]);
+      }
     } else if (item.route) {
+      // For items without children, just navigate
       this.router.navigate([item.route]);
     }
   }

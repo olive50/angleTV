@@ -48,7 +48,7 @@ interface TvBootHttpResponse {
   providedIn: 'root',
 })
 export class TvChannelService {
-  private readonly apiUrl = `${environment.apiUrl}/v1/channels`;
+  private readonly apiUrl = `${environment.apiUrl}/channels`;
 
   private http = inject(HttpClient);
 
@@ -123,51 +123,53 @@ export class TvChannelService {
     this.setLoading(true);
     this.clearError();
 
-    return this.http.get<TvBootHttpResponse>(this.apiUrl, { params }).pipe(
-      map((response) => {
-        // Handle the actual response structure from your backend
-        const data = response.data || {};
-        const pagination = data.pagination || {};
-        const channels = data.channels || [];
+    return this.http
+      .get<TvBootHttpResponse>(this.apiUrl + '/search', { params })
+      .pipe(
+        map((response) => {
+          // Handle the actual response structure from your backend
+          const data = response.data || {};
+          const pagination = data.pagination || {};
+          const channels = data.channels || [];
 
-        // Access pagination properties safely with optional chaining
-        const totalElements = pagination.total || channels.length;
-        const totalPages = pagination.totalPages || 1;
-        const currentPage = pagination.page || 0;
-        const pageSize = pagination.size || size;
+          // Access pagination properties safely with optional chaining
+          const totalElements = pagination.total || channels.length;
+          const totalPages = pagination.totalPages || 1;
+          const currentPage = pagination.page || 0;
+          const pageSize = pagination.size || size;
 
-        return {
-          content: channels,
-          pageable: {
-            pageNumber: currentPage,
-            pageSize: pageSize,
+          return {
+            content: channels,
+            pageable: {
+              pageNumber: currentPage,
+              pageSize: pageSize,
+              sort: {
+                empty: true,
+                sorted: false,
+                unsorted: true,
+              },
+              offset: currentPage * pageSize,
+              paged: true,
+              unpaged: false,
+            },
+            last: !(pagination.hasNext || false),
+            totalPages: totalPages,
+            totalElements: totalElements,
+            size: pageSize,
+            number: currentPage,
             sort: {
               empty: true,
               sorted: false,
               unsorted: true,
             },
-            offset: currentPage * pageSize,
-            paged: true,
-            unpaged: false,
-          },
-          last: !(pagination.hasNext || false),
-          totalPages: totalPages,
-          totalElements: totalElements,
-          size: pageSize,
-          number: currentPage,
-          sort: {
-            empty: true,
-            sorted: false,
-            unsorted: true,
-          },
-          first: !(pagination.hasPrevious || false),
-          numberOfElements: channels.length,
-          empty: channels.length === 0,
-        } as PagedResponse<TvChannel>;
-      }),
-      tap(() => this.setLoading(false)),
-      catchError((error) => this.handleError(error))
-    );
+            first: !(pagination.hasPrevious || false),
+            numberOfElements: channels.length,
+            empty: channels.length === 0,
+          } as PagedResponse<TvChannel>;
+        }),
+        tap(() => this.setLoading(false)),
+        catchError((error) => this.handleError(error))
+      );
   }
 
   /**

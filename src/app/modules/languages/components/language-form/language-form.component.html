@@ -14,63 +14,289 @@
     </div>
   </div>
 
-  <div class="form-container">
+  <!-- Error Alert -->
+  <div *ngIf="error" class="alert alert-danger">
+    <i class="fas fa-exclamation-circle"></i>
+    {{ error }}
+    <button class="btn-close" (click)="error = null">×</button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading && isEditMode" class="loading-spinner">
+    <i class="fas fa-spinner fa-spin"></i>
+    Loading language data...
+  </div>
+
+  <div class="form-container" *ngIf="!loading || !isEditMode">
     <form
       [formGroup]="languageForm"
       (ngSubmit)="onSubmit()"
       class="language-form"
     >
+      <!-- Basic Information Section -->
       <div class="form-section">
-        <div class="form-group">
-          <label for="name">Language Name *</label>
-          <input
-            type="text"
-            id="name"
-            formControlName="name"
-            class="form-control"
-            [class.error]="
-              languageForm.get('name')?.invalid &&
-              languageForm.get('name')?.touched
-            "
-            placeholder="e.g., English"
-          />
-          <div
-            *ngIf="
-              languageForm.get('name')?.invalid &&
-              languageForm.get('name')?.touched
-            "
-            class="error-message"
-          >
-            <small>Language name is required (minimum 2 characters)</small>
+        <h3 class="section-title">Basic Information</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="name">Language Name *</label>
+            <input
+              type="text"
+              id="name"
+              formControlName="name"
+              class="form-control"
+              [class.error]="isFieldInvalid('name')"
+              placeholder="e.g., English"
+            />
+            <div *ngIf="isFieldInvalid('name')" class="error-message">
+              <small>{{ getFieldError("name") }}</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="nativeName">Native Name *</label>
+            <input
+              type="text"
+              id="nativeName"
+              formControlName="nativeName"
+              class="form-control"
+              [class.error]="isFieldInvalid('nativeName')"
+              placeholder="e.g., English"
+            />
+            <div *ngIf="isFieldInvalid('nativeName')" class="error-message">
+              <small>{{ getFieldError("nativeName") }}</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="iso6391">ISO 639-1 Code *</label>
+            <input
+              type="text"
+              id="iso6391"
+              formControlName="iso6391"
+              class="form-control"
+              [class.error]="isFieldInvalid('iso6391')"
+              placeholder="e.g., en"
+              maxlength="2"
+              style="text-transform: lowercase"
+            />
+            <div *ngIf="isFieldInvalid('iso6391')" class="error-message">
+              <small>Must be 2 lowercase letters (e.g., en, ar, fr)</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="iso6392">ISO 639-2 Code</label>
+            <input
+              type="text"
+              id="iso6392"
+              formControlName="iso6392"
+              class="form-control"
+              [class.error]="isFieldInvalid('iso6392')"
+              placeholder="e.g., eng"
+              maxlength="3"
+              style="text-transform: lowercase"
+            />
+            <div *ngIf="isFieldInvalid('iso6392')" class="error-message">
+              <small>Must be 3 lowercase letters (e.g., eng, ara, fra)</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="localeCode">Locale Code</label>
+            <input
+              type="text"
+              id="localeCode"
+              formControlName="localeCode"
+              class="form-control"
+              placeholder="e.g., en_US"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="charset">Character Set *</label>
+            <select id="charset" formControlName="charset" class="form-control">
+              <option value="UTF-8">UTF-8</option>
+              <option value="ISO-8859-1">ISO-8859-1</option>
+              <option value="Windows-1256">Windows-1256 (Arabic)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Currency Section -->
+      <div class="form-section">
+        <h3 class="section-title">Currency & Formatting</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="currencyCode">Currency Code</label>
+            <input
+              type="text"
+              id="currencyCode"
+              formControlName="currencyCode"
+              class="form-control"
+              placeholder="e.g., USD, EUR, DZD"
+              maxlength="3"
+              style="text-transform: uppercase"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="currencySymbol">Currency Symbol</label>
+            <input
+              type="text"
+              id="currencySymbol"
+              formControlName="currencySymbol"
+              class="form-control"
+              placeholder="e.g., $, €, د.ج"
+              maxlength="5"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="decimalSeparator">Decimal Separator</label>
+            <input
+              type="text"
+              id="decimalSeparator"
+              formControlName="decimalSeparator"
+              class="form-control"
+              placeholder="e.g., ."
+              maxlength="1"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="thousandsSeparator">Thousands Separator</label>
+            <input
+              type="text"
+              id="thousandsSeparator"
+              formControlName="thousandsSeparator"
+              class="form-control"
+              placeholder="e.g., ,"
+              maxlength="1"
+            />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dateFormat">Date Format</label>
+            <input
+              type="text"
+              id="dateFormat"
+              formControlName="dateFormat"
+              class="form-control"
+              placeholder="e.g., DD/MM/YYYY"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="timeFormat">Time Format</label>
+            <input
+              type="text"
+              id="timeFormat"
+              formControlName="timeFormat"
+              class="form-control"
+              placeholder="e.g., HH:mm:ss"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Display Settings Section -->
+      <div class="form-section">
+        <h3 class="section-title">Display Settings</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fontFamily">Font Family</label>
+            <input
+              type="text"
+              id="fontFamily"
+              formControlName="fontFamily"
+              class="form-control"
+              placeholder="e.g., Arial, Noto Sans Arabic"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="displayOrder">Display Order</label>
+            <input
+              type="number"
+              id="displayOrder"
+              formControlName="displayOrder"
+              class="form-control"
+              min="0"
+              placeholder="0"
+            />
           </div>
         </div>
 
         <div class="form-group">
-          <label for="code">Language Code *</label>
-          <input
-            type="text"
-            id="code"
-            formControlName="code"
-            class="form-control"
-            [class.error]="
-              languageForm.get('code')?.invalid &&
-              languageForm.get('code')?.touched
-            "
-            placeholder="e.g., EN"
-            maxlength="2"
-            style="text-transform: uppercase"
-          />
-          <div
-            *ngIf="
-              languageForm.get('code')?.invalid &&
-              languageForm.get('code')?.touched
-            "
-            class="error-message"
-          >
-            <small
-              >Language code must be 2 uppercase letters (e.g., EN, AR,
-              FR)</small
+          <label>Flag Image</label>
+          <div class="file-upload-container">
+            <input
+              #flagFileInput
+              type="file"
+              id="flagFile"
+              accept="image/*"
+              (change)="onFileSelected($event)"
+              style="display: none"
+            />
+            <button
+              type="button"
+              class="btn btn-secondary"
+              (click)="flagFileInput.click()"
             >
+              <i class="fas fa-upload"></i>
+              {{ selectedFile ? "Change Flag" : "Upload Flag" }}
+            </button>
+            <span *ngIf="selectedFile" class="file-name">{{
+              selectedFile.name
+            }}</span>
+          </div>
+
+          <div *ngIf="previewUrl" class="flag-preview">
+            <img [src]="previewUrl" alt="Flag preview" />
+            <button
+              type="button"
+              class="btn btn-sm btn-danger"
+              (click)="removeFile()"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-group-checkboxes">
+          <div class="checkbox-group">
+            <input type="checkbox" id="isRtl" formControlName="isRtl" />
+            <label for="isRtl">Right-to-Left (RTL) Language</label>
+          </div>
+
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="isAdminEnabled"
+              formControlName="isAdminEnabled"
+            />
+            <label for="isAdminEnabled">Enable for Admin</label>
+          </div>
+
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="isGuestEnabled"
+              formControlName="isGuestEnabled"
+            />
+            <label for="isGuestEnabled">Enable for Guests</label>
           </div>
         </div>
       </div>
@@ -89,6 +315,7 @@
           class="btn btn-primary"
           [disabled]="languageForm.invalid || submitting"
         >
+          <i *ngIf="submitting" class="fas fa-spinner fa-spin"></i>
           {{
             submitting
               ? "Saving..."

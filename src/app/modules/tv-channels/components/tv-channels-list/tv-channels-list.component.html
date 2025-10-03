@@ -328,6 +328,12 @@
                 ></i>
               </button>
             </th>
+            <th>
+              <button class="sort-btn" (click)="onSortChange('sortOrder')">
+                Sort Order
+                <i class="fas" [class]="'fas ' + getSortIcon('sortOrder')"></i>
+              </button>
+            </th>
 
             <th>
               <button class="sort-btn" (click)="onSortChange('name')">
@@ -337,8 +343,9 @@
             </th>
             <th>Category</th>
             <th>Language</th>
-            <th>Network</th>
+            <!-- <th>network</th> -->
             <th>Status</th>
+            <th>Stream Available</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -359,6 +366,11 @@
             <td>
               <div class="channel-number">
                 <strong>{{ channel.channelNumber }}</strong>
+              </div>
+            </td>
+            <td>
+              <div class="sort-order">
+                <strong>{{ channel.sortOrder }}</strong>
               </div>
             </td>
             <td>
@@ -404,7 +416,7 @@
                 No language
               </span>
             </td>
-            <td>
+            <!-- <td>
               <div class="network-info">
                 <div class="ip-port">
                   <i class="fas fa-globe"></i>
@@ -416,10 +428,20 @@
                   >
                 </div>
               </div>
-            </td>
+            </td> -->
+
             <td>
               <span
                 class="status-badge"
+                [class]="'status-' + getStatusClass(getChannelStatus(channel))"
+              >
+                <i class="fas fa-circle status-indicator"></i>
+                {{ getChannelStatus(channel) | titlecase }}
+              </span>
+            </td>
+            <td>
+              <span
+                class="available-badge"
                 [class]="'status-' + getStatusClass(getChannelStatus(channel))"
               >
                 <i class="fas fa-circle status-indicator"></i>

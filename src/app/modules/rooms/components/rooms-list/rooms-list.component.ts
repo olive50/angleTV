@@ -10,41 +10,11 @@ import {
   RoomType,
   ViewType,
 } from 'src/app/core/models/room.model';
-import { RoomService } from 'src/app/core/services/RoomService ';
+
 import { NotificationService } from 'src/app/core/services/notification.service';
 import { ToastService } from 'src/app/shared/components/toast/toast.service';
-
-// Interfaces pour la réponse Spring Boot
-interface SpringBootPageable {
-  pageNumber: number;
-  pageSize: number;
-  sort: {
-    empty: boolean;
-    sorted: boolean;
-    unsorted: boolean;
-  };
-  offset: number;
-  paged: boolean;
-  unpaged: boolean;
-}
-
-interface SpringBootPageResponse<T> {
-  content: T[];
-  pageable: SpringBootPageable;
-  last: boolean;
-  totalElements: number;
-  totalPages: number;
-  numberOfElements: number;
-  first: boolean;
-  size: number;
-  number: number;
-  sort: {
-    empty: boolean;
-    sorted: boolean;
-    unsorted: boolean;
-  };
-  empty: boolean;
-}
+import { SpringBootPageResponse } from 'src/app/core/models/api-response.model';
+import { RoomService } from 'src/app/core/services/room.service';
 
 @Component({
   selector: 'app-rooms-list',
@@ -63,7 +33,7 @@ export class RoomsListComponent implements OnInit, OnDestroy {
   // UI State
   loading = false;
   error: string | null = null;
-  viewMode: 'grid' | 'list' = 'grid';
+  viewMode: 'grid' | 'list' = 'list'; // Changed default to 'list'
   showAdvancedFilters = false;
 
   // Filters
@@ -79,7 +49,7 @@ export class RoomsListComponent implements OnInit, OnDestroy {
 
   // Pagination - Spring Boot
   currentPage = 0;
-  pageSize = 5;
+  pageSize = 23;
   totalPages = 0;
   totalElements = 0;
   numberOfElements = 0;
@@ -87,7 +57,8 @@ export class RoomsListComponent implements OnInit, OnDestroy {
   isLast = false;
 
   // Sorting
-  sortBy = 'roomNumber';
+  // sortBy = 'roomNumber';
+  sortBy = 'floorNumber';
   sortDirection: 'asc' | 'desc' = 'asc';
 
   // Configuration
@@ -139,7 +110,7 @@ export class RoomsListComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.loadRoomsPaged(); // Utilise la pagination côté serveur
+    this.loadRoomsPaged();
     this.loadStatistics();
 
     // Subscribe to room service observables
@@ -151,7 +122,7 @@ export class RoomsListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe((error) => (this.error = error));
 
-    // Ajouter l'écoute des événements clavier pour la navigation
+    // Add keyboard navigation event listener
     document.addEventListener('keydown', this.onKeyboardNavigation.bind(this));
   }
 
@@ -164,9 +135,8 @@ export class RoomsListComponent implements OnInit, OnDestroy {
     );
   }
 
-  // Data Loading Methods - Utilise la pagination Spring Boot
+  // Data Loading Methods - Uses real RoomService with TvBootHttpResponse
   loadRoomsPaged(): void {
-    this.loading = true;
     const filters = this.buildFilters();
 
     this.roomService
@@ -180,19 +150,16 @@ export class RoomsListComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (response: SpringBootPageResponse<Room>) => {
-          // Mise à jour des données avec la réponse Spring Boot
+          // Update data with Spring Boot response
           this.rooms = response.content;
           this.totalElements = response.totalElements;
           this.totalPages = response.totalPages;
           this.numberOfElements = response.numberOfElements;
-          this.currentPage = response.number; // Spring Boot utilise 'number' pour la page courante
+          this.currentPage = response.number;
           this.isFirst = response.first;
           this.isLast = response.last;
 
-          this.loading = false;
-          this.error = null;
-
-          console.log('Pagination Data from Spring Boot:', {
+          console.log('✅ Rooms loaded successfully:', {
             currentPage: this.currentPage,
             totalPages: this.totalPages,
             totalElements: this.totalElements,
@@ -207,142 +174,21 @@ export class RoomsListComponent implements OnInit, OnDestroy {
           });
         },
         error: (error) => {
-          console.error('Failed to load rooms:', error);
-          this.loading = false;
-          this.error = 'Failed to load rooms. Please try again.';
+          console.error('❌ Failed to load rooms:', error);
 
           this.notificationService.addNotification({
             type: 'error',
             title: 'Failed to Load Rooms',
-            message: 'Unable to load rooms from server.',
+            message:
+              'Unable to load rooms from server. Please check your connection.',
           });
+
+          this.toastService.error(
+            'Unable to load rooms from server',
+            'Connection Error'
+          );
         },
       });
-  }
-
-  // Simulation de l'appel API Spring Boot (remplacez par le vrai appel)
-  private simulateSpringBootApiCall(filters: RoomFilters): any {
-    // Données mock étendues
-    const allRooms: Room[] = this.generateMockRooms();
-
-    // Filtrage
-    let filteredRooms = allRooms.filter((room) => {
-      const matchesSearch =
-        !this.searchTerm ||
-        room.roomNumber.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        room.description
-          .toLowerCase()
-          .includes(this.searchTerm.toLowerCase()) ||
-        room.building.toLowerCase().includes(this.searchTerm.toLowerCase());
-
-      const matchesStatus =
-        !this.statusFilter || room.status === this.statusFilter;
-      const matchesType = !this.typeFilter || room.roomType === this.typeFilter;
-      const matchesFloor =
-        !this.floorFilter || room.floorNumber.toString() === this.floorFilter;
-      const matchesBuilding =
-        !this.buildingFilter || room.building === this.buildingFilter;
-
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesType &&
-        matchesFloor &&
-        matchesBuilding
-      );
-    });
-
-    // Tri
-    filteredRooms.sort((a, b) => {
-      let valueA: any = a[this.sortBy as keyof Room];
-      let valueB: any = b[this.sortBy as keyof Room];
-
-      if (typeof valueA === 'string') {
-        valueA = valueA.toLowerCase();
-        valueB = valueB.toLowerCase();
-      }
-
-      let result = 0;
-      if (valueA < valueB) result = -1;
-      else if (valueA > valueB) result = 1;
-
-      return this.sortDirection === 'desc' ? -result : result;
-    });
-
-    // Pagination
-    const totalElements = filteredRooms.length;
-    const totalPages = Math.ceil(totalElements / this.pageSize);
-    const start = this.currentPage * this.pageSize;
-    const end = start + this.pageSize;
-    const pageContent = filteredRooms.slice(start, end);
-
-    const response: SpringBootPageResponse<Room> = {
-      content: pageContent,
-      pageable: {
-        pageNumber: this.currentPage,
-        pageSize: this.pageSize,
-        sort: { empty: false, sorted: true, unsorted: false },
-        offset: start,
-        paged: true,
-        unpaged: false,
-      },
-      last: this.currentPage >= totalPages - 1,
-      totalElements,
-      totalPages,
-      numberOfElements: pageContent.length,
-      first: this.currentPage === 0,
-      size: this.pageSize,
-      number: this.currentPage,
-      sort: { empty: false, sorted: true, unsorted: false },
-      empty: pageContent.length === 0,
-    };
-
-    // Simuler un délai d'API
-    return new Promise((resolve) => {
-      setTimeout(() => resolve(response), 300);
-    });
-  }
-
-  private generateMockRooms(): Room[] {
-    const rooms: Room[] = [];
-    const roomTypes = [RoomType.STANDARD, RoomType.DELUXE, RoomType.SUITE];
-    const statuses = ['AVAILABLE', 'OCCUPIED', 'MAINTENANCE', 'CLEANING'];
-    const buildings = ['Main Building', 'North Wing', 'South Wing'];
-
-    for (let i = 1; i <= 50; i++) {
-      rooms.push({
-        id: i,
-        roomNumber: `${100 + i}`,
-        roomType: roomTypes[Math.floor(Math.random() * roomTypes.length)],
-        floorNumber: Math.floor((i - 1) / 10) + 1,
-        building: buildings[Math.floor(Math.random() * buildings.length)],
-        capacity: Math.floor(Math.random() * 4) + 1,
-        pricePerNight: 50 + Math.random() * 200,
-        status: statuses[Math.floor(Math.random() * statuses.length)] as any,
-        description: `Room ${100 + i} description`,
-        amenities: ['Wi-Fi', 'TV', 'Air Conditioning'],
-        hasBalcony: Math.random() > 0.5,
-        hasKitchen: Math.random() > 0.7,
-        accessibility: Math.random() > 0.8,
-        viewType: ViewType.CITY,
-        bedType: BedType.QUEEN,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        currentGuest:
-          Math.random() > 0.7
-            ? {
-                name: `Guest ${i}`,
-                checkOut: new Date(
-                  Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000
-                ),
-                email: `guest${i}@email.com`,
-                phone: `+213 555 ${String(i).padStart(3, '0')} 000`,
-              }
-            : undefined,
-      });
-    }
-
-    return rooms;
   }
 
   loadStatistics(): void {
@@ -352,22 +198,23 @@ export class RoomsListComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (stats) => {
           this.statistics = stats;
+          console.log('📊 Statistics loaded:', stats);
         },
         error: (error) => {
           console.error('Failed to load statistics:', error);
-          // Statistiques par défaut
+          // Use fallback statistics
           this.statistics = {
-            total: 50,
-            available: 35,
-            occupied: 10,
-            reserved: 3,
-            maintenance: 1,
+            total: 0,
+            available: 0,
+            occupied: 0,
+            reserved: 0,
+            maintenance: 0,
             outOfOrder: 0,
-            cleaning: 1,
-            occupancy: 70,
-            averagePricePerNight: 125.5,
-            revenueToday: 2850.75,
-            revenueThisMonth: 45230.5,
+            cleaning: 0,
+            occupancy: 0,
+            averagePricePerNight: 0,
+            revenueToday: 0,
+            revenueThisMonth: 0,
             byType: {},
             byFloor: {},
             byStatus: {},
@@ -399,9 +246,8 @@ export class RoomsListComponent implements OnInit, OnDestroy {
     if (this.occupancyFilter) {
       const occupancy =
         this.occupancyFilter === '4' ? 4 : parseInt(this.occupancyFilter);
-      filters.maxOccupancy = occupancy;
+      filters.capacity = occupancy;
     }
-    if (this.hasBalconyFilter) filters.hasBalcony = true;
 
     return filters;
   }
@@ -499,10 +345,6 @@ export class RoomsListComponent implements OnInit, OnDestroy {
     return pages;
   }
 
-  get paginatedRooms(): Room[] {
-    return this.rooms; // Les données sont déjà paginées par Spring Boot
-  }
-
   // Selection Methods
   isRoomSelected(roomId: number): boolean {
     return this.selectedRooms.includes(roomId);
@@ -545,7 +387,7 @@ export class RoomsListComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Navigation au clavier
+  // Keyboard navigation
   onKeyboardNavigation(event: KeyboardEvent): void {
     switch (event.key) {
       case 'ArrowLeft':
@@ -647,25 +489,36 @@ export class RoomsListComponent implements OnInit, OnDestroy {
         'Are you sure you want to delete this room? This action cannot be undone.'
       )
     ) {
-      // Simuler la suppression
-      setTimeout(() => {
-        this.selectedRooms = this.selectedRooms.filter(
-          (roomId) => roomId !== id
-        );
-        this.loadRoomsPaged(); // Recharger les données
-        this.loadStatistics();
+      this.roomService
+        .deleteRoom(id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.selectedRooms = this.selectedRooms.filter(
+              (roomId) => roomId !== id
+            );
+            this.loadRoomsPaged();
+            this.loadStatistics();
 
-        this.notificationService.addNotification({
-          type: 'success',
-          title: 'Room Deleted',
-          message: `Room ${roomNumber} has been successfully deleted`,
+            this.notificationService.addNotification({
+              type: 'success',
+              title: 'Room Deleted',
+              message: `Room ${roomNumber} has been successfully deleted`,
+            });
+
+            this.toastService.success(
+              `Room ${roomNumber} has been successfully deleted`,
+              'Room Deleted'
+            );
+          },
+          error: (error) => {
+            console.error('Failed to delete room:', error);
+            this.toastService.error(
+              `Failed to delete room ${roomNumber}`,
+              'Delete Failed'
+            );
+          },
         });
-
-        this.toastService.success(
-          `Room ${roomNumber} has been successfully deleted`,
-          'Room Deleted'
-        );
-      }, 500);
     }
   }
 
@@ -676,18 +529,34 @@ export class RoomsListComponent implements OnInit, OnDestroy {
     if (confirm(confirmMessage)) {
       const roomsToDelete = this.selectedRooms.length;
 
-      // Simuler la suppression en lot
-      setTimeout(() => {
-        this.selectedRooms = [];
-        this.loadRoomsPaged(); // Recharger les données
-        this.loadStatistics();
+      this.roomService
+        .bulkDelete(this.selectedRooms)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: () => {
+            this.selectedRooms = [];
+            this.loadRoomsPaged();
+            this.loadStatistics();
 
-        this.notificationService.addNotification({
-          type: 'success',
-          title: 'Bulk Delete Completed',
-          message: `Successfully deleted ${roomsToDelete} rooms`,
+            this.notificationService.addNotification({
+              type: 'success',
+              title: 'Bulk Delete Completed',
+              message: `Successfully deleted ${roomsToDelete} rooms`,
+            });
+
+            this.toastService.success(
+              `Successfully deleted ${roomsToDelete} rooms`,
+              'Bulk Delete Completed'
+            );
+          },
+          error: (error) => {
+            console.error('Failed to bulk delete rooms:', error);
+            this.toastService.error(
+              'Failed to delete selected rooms',
+              'Bulk Delete Failed'
+            );
+          },
         });
-      }, 500);
     }
   }
 
@@ -724,6 +593,13 @@ export class RoomsListComponent implements OnInit, OnDestroy {
       'Is Last': this.isLast,
       'Sort By': this.sortBy,
       'Sort Direction': this.sortDirection,
+    });
+
+    // Test API call
+    console.log('🔍 Testing API call...');
+    this.roomService.getRoomStatistics().subscribe({
+      next: (stats) => console.log('📊 API Statistics:', stats),
+      error: (err) => console.error('❌ API Error:', err),
     });
   }
 

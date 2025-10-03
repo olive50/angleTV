@@ -1,57 +1,41 @@
 <div class="rooms-page">
-  <!-- Page Header -->
+  <!-- Header -->
   <div class="page-header">
     <div class="page-header-content">
       <h1 class="page-title">Room Management</h1>
-      <p class="page-subtitle">
-        Manage hotel rooms and their information
-        <span class="status-summary" *ngIf="statistics">
-          • {{ getStatusSummary() }}
-        </span>
-      </p>
-
-      <!-- Quick Navigation Links -->
-      <div class="quick-nav-links">
-        <a
-          routerLink="/rooms"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: true }"
-          class="quick-nav-link"
-        >
-          <i class="fas fa-list"></i>
-          Room List
-        </a>
-        <a
-          routerLink="/rooms/status-management"
-          routerLinkActive="active"
-          class="quick-nav-link"
-        >
-          <i class="fas fa-tasks"></i>
-          Status Management
-        </a>
-        <a routerLink="/rooms/add" class="quick-nav-link">
-          <i class="fas fa-plus"></i>
-          Add Room
-        </a>
-      </div>
+      <p class="page-subtitle">Manage hotel rooms and their information</p>
     </div>
     <div class="page-actions">
-      <button class="btn btn-info me-2" (click)="navigateToStatusManagement()">
-        <i class="fas fa-tasks"></i>
-        Status Management
-      </button>
-      <button class="btn btn-secondary me-2" (click)="exportRooms()">
+      <div class="view-toggle">
+        <button
+          class="btn"
+          [class.btn-primary]="viewMode === 'grid'"
+          [class.btn-outline-primary]="viewMode !== 'grid'"
+          (click)="setViewMode('grid')"
+        >
+          Grid
+        </button>
+        <button
+          class="btn"
+          [class.btn-primary]="viewMode === 'list'"
+          [class.btn-outline-primary]="viewMode !== 'list'"
+          (click)="setViewMode('list')"
+        >
+          List
+        </button>
+      </div>
+      <button class="btn btn-secondary" (click)="exportRooms()">
         <i class="fas fa-download"></i>
         Export
       </button>
-      <button class="btn btn-primary btn-lg" (click)="addRoom()">
+      <button class="btn btn-primary" (click)="addRoom()">
         <i class="fas fa-plus"></i>
         Add Room
       </button>
     </div>
   </div>
 
-  <!-- Statistics Cards -->
+  <!-- Statistics -->
   <div class="stats-row" *ngIf="statistics">
     <div class="stat-card">
       <div class="stat-icon bg-primary">
@@ -91,84 +75,27 @@
         <div class="stat-label">Maintenance</div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon bg-secondary">
-        <i class="fas fa-percentage"></i>
-      </div>
-      <div class="stat-content">
-        <div class="stat-value">
-          {{ statistics.occupancy | number : "1.1-1" }}%
-        </div>
-        <div class="stat-label">Occupancy Rate</div>
-      </div>
-    </div>
   </div>
 
-  <!-- Debug Section - À supprimer en production -->
-  <div
-    class="debug-pagination"
-    style="
-      background: #f8f9fa;
-      padding: 1rem;
-      margin: 1rem 0;
-      border-radius: 8px;
-    "
-    *ngIf="!loading"
-  >
-    <h6>🔍 Spring Boot Pagination Debug:</h6>
-    <div
-      style="
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        font-size: 0.875rem;
-      "
-    >
-      <div>
-        <strong>Current Page:</strong> {{ currentPage + 1 }} / {{ totalPages }}
-      </div>
-      <div><strong>Page Size:</strong> {{ pageSize }}</div>
-      <div><strong>Total Elements:</strong> {{ totalElements }}</div>
-      <div><strong>Elements on Page:</strong> {{ numberOfElements }}</div>
-      <div><strong>Is First:</strong> {{ isFirst ? "YES" : "NO" }}</div>
-      <div><strong>Is Last:</strong> {{ isLast ? "YES" : "NO" }}</div>
-      <div>
-        <strong>Show Pagination:</strong> {{ totalPages > 1 ? "YES" : "NO" }}
-      </div>
-    </div>
-    <button class="btn btn-sm btn-warning mt-2" (click)="testPagination()">
-      Test Pagination Console
-    </button>
-  </div>
-
-  <!-- Filters and Search -->
+  <!-- Filters -->
   <div class="filters-section">
-    <div class="search-bar">
-      <div class="input-group">
-        <span class="input-group-text">
-          <i class="fas fa-search"></i>
-        </span>
-        <input
-          type="text"
-          class="form-control"
-          placeholder="Search by room number or description..."
-          [(ngModel)]="searchTerm"
-          (input)="onSearch()"
-        />
-        <button
-          class="btn btn-outline-secondary"
-          (click)="clearFilters()"
-          *ngIf="hasActiveFilters()"
-        >
-          <i class="fas fa-times"></i>
-          Clear
-        </button>
-      </div>
-    </div>
-
     <div class="filters-row">
+      <div class="search-group">
+        <div class="input-group">
+          <span class="input-group-text">
+            <i class="fas fa-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search rooms..."
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+          />
+        </div>
+      </div>
+
       <div class="filter-group">
-        <label class="filter-label">Status</label>
         <select
           class="form-select"
           [(ngModel)]="statusFilter"
@@ -182,7 +109,6 @@
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">Room Type</label>
         <select
           class="form-select"
           [(ngModel)]="typeFilter"
@@ -196,21 +122,6 @@
       </div>
 
       <div class="filter-group">
-        <label class="filter-label">Floor</label>
-        <select
-          class="form-select"
-          [(ngModel)]="floorFilter"
-          (change)="onFilterChange()"
-        >
-          <option value="">All Floors</option>
-          <option *ngFor="let floor of floors" [value]="floor">
-            Floor {{ floor }}
-          </option>
-        </select>
-      </div>
-
-      <div class="filter-group">
-        <label class="filter-label">Building</label>
         <select
           class="form-select"
           [(ngModel)]="buildingFilter"
@@ -223,68 +134,14 @@
         </select>
       </div>
 
-      <div class="filter-group">
+      <div class="filter-actions">
         <button
-          class="btn btn-outline-primary"
-          (click)="toggleAdvancedFilters()"
+          class="btn btn-outline-secondary"
+          (click)="clearFilters()"
+          *ngIf="hasActiveFilters()"
         >
-          <i class="fas fa-filter"></i>
-          Advanced Filters
+          Clear
         </button>
-      </div>
-    </div>
-
-    <!-- Advanced Filters -->
-    <div class="advanced-filters" *ngIf="showAdvancedFilters">
-      <div class="filters-row">
-        <div class="filter-group">
-          <label class="filter-label">Min Price</label>
-          <input
-            type="number"
-            class="form-control"
-            placeholder="Min price"
-            [(ngModel)]="minPriceFilter"
-            (input)="onFilterChange()"
-          />
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Max Price</label>
-          <input
-            type="number"
-            class="form-control"
-            placeholder="Max price"
-            [(ngModel)]="maxPriceFilter"
-            (input)="onFilterChange()"
-          />
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Max Occupancy</label>
-          <select
-            class="form-select"
-            [(ngModel)]="occupancyFilter"
-            (change)="onFilterChange()"
-          >
-            <option value="">Any</option>
-            <option value="1">1 Guest</option>
-            <option value="2">2 Guests</option>
-            <option value="3">3 Guests</option>
-            <option value="4">4+ Guests</option>
-          </select>
-        </div>
-        <div class="filter-group">
-          <div class="form-check">
-            <input
-              class="form-check-input"
-              type="checkbox"
-              id="balconyFilter"
-              [(ngModel)]="hasBalconyFilter"
-              (change)="onFilterChange()"
-            />
-            <label class="form-check-label" for="balconyFilter">
-              Has Balcony
-            </label>
-          </div>
-        </div>
       </div>
     </div>
   </div>
@@ -306,72 +163,49 @@
     </div>
   </div>
 
-  <!-- Loading State -->
+  <!-- Loading -->
   <div class="loading-state" *ngIf="loading">
-    <div class="d-flex justify-content-center">
-      <div class="spinner-border" role="status">
-        <span class="visually-hidden">Loading...</span>
-      </div>
-    </div>
-    <p class="mt-3 text-muted text-center">Loading rooms...</p>
+    <div class="spinner-border" role="status"></div>
+    <p class="mt-3">Loading rooms...</p>
   </div>
 
-  <!-- Error State -->
+  <!-- Error -->
   <div class="alert alert-danger" *ngIf="error">
     <i class="fas fa-exclamation-triangle me-2"></i>
     {{ error }}
     <button class="btn btn-outline-danger btn-sm ms-2" (click)="retryLoad()">
-      <i class="fas fa-redo"></i>
       Retry
     </button>
   </div>
 
-  <!-- Rooms Content -->
+  <!-- Content -->
   <div class="rooms-content" *ngIf="!loading && !error">
-    <!-- View Controls -->
-    <div class="view-controls">
-      <div class="view-toggle">
-        <button
-          class="btn"
-          [class.btn-primary]="viewMode === 'grid'"
-          [class.btn-outline-primary]="viewMode !== 'grid'"
-          (click)="setViewMode('grid')"
-        >
-          <i class="fas fa-th"></i>
-          Grid
-        </button>
-        <button
-          class="btn"
-          [class.btn-primary]="viewMode === 'list'"
-          [class.btn-outline-primary]="viewMode !== 'list'"
-          (click)="setViewMode('list')"
-        >
-          <i class="fas fa-list"></i>
-          List
-        </button>
+    <!-- Results Info Only -->
+    <div class="results-info-row">
+      <!-- <div class="results-info">
+        {{ numberOfElements }} of {{ totalElements }} rooms
+      </div> -->
+      <div class="pagination-info">
+        <small class="text-muted">
+          Showing {{ numberOfElements }} rooms on page {{ currentPage + 1 }} of
+          {{ totalPages }} ({{ totalElements }} total rooms)
+        </small>
       </div>
-      <div class="results-info">
-        Showing {{ numberOfElements }} of {{ totalElements }} rooms
-        <span *ngIf="totalPages > 1"
-          >(Page {{ currentPage + 1 }} of {{ totalPages }})</span
-        >
-      </div>
-    </div>
 
-    <!-- Grid View -->
-    <div class="rooms-grid" *ngIf="viewMode === 'grid'">
-      <div class="room-card" *ngFor="let room of rooms; trackBy: trackByRoomId">
-        <div class="room-card-header">
-          <div class="room-number">{{ room.roomNumber }}</div>
-          <div class="room-status">
+      <!-- Grid View -->
+      <div class="rooms-grid" *ngIf="viewMode === 'grid'">
+        <div
+          class="room-card"
+          *ngFor="let room of rooms; trackBy: trackByRoomId"
+        >
+          <div class="room-card-header">
+            <div class="room-number">{{ room.roomNumber }}</div>
             <span
               class="badge"
               [ngClass]="'badge-' + getStatusClass(room.status)"
             >
               {{ getStatusLabel(room.status) }}
             </span>
-          </div>
-          <div class="room-select">
             <input
               type="checkbox"
               class="form-check-input"
@@ -379,347 +213,250 @@
               (change)="toggleRoomSelection(room.id)"
             />
           </div>
-        </div>
 
-        <div class="room-card-body">
-          <div class="room-type">{{ getRoomTypeLabel(room.roomType) }}</div>
-          <div class="room-details">
-            <div class="detail-item">
-              <i class="fas fa-building"></i>
-              <span>{{ room.building }}</span>
-            </div>
-            <div class="detail-item">
-              <i class="fas fa-layer-group"></i>
-              <span>Floor {{ room.floorNumber }}</span>
-            </div>
-            <div class="detail-item">
-              <i class="fas fa-users"></i>
-              <span>{{ room.capacity }} guests</span>
-            </div>
-            <div class="detail-item">
-              <i class="fas fa-dollar-sign"></i>
-              <span>{{ room.pricePerNight | currency }}</span>
+          <div class="room-card-body">
+            <div class="room-type">{{ getRoomTypeLabel(room.roomType) }}</div>
+            <div class="room-details">
+              <div class="detail-item">
+                <i class="fas fa-building"></i>
+                <span>{{ room.building }}</span>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-layer-group"></i>
+                <span>Floor {{ room.floorNumber }}</span>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-users"></i>
+                <span>{{ room.capacity }} guests</span>
+              </div>
+              <div class="detail-item">
+                <i class="fas fa-dollar-sign"></i>
+                <span>{{ room.pricePerNight | currency }}</span>
+              </div>
             </div>
           </div>
 
-          <div
-            class="room-amenities"
-            *ngIf="room.amenities && room.amenities.length > 0"
-          >
-            <div class="amenity-tags">
-              <span
-                class="amenity-tag"
-                *ngFor="let amenity of room.amenities.slice(0, 3)"
-              >
-                {{ amenity }}
-              </span>
-              <span class="amenity-more" *ngIf="room.amenities.length > 3">
-                +{{ room.amenities.length - 3 }} more
-              </span>
-            </div>
+          <div class="room-card-actions">
+            <button
+              class="btn btn-sm btn-outline-primary"
+              (click)="viewRoom(room.id)"
+            >
+              View
+            </button>
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              (click)="editRoom(room.id)"
+            >
+              Edit
+            </button>
+            <button
+              class="btn btn-sm btn-outline-danger"
+              (click)="deleteRoom(room.id)"
+            >
+              Delete
+            </button>
           </div>
-
-          <div class="current-guest" *ngIf="room.currentGuest">
-            <div class="guest-info">
-              <i class="fas fa-user me-1"></i>
-              <span>{{ room.currentGuest.name }}</span>
-              <small class="text-muted d-block">
-                Check-out: {{ room.currentGuest.checkOut | date : "short" }}
-              </small>
-            </div>
-          </div>
-        </div>
-
-        <div class="room-card-actions">
-          <button
-            class="btn btn-sm btn-outline-primary"
-            (click)="viewRoom(room.id)"
-          >
-            <i class="fas fa-eye"></i>
-            View
-          </button>
-          <button
-            class="btn btn-sm btn-outline-secondary"
-            (click)="editRoom(room.id)"
-          >
-            <i class="fas fa-edit"></i>
-            Edit
-          </button>
-          <button
-            class="btn btn-sm btn-outline-info"
-            (click)="manageRoomStatus(room.id)"
-          >
-            <i class="fas fa-tasks"></i>
-            Status
-          </button>
         </div>
       </div>
-    </div>
 
-    <!-- List View -->
-    <div class="rooms-table" *ngIf="viewMode === 'list'">
-      <div class="table-responsive">
-        <table class="table table-hover">
-          <thead>
-            <tr>
-              <th>
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  [checked]="allRoomsSelected()"
-                  [indeterminate]="someRoomsSelected()"
-                  (change)="toggleAllRoomsSelection()"
-                />
-              </th>
-              <th (click)="sort('roomNumber')" class="sortable">
-                Room Number
-                <i class="fas" [ngClass]="getSortIcon('roomNumber')"></i>
-              </th>
-              <th (click)="sort('roomType')" class="sortable">
-                Type
-                <i class="fas" [ngClass]="getSortIcon('roomType')"></i>
-              </th>
-              <th (click)="sort('status')" class="sortable">
-                Status
-                <i class="fas" [ngClass]="getSortIcon('status')"></i>
-              </th>
-              <th (click)="sort('floorNumber')" class="sortable">
-                Floor
-                <i class="fas" [ngClass]="getSortIcon('floorNumber')"></i>
-              </th>
-              <th>Building</th>
-              <th (click)="sort('capacity')" class="sortable">
-                Capacity
-                <i class="fas" [ngClass]="getSortIcon('capacity')"></i>
-              </th>
-              <th (click)="sort('pricePerNight')" class="sortable">
-                Price/Night
-                <i class="fas" [ngClass]="getSortIcon('pricePerNight')"></i>
-              </th>
-              <th>Current Guest</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let room of rooms; trackBy: trackByRoomId">
-              <td>
-                <input
-                  type="checkbox"
-                  class="form-check-input"
-                  [checked]="isRoomSelected(room.id)"
-                  (change)="toggleRoomSelection(room.id)"
-                />
-              </td>
-              <td>
-                <strong>{{ room.roomNumber }}</strong>
-              </td>
-              <td>{{ getRoomTypeLabel(room.roomType) }}</td>
-              <td>
-                <span
-                  class="badge"
-                  [ngClass]="'badge-' + getStatusClass(room.status)"
+      <!-- List View -->
+      <div class="rooms-table" *ngIf="viewMode === 'list'">
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [checked]="allRoomsSelected()"
+                    [indeterminate]="someRoomsSelected()"
+                    (change)="toggleAllRoomsSelection()"
+                  />
+                </th>
+                <th (click)="sort('roomNumber')" class="sortable">
+                  Room Number
+                  <i class="fas" [ngClass]="getSortIcon('roomNumber')"></i>
+                </th>
+                <th (click)="sort('roomType')" class="sortable">
+                  Type
+                  <i class="fas" [ngClass]="getSortIcon('roomType')"></i>
+                </th>
+                <th (click)="sort('status')" class="sortable">
+                  Status
+                  <i class="fas" [ngClass]="getSortIcon('status')"></i>
+                </th>
+                <th>Building</th>
+                <th (click)="sort('capacity')" class="sortable">
+                  Capacity
+                  <i class="fas" [ngClass]="getSortIcon('capacity')"></i>
+                </th>
+                <th (click)="sort('pricePerNight')" class="sortable">
+                  Price/Night
+                  <i class="fas" [ngClass]="getSortIcon('pricePerNight')"></i>
+                </th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let room of rooms; trackBy: trackByRoomId">
+                <td>
+                  <input
+                    type="checkbox"
+                    class="form-check-input"
+                    [checked]="isRoomSelected(room.id)"
+                    (change)="toggleRoomSelection(room.id)"
+                  />
+                </td>
+                <td>
+                  <strong>{{ room.roomNumber }}</strong>
+                </td>
+                <td>{{ getRoomTypeLabel(room.roomType) }}</td>
+                <td>
+                  <span
+                    class="badge"
+                    [ngClass]="'badge-' + getStatusClass(room.status)"
+                  >
+                    {{ getStatusLabel(room.status) }}
+                  </span>
+                </td>
+                <td>{{ room.building }}</td>
+                <td>{{ room.capacity }}</td>
+                <td>{{ room.pricePerNight | currency }}</td>
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button
+                      class="btn btn-outline-primary"
+                      (click)="viewRoom(room.id)"
+                    >
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button
+                      class="btn btn-outline-secondary"
+                      (click)="editRoom(room.id)"
+                    >
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button
+                      class="btn btn-outline-danger"
+                      (click)="deleteRoom(room.id)"
+                    >
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrapper" *ngIf="totalPages > 1">
+        <div class="pagination-controls"></div>
+
+        <div class="pagination-main">
+          <nav aria-label="Room pagination">
+            <ul class="pagination">
+              <!-- First Page Button -->
+              <li class="page-item" [class.disabled]="isFirst">
+                <button
+                  class="page-link"
+                  (click)="goToPage(0)"
+                  [disabled]="isFirst"
                 >
-                  {{ getStatusLabel(room.status) }}
-                </span>
-              </td>
-              <td>{{ room.floorNumber }}</td>
-              <td>{{ room.building }}</td>
-              <td>
-                <i class="fas fa-users me-1"></i>
-                {{ room.capacity }}
-              </td>
-              <td>{{ room.pricePerNight | currency }}</td>
-              <td>
-                <div *ngIf="room.currentGuest; else noGuest">
-                  <div class="fw-bold">{{ room.currentGuest.name }}</div>
-                  <small class="text-muted">
-                    Until {{ room.currentGuest.checkOut | date : "short" }}
-                  </small>
-                </div>
-                <ng-template #noGuest>
-                  <span class="text-muted">-</span>
-                </ng-template>
-              </td>
-              <td>
-                <div class="btn-group btn-group-sm">
-                  <button
-                    class="btn btn-outline-primary"
-                    (click)="viewRoom(room.id)"
-                    title="View Details"
-                  >
-                    <i class="fas fa-eye"></i>
-                  </button>
-                  <button
-                    class="btn btn-outline-secondary"
-                    (click)="editRoom(room.id)"
-                    title="Edit Room"
-                  >
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button
-                    class="btn btn-outline-info"
-                    (click)="manageRoomStatus(room.id)"
-                    title="Manage Status"
-                  >
-                    <i class="fas fa-tasks"></i>
-                  </button>
-                  <button
-                    class="btn btn-outline-danger"
-                    (click)="deleteRoom(room.id)"
-                    title="Delete Room"
-                  >
-                    <i class="fas fa-trash"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                  First
+                </button>
+              </li>
+              <!-- Previous Button -->
+              <li class="page-item" [class.disabled]="isFirst">
+                <button
+                  class="page-link"
+                  (click)="goToPage(currentPage - 1)"
+                  [disabled]="isFirst"
+                >
+                  Previous
+                </button>
+              </li>
+              <!-- Page Numbers -->
+              <li
+                class="page-item"
+                *ngFor="
+                  let page of getVisiblePages();
+                  trackBy: trackByPageNumber
+                "
+                [class.active]="page === currentPage"
+              >
+                <button class="page-link" (click)="goToPage(page)">
+                  {{ page + 1 }}
+                </button>
+              </li>
+              <!-- Next Button -->
+              <li class="page-item" [class.disabled]="isLast">
+                <button
+                  class="page-link"
+                  (click)="goToPage(currentPage + 1)"
+                  [disabled]="isLast"
+                >
+                  Next
+                </button>
+              </li>
+              <!-- Last Page Button -->
+              <li class="page-item" [class.disabled]="isLast">
+                <button
+                  class="page-link"
+                  (click)="goToPage(totalPages - 1)"
+                  [disabled]="isLast"
+                >
+                  Last
+                </button>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="page-size-selector">
+            <label class="form-label">Items per page:</label>
+            <select
+              class="form-select"
+              [(ngModel)]="pageSize"
+              (change)="onPageSizeChange()"
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="12">12</option>
+              <option value="20">20</option>
+              <option value="23">23</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Pagination -->
-    <div class="pagination-wrapper" *ngIf="totalPages > 1">
-      <div class="pagination-info text-center mb-3">
-        <small class="text-muted">
-          Showing {{ numberOfElements }} rooms on page {{ currentPage + 1 }} of
-          {{ totalPages }} ({{ totalElements }} total rooms)
-        </small>
-      </div>
-
-      <nav aria-label="Room pagination">
-        <ul class="pagination justify-content-center">
-          <!-- First Page Button -->
-          <li class="page-item" [class.disabled]="isFirst">
-            <button
-              class="page-link"
-              (click)="goToPage(0)"
-              [disabled]="isFirst"
-              title="First Page"
-            >
-              <i class="fas fa-angle-double-left"></i>
-            </button>
-          </li>
-
-          <!-- Previous Button -->
-          <li class="page-item" [class.disabled]="isFirst">
-            <button
-              class="page-link"
-              (click)="goToPage(currentPage - 1)"
-              [disabled]="isFirst"
-              title="Previous Page"
-            >
-              <i class="fas fa-chevron-left"></i>
-            </button>
-          </li>
-
-          <!-- Page Numbers -->
-          <li
-            class="page-item"
-            *ngFor="let page of getVisiblePages(); trackBy: trackByPageNumber"
-            [class.active]="page === currentPage"
-          >
-            <button
-              class="page-link"
-              (click)="goToPage(page)"
-              [title]="'Go to page ' + (page + 1)"
-            >
-              {{ page + 1 }}
-            </button>
-          </li>
-
-          <!-- Next Button -->
-          <li class="page-item" [class.disabled]="isLast">
-            <button
-              class="page-link"
-              (click)="goToPage(currentPage + 1)"
-              [disabled]="isLast"
-              title="Next Page"
-            >
-              <i class="fas fa-chevron-right"></i>
-            </button>
-          </li>
-
-          <!-- Last Page Button -->
-          <li class="page-item" [class.disabled]="isLast">
-            <button
-              class="page-link"
-              (click)="goToPage(totalPages - 1)"
-              [disabled]="isLast"
-              title="Last Page"
-            >
-              <i class="fas fa-angle-double-right"></i>
-            </button>
-          </li>
-        </ul>
-      </nav>
-
-      <!-- Page Size Selector -->
-      <div class="page-size-selector text-center mt-3">
-        <label class="form-label me-2" style="font-size: 0.875rem"
-          >Items per page:</label
-        >
-        <select
-          class="form-select d-inline-block"
-          style="width: auto; font-size: 0.875rem"
-          [(ngModel)]="pageSize"
-          (change)="onPageSizeChange()"
-        >
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="20">20</option>
-          <option value="50">50</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Message si une seule page -->
-    <div
-      class="pagination-summary text-center text-muted mt-3"
-      *ngIf="totalPages <= 1 && totalElements > 0"
-    >
-      <small>Showing all {{ totalElements }} rooms on one page</small>
-    </div>
-
-    <!-- Empty State avec filtres actifs -->
+    <!-- Empty States -->
     <div
       class="empty-state"
       *ngIf="numberOfElements === 0 && totalElements > 0"
     >
-      <div class="empty-state-content">
-        <i class="fas fa-search empty-state-icon"></i>
-        <h3 class="empty-state-title">No rooms found</h3>
-        <p class="empty-state-description">
-          No rooms match your current search criteria or filters.
-        </p>
-        <button class="btn btn-outline-primary" (click)="clearFilters()">
-          <i class="fas fa-times me-2"></i>
-          Clear All Filters
-        </button>
-      </div>
+      <i class="fas fa-search empty-state-icon"></i>
+      <h3 class="empty-state-title">No rooms found</h3>
+      <p class="empty-state-description">
+        No rooms match your current search criteria.
+      </p>
+      <button class="btn btn-outline-primary" (click)="clearFilters()">
+        Clear Filters
+      </button>
     </div>
 
-    <!-- No Rooms State (base de données vide) -->
     <div class="empty-state" *ngIf="totalElements === 0 && !loading">
-      <div class="empty-state-content">
-        <i class="fas fa-bed empty-state-icon"></i>
-        <h3 class="empty-state-title">No rooms available</h3>
-        <p class="empty-state-description">
-          Start by adding your first room to the system.
-        </p>
-        <button class="btn btn-primary" (click)="addRoom()">
-          <i class="fas fa-plus me-2"></i>
-          Add First Room
-        </button>
-      </div>
+      <i class="fas fa-bed empty-state-icon"></i>
+      <h3 class="empty-state-title">No rooms available</h3>
+      <p class="empty-state-description">
+        Start by adding your first room to the system.
+      </p>
+      <button class="btn btn-primary" (click)="addRoom()">
+        Add First Room
+      </button>
     </div>
-  </div>
-
-  <!-- Keyboard Navigation Hint (Optional) -->
-  <div class="keyboard-hint text-center text-muted mt-4" *ngIf="totalPages > 1">
-    <small>
-      <i class="fas fa-keyboard me-1"></i>
-      Use arrow keys for navigation: ← → for pages, Home/End for first/last
-    </small>
   </div>
 </div>

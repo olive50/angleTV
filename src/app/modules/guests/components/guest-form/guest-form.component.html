@@ -1,18 +1,57 @@
 <div class="guest-form-container">
   <div class="page-header">
     <div class="page-header-content">
-      <h1 class="page-title">
-        {{ isEditMode ? "Edit Guest" : "Add New Guest" }}
-      </h1>
-      <p class="page-subtitle">
-        {{ isEditMode ? "Update guest information" : "Enter guest details" }}
-      </p>
+      <h1 class="page-title">{{ pageTitle }}</h1>
+      <p class="page-subtitle">{{ pageSubtitle }}</p>
     </div>
   </div>
 
-  <div class="form-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+      <span>Loading guest data...</span>
+    </div>
+  </div>
+
+  <!-- Form Container -->
+  <div class="form-container" *ngIf="!loading">
     <form [formGroup]="guestForm" (ngSubmit)="onSubmit()">
+      <!-- Basic Information Section -->
       <div class="form-section">
+        <h3>Basic Information</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pmsGuestId">Guest ID</label>
+            <input
+              type="text"
+              id="pmsGuestId"
+              formControlName="pmsGuestId"
+              class="form-control"
+              [class.error]="isFieldInvalid('pmsGuestId')"
+              placeholder="Leave empty for auto-generation"
+            />
+            <div class="error-message" *ngIf="isFieldInvalid('pmsGuestId')">
+              {{ getFieldError("pmsGuestId") }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="nationality">Nationality</label>
+            <input
+              type="text"
+              id="nationality"
+              formControlName="nationality"
+              class="form-control"
+              [class.error]="isFieldInvalid('nationality')"
+              placeholder="Algeria"
+            />
+            <div class="error-message" *ngIf="isFieldInvalid('nationality')">
+              {{ getFieldError("nationality") }}
+            </div>
+          </div>
+        </div>
+
         <div class="form-row">
           <div class="form-group">
             <label for="firstName">First Name *</label>
@@ -21,8 +60,12 @@
               id="firstName"
               formControlName="firstName"
               class="form-control"
+              [class.error]="isFieldInvalid('firstName')"
               placeholder="Ahmed"
             />
+            <div class="error-message" *ngIf="isFieldInvalid('firstName')">
+              {{ getFieldError("firstName") }}
+            </div>
           </div>
           <div class="form-group">
             <label for="lastName">Last Name *</label>
@@ -31,69 +74,168 @@
               id="lastName"
               formControlName="lastName"
               class="form-control"
+              [class.error]="isFieldInvalid('lastName')"
               placeholder="Ben Ali"
             />
+            <div class="error-message" *ngIf="isFieldInvalid('lastName')">
+              {{ getFieldError("lastName") }}
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- Contact Information Section -->
+      <div class="form-section">
+        <h3>Contact Information</h3>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="email">Email *</label>
+            <label for="email">Email</label>
             <input
               type="email"
               id="email"
               formControlName="email"
               class="form-control"
+              [class.error]="isFieldInvalid('email')"
               placeholder="ahmed@example.com"
             />
+            <div class="error-message" *ngIf="isFieldInvalid('email')">
+              {{ getFieldError("email") }}
+            </div>
           </div>
           <div class="form-group">
-            <label for="phone">Phone *</label>
+            <label for="phone">Phone</label>
             <input
               type="tel"
               id="phone"
               formControlName="phone"
               class="form-control"
+              [class.error]="isFieldInvalid('phone')"
               placeholder="+213555123456"
             />
+            <div class="error-message" *ngIf="isFieldInvalid('phone')">
+              {{ getFieldError("phone") }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personal Details Section -->
+      <div class="form-section">
+        <h3>Personal Details</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="dateOfBirth">Date of Birth</label>
+            <input
+              type="date"
+              id="dateOfBirth"
+              formControlName="dateOfBirth"
+              class="form-control"
+              [class.error]="isFieldInvalid('dateOfBirth')"
+            />
+            <div class="error-message" *ngIf="isFieldInvalid('dateOfBirth')">
+              {{ getFieldError("dateOfBirth") }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="gender">Gender</label>
+            <select
+              id="gender"
+              formControlName="gender"
+              class="form-control"
+              [class.error]="isFieldInvalid('gender')"
+            >
+              <option value="">Select Gender</option>
+              <option
+                *ngFor="let gender of genderOptions"
+                [value]="gender.value"
+              >
+                {{ gender.label }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="isFieldInvalid('gender')">
+              {{ getFieldError("gender") }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hotel Information Section -->
+      <div class="form-section">
+        <h3>Hotel Information</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="loyaltyLevel">Loyalty Level</label>
+            <select
+              id="loyaltyLevel"
+              formControlName="loyaltyLevel"
+              class="form-control"
+              [class.error]="isFieldInvalid('loyaltyLevel')"
+            >
+              <option *ngFor="let level of loyaltyLevels" [value]="level.value">
+                {{ level.label }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="isFieldInvalid('loyaltyLevel')">
+              {{ getFieldError("loyaltyLevel") }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="languageId">Preferred Language</label>
+            <select
+              id="languageId"
+              formControlName="languageId"
+              class="form-control"
+              [class.error]="isFieldInvalid('languageId')"
+            >
+              <option value="">Select Language</option>
+              <option *ngFor="let language of languages" [value]="language.id">
+                {{ language.name }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="isFieldInvalid('languageId')">
+              {{ getFieldError("languageId") }}
+            </div>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="nationality">Nationality *</label>
-            <input
-              type="text"
-              id="nationality"
-              formControlName="nationality"
+            <label for="roomId">Assigned Room</label>
+            <select
+              id="roomId"
+              formControlName="roomId"
               class="form-control"
-              placeholder="Algeria"
-            />
+              [class.error]="isFieldInvalid('roomId')"
+            >
+              <option value="">No Room Assigned</option>
+              <option *ngFor="let room of rooms" [value]="room.id">
+                Room {{ room.roomNumber }} ({{ room.roomType }})
+              </option>
+            </select>
+            <div class="error-message" *ngIf="isFieldInvalid('roomId')">
+              {{ getFieldError("roomId") }}
+            </div>
           </div>
           <div class="form-group">
-            <label for="loyaltyLevel">Loyalty Level *</label>
-            <select
-              id="loyaltyLevel"
-              formControlName="loyaltyLevel"
-              class="form-control"
-            >
-              <option value="BRONZE">Bronze</option>
-              <option value="SILVER">Silver</option>
-              <option value="GOLD">Gold</option>
-              <option value="PLATINUM">Platinum</option>
-              <option value="DIAMOND">Diamond</option>
-            </select>
+            <div class="checkbox-group">
+              <label class="checkbox-label">
+                <input
+                  type="checkbox"
+                  formControlName="vipStatus"
+                  class="checkbox-input"
+                />
+                <span class="checkbox-text">VIP Status</span>
+              </label>
+              <small class="help-text">Grant VIP privileges and services</small>
+            </div>
           </div>
-        </div>
-
-        <div class="form-group">
-          <label>
-            <input type="checkbox" formControlName="vipStatus" />
-            VIP Status
-          </label>
         </div>
       </div>
 
+      <!-- Form Actions -->
       <div class="form-actions">
         <button
           type="button"
@@ -108,13 +250,8 @@
           class="btn btn-primary"
           [disabled]="guestForm.invalid || submitting"
         >
-          {{
-            submitting
-              ? "Saving..."
-              : isEditMode
-              ? "Update Guest"
-              : "Create Guest"
-          }}
+          <i class="fas fa-spinner fa-spin" *ngIf="submitting"></i>
+          {{ submitButtonText }}
         </button>
       </div>
     </form>

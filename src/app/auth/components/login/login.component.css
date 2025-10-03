@@ -4,7 +4,16 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  /* background: ; */
+  background-image: url("assets/images/2024-smart-tv-08-samsung-tv-apps-f01-kv-pc.webp") ;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center center;
+  height: 100vh; /* Ensures the body covers the full viewport height */
+  margin: 0; /* Removes default body margin */
+ 
+  /* background-color: #cccccc; */
   padding: 20px;
   position: relative;
   overflow: hidden;

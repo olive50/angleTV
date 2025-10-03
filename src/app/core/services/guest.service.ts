@@ -1,124 +1,346 @@
-// src/app/core/services/guest.service.ts
+// File: src/app/modules/guests/services/guest.service.ts
 import { Injectable } from '@angular/core';
-import { HttpParams } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
-import { tap } from 'rxjs/operators';
-import { BaseApiService } from './base-api.service';
-import { Guest, LoyaltyLevel, ReservationStatus } from '../models/guest.model';
-import { PagedApiResponse } from '../models/api-response.model';
-
-export interface GuestFilters {
-  search?: string;
-  status?: ReservationStatus;
-  vipStatus?: boolean;
-  loyaltyLevel?: LoyaltyLevel;
-  roomId?: number;
-}
-
-export interface GuestCreateRequest {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  nationality: string;
-  idNumber: string;
-  vipStatus?: boolean;
-  loyaltyLevel?: LoyaltyLevel;
-}
+import {
+  HttpClient,
+  HttpParams,
+  HttpErrorResponse,
+} from '@angular/common/http';
+import { Observable, BehaviorSubject, throwError } from 'rxjs';
+import { tap, catchError, map } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
+import {
+  Gender,
+  Guest,
+  GuestCreateDto,
+  GuestSearchDto,
+  GuestStatistics,
+  GuestUpdateDto,
+  LoyaltyLevel,
+  PaginatedResponse,
+  TvBootHttpResponse,
+} from '../models/guest.model';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class GuestService extends BaseApiService {
+export class GuestService {
+  private readonly baseUrl = `${environment.apiUrl}/v1/guests`;
+
   private guestsSubject = new BehaviorSubject<Guest[]>([]);
   public guests$ = this.guestsSubject.asObservable();
 
   private loadingSubject = new BehaviorSubject<boolean>(false);
   public loading$ = this.loadingSubject.asObservable();
 
-  getAllGuests(forceRefresh = false): Observable<Guest[]> {
+  private statisticsSubject = new BehaviorSubject<GuestStatistics | null>(null);
+  public statistics$ = this.statisticsSubject.asObservable();
+
+  constructor(private http: HttpClient) {}
+
+  /**
+   * Create a default empty pagination response
+   */
+  private createEmptyPaginationResponse(
+    page: number = 0,
+    size: number = 10
+  ): PaginatedResponse<Guest> {
+    return {
+      content: [],
+      totalElements: 0,
+      totalPages: 0,
+      size: size,
+      number: page,
+      numberOfElements: 0,
+      first: true,
+      last: true,
+      empty: true,
+    };
+  }
+
+  /**
+   * Get all guests (non-paginated)
+   */
+  getAllGuests(): Observable<Guest[]> {
     this.loadingSubject.next(true);
-    
-    return this.get<Guest[]>('/guests').pipe(
-      tap(guests => {
+
+    return this.http.get<TvBootHttpResponse>(`${this.baseUrl}/list`).pipe(
+      map((response) => response.data?.['guests'] || []),
+      tap((guests) => {
         this.guestsSubject.next(guests);
         this.loadingSubject.next(false);
-      })
+      }),
+      catchError(this.handleError.bind(this))
     );
   }
 
+  /**
+   * Get paginated guests
+   */
   getGuestsPaged(
     page = 0,
-    size = 20,
-    sortBy = 'lastName',
-    sortDir = 'asc',
-    filters?: GuestFilters
-  ): Observable<PagedApiResponse<Guest>['data']> {
-    let params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString())
-      .set('sort', `${sortBy},${sortDir}`);
-
-    if (filters) {
-      if (filters.search) params = params.set('search', filters.search);
-      if (filters.status) params = params.set('status', filters.status);
-      if (filters.vipStatus !== undefined) params = params.set('vipStatus', filters.vipStatus.toString());
-      if (filters.loyaltyLevel) params = params.set('loyaltyLevel', filters.loyaltyLevel);
-      if (filters.roomId) params = params.set('roomId', filters.roomId.toString());
-    }
-
+    size = 10,
+    sortBy = 'firstName',
+    sortDir = 'asc'
+  ): Observable<PaginatedResponse<Guest>> {
     this.loadingSubject.next(true);
 
-    return this.getPagedData<Guest>('/guests/paged', params).pipe(
-      tap(() => this.loadingSubject.next(false))
-    );
-  }
-
-  getGuestById(id: number): Observable<Guest> {
-    return this.get<Guest>(`/guests/${id}`);
-  }
-
-  createGuest(guest: GuestCreateRequest): Observable<Guest> {
-    return this.post<Guest>('/guests', guest).pipe(
-      tap(() => this.refreshGuests())
-    );
-  }
-
-  updateGuest(id: number, guest: Partial<Guest>): Observable<Guest> {
-    return this.put<Guest>(`/guests/${id}`, guest).pipe(
-      tap(() => this.refreshGuests())
-    );
-  }
-
-  deleteGuest(id: number): Observable<void> {
-    return this.delete<void>(`/guests/${id}`).pipe(
-      tap(() => this.refreshGuests())
-    );
-  }
-
-  // Actions spécifiques aux guests
-  checkIn(guestId: number, roomId: number, checkInData?: any): Observable<Guest> {
-    return this.post<Guest>(`/guests/${guestId}/checkin`, { roomId, ...checkInData }).pipe(
-      tap(() => this.refreshGuests())
-    );
-  }
-
-  checkOut(guestId: number, checkOutData?: any): Observable<Guest> {
-    return this.post<Guest>(`/guests/${guestId}/checkout`, checkOutData).pipe(
-      tap(() => this.refreshGuests())
-    );
-  }
-
-  searchGuests(query: string, page = 0, size = 20): Observable<PagedApiResponse<Guest>['data']> {
     const params = new HttpParams()
-      .set('q', query)
       .set('page', page.toString())
-      .set('size', size.toString());
+      .set('size', size.toString())
+      .set('sortBy', sortBy)
+      .set('sortDir', sortDir);
 
-    return this.getPagedData<Guest>('/guests/search', params);
+    return this.http
+      .get<TvBootHttpResponse>(`${this.baseUrl}/paged`, { params })
+      .pipe(
+        map((response) => {
+          try {
+            const guests = response.data?.['guests'] || [];
+            const pagination = response.data?.['pagination'] || {};
+
+            const result: PaginatedResponse<Guest> = {
+              content: guests,
+              totalElements: Number(pagination.total) || 0,
+              totalPages: Number(pagination.totalPages) || 1,
+              size: Number(pagination.size) || size,
+              number: Number(pagination.page) || page,
+              numberOfElements: guests.length,
+              first: (Number(pagination.page) || 0) === 0,
+              last: !(pagination.hasNext === true),
+              empty: guests.length === 0,
+            };
+
+            return result;
+          } catch (error) {
+            console.error('Error mapping pagination response:', error);
+            return this.createEmptyPaginationResponse(page, size);
+          }
+        }),
+        tap(() => this.loadingSubject.next(false)),
+        catchError((error) => {
+          this.loadingSubject.next(false);
+          console.error('Error in getGuestsPaged:', error);
+          return [this.createEmptyPaginationResponse(page, size)];
+        })
+      );
   }
 
-  private refreshGuests(): void {
-    this.getAllGuests(true).subscribe();
+  /**
+   * Search guests with advanced criteria
+   */
+  searchGuests(
+    searchDto: GuestSearchDto
+  ): Observable<PaginatedResponse<Guest>> {
+    this.loadingSubject.next(true);
+
+    return this.http
+      .post<TvBootHttpResponse>(`${this.baseUrl}/search`, searchDto)
+      .pipe(
+        map((response) => {
+          try {
+            const guests = response.data?.['guests'] || [];
+            const pagination = response.data?.['pagination'] || {};
+
+            const result: PaginatedResponse<Guest> = {
+              content: guests,
+              totalElements: Number(pagination.total) || 0,
+              totalPages: Number(pagination.totalPages) || 1,
+              size: Number(pagination.size) || searchDto.size || 10,
+              number: Number(pagination.page) || searchDto.page || 0,
+              numberOfElements: guests.length,
+              first: (Number(pagination.page) || 0) === 0,
+              last: !(pagination.hasNext === true),
+              empty: guests.length === 0,
+            };
+
+            return result;
+          } catch (error) {
+            console.error('Error mapping search response:', error);
+            return this.createEmptyPaginationResponse(
+              searchDto.page || 0,
+              searchDto.size || 10
+            );
+          }
+        }),
+        tap(() => this.loadingSubject.next(false)),
+        catchError((error) => {
+          this.loadingSubject.next(false);
+          console.error('Error in searchGuests:', error);
+          return [
+            this.createEmptyPaginationResponse(
+              searchDto.page || 0,
+              searchDto.size || 10
+            ),
+          ];
+        })
+      );
+  }
+
+  /**
+   * Get guest by ID
+   */
+  getGuestById(id: number): Observable<Guest> {
+    return this.http.get<TvBootHttpResponse>(`${this.baseUrl}/${id}`).pipe(
+      map((response) => response.data?.['guest']),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  /**
+   * Get guest by PMS guest ID
+   */
+  getGuestByPmsId(pmsGuestId: string): Observable<Guest> {
+    return this.http
+      .get<TvBootHttpResponse>(`${this.baseUrl}/pms-id/${pmsGuestId}`)
+      .pipe(
+        map((response) => response.data?.['guest']),
+        catchError(this.handleError.bind(this))
+      );
+  }
+
+  /**
+   * Get VIP guests
+   */
+  getVipGuests(): Observable<Guest[]> {
+    return this.http.get<TvBootHttpResponse>(`${this.baseUrl}/vip`).pipe(
+      map((response) => response.data?.['guests'] || []),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  /**
+   * Get guests by room
+   */
+  getGuestsByRoom(roomId: number): Observable<Guest[]> {
+    return this.http
+      .get<TvBootHttpResponse>(`${this.baseUrl}/room/${roomId}`)
+      .pipe(
+        map((response) => response.data?.['guests'] || []),
+        catchError(this.handleError.bind(this))
+      );
+  }
+
+  /**
+   * Create new guest
+   */
+  createGuest(guestDto: GuestCreateDto): Observable<Guest> {
+    return this.http.post<TvBootHttpResponse>(`${this.baseUrl}`, guestDto).pipe(
+      map((response) => response.data?.['guest']),
+      tap(() => this.refreshGuestsList()),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  /**
+   * Update existing guest
+   */
+  updateGuest(id: number, guestDto: GuestUpdateDto): Observable<Guest> {
+    return this.http
+      .put<TvBootHttpResponse>(`${this.baseUrl}/${id}`, guestDto)
+      .pipe(
+        map((response) => response.data?.['guest']),
+        tap(() => this.refreshGuestsList()),
+        catchError(this.handleError.bind(this))
+      );
+  }
+
+  /**
+   * Delete guest
+   */
+  deleteGuest(id: number): Observable<void> {
+    return this.http.delete<TvBootHttpResponse>(`${this.baseUrl}/${id}`).pipe(
+      map(() => void 0),
+      tap(() => this.refreshGuestsList()),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  /**
+   * Update VIP status
+   */
+  updateVipStatus(id: number, vipStatus: boolean): Observable<Guest> {
+    const params = new HttpParams().set('vipStatus', vipStatus.toString());
+
+    return this.http
+      .patch<TvBootHttpResponse>(`${this.baseUrl}/${id}/vip-status`, null, {
+        params,
+      })
+      .pipe(
+        map((response) => response.data?.['guest']),
+        tap(() => this.refreshGuestsList()),
+        catchError(this.handleError.bind(this))
+      );
+  }
+
+  /**
+   * Get guest statistics
+   */
+  getGuestStatistics(): Observable<GuestStatistics> {
+    return this.http.get<TvBootHttpResponse>(`${this.baseUrl}/statistics`).pipe(
+      map((response) => response.data?.['statistics']),
+      tap((stats) => this.statisticsSubject.next(stats)),
+      catchError(this.handleError.bind(this))
+    );
+  }
+
+  /**
+   * Refresh the guests list
+   */
+  private refreshGuestsList(): void {
+    this.getAllGuests().subscribe();
+  }
+
+  /**
+   * Handle HTTP errors
+   */
+  private handleError(error: HttpErrorResponse): Observable<never> {
+    this.loadingSubject.next(false);
+
+    let errorMessage = 'An unknown error occurred';
+
+    if (error.error instanceof ErrorEvent) {
+      // Client-side error
+      errorMessage = `Client Error: ${error.error.message}`;
+    } else {
+      // Server-side error
+      if (error.error?.message) {
+        errorMessage = error.error.message;
+      } else if (error.error?.developerMessage) {
+        errorMessage = error.error.developerMessage;
+      } else {
+        errorMessage = `Server Error: ${error.status} - ${error.statusText}`;
+      }
+    }
+
+    console.error('Guest Service Error:', errorMessage, error);
+    return throwError(() => new Error(errorMessage));
+  }
+
+  /**
+   * Utility method to get loyalty level options
+   */
+  getLoyaltyLevels(): Array<{
+    value: LoyaltyLevel;
+    label: string;
+    class: string;
+  }> {
+    return [
+      { value: LoyaltyLevel.BRONZE, label: 'Bronze', class: 'bronze' },
+      { value: LoyaltyLevel.SILVER, label: 'Silver', class: 'silver' },
+      { value: LoyaltyLevel.GOLD, label: 'Gold', class: 'gold' },
+      { value: LoyaltyLevel.PLATINUM, label: 'Platinum', class: 'platinum' },
+      { value: LoyaltyLevel.DIAMOND, label: 'Diamond', class: 'diamond' },
+    ];
+  }
+
+  /**
+   * Utility method to get gender options
+   */
+  getGenderOptions(): Array<{ value: Gender; label: string }> {
+    return [
+      { value: Gender.MALE, label: 'Male' },
+      { value: Gender.FEMALE, label: 'Female' },
+      { value: Gender.OTHER, label: 'Other' },
+    ];
   }
 }
